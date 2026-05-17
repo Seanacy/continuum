@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
@@ -10,8 +10,8 @@ import { messageSchema } from '@/lib/validations'
 
 export const dynamic = 'force-dynamic'
 
-const CONTEXT_WINDOW = 20 // last N messages sent to LLM
-const EXTRACTION_INTERVAL = 10 // extract memories every N messages
+const CONTEXT_WINDOW = 20
+const EXTRACTION_INTERVAL = 10
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
@@ -28,23 +28,24 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { content, threadId } = parsed.data
+  const { content, threadId, image, imageType } = parsed.data
 
   try {
-    // 1. Update energy state (silent, no LLM call)
+    // 1. Update energy state
     await updateUserEnergy(user.id, content)
 
-    // 2. Save user message
+    // 2. Save user message (text only — images aren't stored in DB)
+    const messageContent = image ? `[Sent an image] ${content}` : content
     await db.message.create({
       data: {
         userId: user.id,
         role: 'user',
-        content,
+        content: messageContent,
         threadId,
       },
     })
 
-    // 3. Get recent message history for context
+    // 3. Get recent message history
     const recentMessages = await db.message.findMany({
       where: {
         userId: user.id,
@@ -54,15 +55,34 @@ export async function POST(req: NextRequest) {
       take: CONTEXT_WINDOW,
     })
 
-    // Reverse to chronological order
+    // Build history — all past messages as plain text
     const history: LLMMessage[] = recentMessages
       .reverse()
+      .slice(0, -1) // exclude the message we just saved (we'll add it with the image)
       .map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       }))
 
-    // 4. Build system prompt (personality + memory + rules)
+    // Add the current message (with image if present)
+    if (image && imageType) {
+      const contentBlocks: LLMContentBlock[] = [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: imageType,
+            data: image,
+          },
+        },
+        { type: 'text', text: content },
+      ]
+      history.push({ role: 'user', content: contentBlocks })
+    } else {
+      history.push({ role: 'user', content })
+    }
+
+    // 4. Build system prompt
     const systemPrompt = await buildSystemPrompt({
       userId: user.id,
       aiName: user.aiName || 'Your AI',
@@ -85,7 +105,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // 7. Update AI state (last active)
+    // 7. Update AI state
     await db.aiState.update({
       where: { userId: user.id },
       data: { lastActiveAt: new Date() },
@@ -95,21 +115,21 @@ export async function POST(req: NextRequest) {
     await db.interaction.create({
       data: {
         userId: user.id,
-        type: 'chat',
+        type: image ? 'vision' : 'chat',
         metadata: JSON.stringify({
           threadId,
           tokensUsed: response.tokensUsed,
+          hasImage: !!image,
         }),
       },
     })
 
-    // 9. Check if it's time to extract memories (every N messages)
+    // 9. Memory extraction
     const totalMessages = await db.message.count({
       where: { userId: user.id },
     })
 
     if (totalMessages % EXTRACTION_INTERVAL === 0) {
-      // Run memory extraction in background (don't await — non-blocking)
       const allRecent = await db.message.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: 'desc' },
@@ -118,7 +138,7 @@ export async function POST(req: NextRequest) {
       extractMemories(user.id, allRecent.reverse()).catch(console.error)
     }
 
-    // 10. Auto-detect threads (only if not already in a thread)
+    // 10. Auto-detect threads
     if (!threadId && totalMessages > 4 && totalMessages % 5 === 0) {
       const recentForThread = await db.message.findMany({
         where: { userId: user.id, threadId: null },
@@ -137,7 +157,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 11. Update thread summary if in a thread
+    // 11. Update thread summary
     if (threadId) {
       updateThreadSummary(threadId).catch(console.error)
     }

@@ -1,9 +1,19 @@
 // LLM client — wraps Anthropic Claude API
-// Swap provider here if needed; rest of app doesn't care
+// Supports text and vision (image) messages
 
 export interface LLMMessage {
   role: 'user' | 'assistant'
-  content: string
+  content: string | LLMContentBlock[]
+}
+
+export interface LLMContentBlock {
+  type: 'text' | 'image'
+  text?: string
+  source?: {
+    type: 'base64'
+    media_type: string
+    data: string
+  }
 }
 
 export interface LLMResponse {
@@ -19,6 +29,30 @@ export async function callLLM(
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set')
 
+  // Format messages for the API
+  const formattedMessages = messages.map((m) => {
+    if (typeof m.content === 'string') {
+      return { role: m.role, content: m.content }
+    }
+    // Multi-modal content (text + images)
+    return {
+      role: m.role,
+      content: m.content.map((block) => {
+        if (block.type === 'image' && block.source) {
+          return {
+            type: 'image' as const,
+            source: {
+              type: 'base64' as const,
+              media_type: block.source.media_type,
+              data: block.source.data,
+            },
+          }
+        }
+        return { type: 'text' as const, text: block.text || '' }
+      }),
+    }
+  })
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -31,10 +65,7 @@ export async function callLLM(
       max_tokens: options?.maxTokens || 1024,
       temperature: options?.temperature ?? 0.7,
       system: systemPrompt,
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      messages: formattedMessages,
     }),
   })
 

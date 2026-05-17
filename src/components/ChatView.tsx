@@ -1,24 +1,248 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChat } from '@/lib/hooks'
 
+// ============================================
+// Voice Output — Text-to-Speech
+// ============================================
+function useSpeech() {
+  const [speaking, setSpeaking] = useState(false)
+  const [voiceEnabled, setVoiceEnabled] = useState(false)
+
+  const speak = useCallback((text: string) => {
+    if (!voiceEnabled || typeof window === 'undefined' || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 0.95
+    utterance.pitch = 1.0
+
+    // Try to find a nice voice
+    const voices = window.speechSynthesis.getVoices()
+    const preferred = voices.find(
+      (v) => v.name.includes('Samantha') || v.name.includes('Google UK English') || v.name.includes('Daniel')
+    )
+    if (preferred) utterance.voice = preferred
+
+    utterance.onstart = () => setSpeaking(true)
+    utterance.onend = () => setSpeaking(false)
+    utterance.onerror = () => setSpeaking(false)
+    window.speechSynthesis.speak(utterance)
+  }, [voiceEnabled])
+
+  const stop = useCallback(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+      setSpeaking(false)
+    }
+  }, [])
+
+  return { speaking, voiceEnabled, setVoiceEnabled, speak, stop }
+}
+
+// ============================================
+// Voice Input — Speech-to-Text
+// ============================================
+function useVoiceInput(onResult: (text: string) => void) {
+  const [listening, setListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
+
+  const startListening = useCallback(() => {
+    if (typeof window === 'undefined') return
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert('Your browser does not support voice input. Try Chrome or Safari.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+    recognition.continuous = false
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript
+      onResult(transcript)
+      setListening(false)
+    }
+
+    recognition.onerror = () => {
+      setListening(false)
+    }
+
+    recognition.onend = () => {
+      setListening(false)
+    }
+
+    recognitionRef.current = recognition
+    recognition.start()
+    setListening(true)
+  }, [onResult])
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop()
+    setListening(false)
+  }, [])
+
+  return { listening, startListening, stopListening }
+}
+
+// ============================================
+// Camera Capture
+// ============================================
+function CameraModal({
+  onCapture,
+  onClose,
+}: {
+  onCapture: (base64: string, mimeType: string) => void
+  onClose: () => void
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [ready, setReady] = useState(false)
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
+
+  const startCamera = useCallback(async (facing: 'user' | 'environment') => {
+    // Stop existing stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop())
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => setReady(true)
+      }
+    } catch {
+      alert('Could not access camera. Please allow camera permissions.')
+      onClose()
+    }
+  }, [onClose])
+
+  useEffect(() => {
+    startCamera(facingMode)
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop())
+      }
+    }
+  }, [facingMode, startCamera])
+
+  function capture() {
+    const video = videoRef.current
+    if (!video) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.drawImage(video, 0, 0)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+    const base64 = dataUrl.split(',')[1]
+    // Stop camera
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop())
+    }
+    onCapture(base64, 'image/jpeg')
+  }
+
+  function flipCamera() {
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))
+    setReady(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="flex-1 object-cover"
+      />
+      <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-center gap-6">
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white text-xl"
+        >
+          &times;
+        </button>
+        {/* Capture */}
+        <button
+          onClick={capture}
+          disabled={!ready}
+          className="w-16 h-16 rounded-full border-4 border-white bg-white/30 backdrop-blur disabled:opacity-30 transition"
+        />
+        {/* Flip */}
+        <button
+          onClick={flipCamera}
+          className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white text-sm"
+        >
+          Flip
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// Main ChatView
+// ============================================
 export default function ChatView({ threadId }: { threadId?: string }) {
   const { messages, loading, sending, sendMessage } = useChat(threadId)
   const [input, setInput] = useState('')
+  const [showCamera, setShowCamera] = useState(false)
+  const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const { speaking, voiceEnabled, setVoiceEnabled, speak, stop } = useSpeech()
 
-  // Auto-scroll to bottom on new messages
+  // Track last AI message to auto-speak
+  const lastAiMsgRef = useRef<string>('')
+
+  const handleVoiceResult = useCallback((text: string) => {
+    setInput(text)
+  }, [])
+
+  const { listening, startListening, stopListening } = useVoiceInput(handleVoiceResult)
+
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Auto-speak new AI messages
+  useEffect(() => {
+    if (!voiceEnabled || messages.length === 0) return
+    const lastMsg = messages[messages.length - 1]
+    if (lastMsg.role === 'assistant' && lastMsg.content !== lastAiMsgRef.current) {
+      lastAiMsgRef.current = lastMsg.content
+      speak(lastMsg.content)
+    }
+  }, [messages, voiceEnabled, speak])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim() || sending) return
-    const msg = input.trim()
+    if ((!input.trim() && !pendingImage) || sending) return
+    const msg = input.trim() || (pendingImage ? 'What do you see?' : '')
     setInput('')
-    await sendMessage(msg)
+
+    const image = pendingImage?.base64
+    const imageType = pendingImage?.mimeType
+    setPendingImage(null)
+
+    await sendMessage(msg, image, imageType)
+  }
+
+  function handleCapture(base64: string, mimeType: string) {
+    setPendingImage({ base64, mimeType })
+    setShowCamera(false)
   }
 
   if (loading) {
@@ -31,12 +255,20 @@ export default function ChatView({ threadId }: { threadId?: string }) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Camera Modal */}
+      {showCamera && (
+        <CameraModal
+          onCapture={handleCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center text-continuum-muted pt-20">
             <p className="text-lg">Start talking.</p>
-            <p className="text-sm mt-1">This is a continuous conversation.</p>
+            <p className="text-sm mt-1">Type, speak, or show me something.</p>
           </div>
         )}
 
@@ -52,7 +284,14 @@ export default function ChatView({ threadId }: { threadId?: string }) {
                   : 'bg-continuum-surface border border-continuum-border text-continuum-text rounded-bl-md'
               }`}
             >
-              {msg.content}
+              {msg.content.startsWith('[Sent an image]') ? (
+                <>
+                  <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>
+                  <span>{msg.content.replace('[Sent an image] ', '')}</span>
+                </>
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}
@@ -68,28 +307,124 @@ export default function ChatView({ threadId }: { threadId?: string }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
+      {/* Pending Image Preview */}
+      {pendingImage && (
+        <div className="px-4 py-2 border-t border-continuum-border flex items-center gap-3">
+          <img
+            src={`data:image/jpeg;base64,${pendingImage.base64}`}
+            alt="Preview"
+            className="w-16 h-16 rounded-lg object-cover"
+          />
+          <span className="text-xs text-continuum-muted flex-1">Image attached</span>
+          <button
+            onClick={() => setPendingImage(null)}
+            className="text-continuum-muted hover:text-white text-sm"
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
+      {/* Input Bar */}
       <form
         onSubmit={handleSubmit}
         className="border-t border-continuum-border px-4 py-3"
       >
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Camera Button */}
+          <button
+            type="button"
+            onClick={() => setShowCamera(true)}
+            className="p-2.5 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent text-continuum-muted hover:text-continuum-accent transition"
+            title="Open camera"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </button>
+
+          {/* Mic Button */}
+          <button
+            type="button"
+            onClick={listening ? stopListening : startListening}
+            className={`p-2.5 rounded-xl border transition ${
+              listening
+                ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse'
+                : 'bg-continuum-surface border-continuum-border text-continuum-muted hover:border-continuum-accent hover:text-continuum-accent'
+            }`}
+            title={listening ? 'Stop listening' : 'Voice input'}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </button>
+
+          {/* Text Input */}
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Say something..."
+            placeholder={listening ? 'Listening...' : 'Say something...'}
             className="flex-1 px-4 py-2.5 rounded-xl bg-continuum-surface border border-continuum-border focus:border-continuum-accent outline-none text-sm transition"
-            disabled={sending}
+            disabled={sending || listening}
           />
+
+          {/* Send Button */}
           <button
             type="submit"
-            disabled={!input.trim() || sending}
+            disabled={(!input.trim() && !pendingImage) || sending}
             className="px-4 py-2.5 rounded-xl bg-continuum-accent hover:bg-continuum-accent-dim text-white text-sm font-medium transition disabled:opacity-30"
           >
             Send
           </button>
+
+          {/* Voice Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              if (speaking) stop()
+              setVoiceEnabled(!voiceEnabled)
+            }}
+            className={`p-2.5 rounded-xl border transition ${
+              voiceEnabled
+                ? 'bg-continuum-accent/20 border-continuum-accent text-continuum-accent'
+                : 'bg-continuum-surface border-continuum-border text-continuum-muted hover:border-continuum-accent hover:text-continuum-accent'
+            }`}
+            title={voiceEnabled ? 'Disable voice responses' : 'Enable voice responses'}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {voiceEnabled ? (
+                <>
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </>
+              ) : (
+                <>
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </>
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Status bar */}
+        {(listening || speaking) && (
+          <div className="mt-2 text-xs text-continuum-muted text-center">
+            {listening && (
+              <span className="text-red-400 animate-pulse">Listening... speak now</span>
+            )}
+            {speaking && (
+              <span className="text-continuum-accent animate-pulse">Speaking...</span>
+            )}
+          </div>
+        )}
       </form>
     </div>
   )

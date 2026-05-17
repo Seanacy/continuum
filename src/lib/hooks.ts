@@ -50,13 +50,13 @@ export function useChat(threadId?: string) {
     loadMessages()
   }, [loadMessages])
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, image?: string, imageType?: string) => {
     setSending(true)
-    // Optimistic update
+    const displayContent = image ? `[Sent an image] ${content}` : content
     const tempMsg = {
       id: 'temp-' + Date.now(),
       role: 'user',
-      content,
+      content: displayContent,
       createdAt: new Date().toISOString(),
     }
     setMessages((prev) => [...prev, tempMsg])
@@ -65,7 +65,11 @@ export function useChat(threadId?: string) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, threadId }),
+        body: JSON.stringify({
+          content,
+          threadId,
+          ...(image ? { image, imageType } : {}),
+        }),
       })
 
       if (res.ok) {

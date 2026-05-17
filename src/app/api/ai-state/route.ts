@@ -21,7 +21,7 @@ export async function GET() {
     aiState: {
       tone: aiState.tone,
       energy: aiState.energy,
-      traits: JSON.parse(aiState.traits as string),
+      traits: aiState.traits,
       lastActiveAt: aiState.lastActiveAt,
     },
   })
@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest) {
     aiState: {
       tone: updated.tone,
       energy: updated.energy,
-      traits: JSON.parse(updated.traits as string),
+      traits: updated.traits,
     },
   })
 }

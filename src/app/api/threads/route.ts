@@ -3,6 +3,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { createThread } from '@/lib/thread-engine'
 
+export const dynamic = 'force-dynamic'
+
 // GET — list user's threads
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser()

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runStateUpdate, runSignalInference } from '@/lib/background-loops'
 
+export const dynamic = 'force-dynamic'
+
 // Triggered by Vercel Cron or external scheduler
 // Schedule: every 12 hours
 // Runs both state update and signal inference together

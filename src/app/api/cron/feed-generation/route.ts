@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runFeedGeneration } from '@/lib/background-loops'
 
+export const dynamic = 'force-dynamic'
+
 // Triggered by Vercel Cron or external scheduler
 // Schedule: every 6 hours
 export async function GET(req: NextRequest) {

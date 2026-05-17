@@ -3,6 +3,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { resolveThread, pauseThread, resumeThread } from '@/lib/thread-engine'
 
+export const dynamic = 'force-dynamic'
+
 // GET — get single thread with messages
 export async function GET(
   req: NextRequest,

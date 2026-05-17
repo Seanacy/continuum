@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runNotificationGeneration } from '@/lib/notification-engine'
 
+export const dynamic = 'force-dynamic'
+
 // Triggered by Vercel Cron or external scheduler
 // Schedule: every 8 hours (3x/day to stay within 2/day limit per user)
 export async function GET(req: NextRequest) {

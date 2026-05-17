@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { hashPassword, setSession } from '@/lib/auth'
 import { signupSchema } from '@/lib/validations'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()

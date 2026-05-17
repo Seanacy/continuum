@@ -8,6 +8,8 @@ import { updateUserEnergy } from '@/lib/energy-matcher'
 import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thread-engine'
 import { messageSchema } from '@/lib/validations'
 
+export const dynamic = 'force-dynamic'
+
 const CONTEXT_WINDOW = 20 // last N messages sent to LLM
 const EXTRACTION_INTERVAL = 10 // extract memories every N messages
 

@@ -161,8 +161,35 @@ export default function Home() {
 
         {/* Tagline */}
         <p className="text-continuum-muted text-sm sm:text-base tracking-wide font-light max-w-xs mx-auto leading-relaxed">
-          Your AI is waiting.
+          It hears you. It sees your world.<br />
+          It remembers everything.
         </p>
+
+        {/* Capability hints */}
+        <div className="flex justify-center gap-8 pt-2">
+          <div className="flex flex-col items-center gap-1.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-continuum-accent/50">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+            <span className="text-continuum-muted/40 text-[10px] tracking-widest uppercase">Voice</span>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-continuum-accent/50">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span className="text-continuum-muted/40 text-[10px] tracking-widest uppercase">Vision</span>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-continuum-accent/50">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span className="text-continuum-muted/40 text-[10px] tracking-widest uppercase">Memory</span>
+          </div>
+        </div>
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">

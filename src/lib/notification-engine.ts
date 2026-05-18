@@ -6,6 +6,7 @@
 import { db } from './db'
 import { callLLM } from './llm'
 import { getMemoryContext } from './memory-engine'
+import { sendPushToUser } from './push-sender'
 
 type NotificationType = 'memory_echo' | 'thread_nudge' | 'state_shift' | 'reflection'
 
@@ -58,6 +59,14 @@ export async function generateNotifications(userId: string): Promise<void> {
         referenceId: notif.referenceId,
       },
     })
+
+    // Also send as push notification
+    await sendPushToUser(userId, {
+      title: user.aiName || 'Your AI',
+      body: notif.content,
+      tag: `notif-${notif.type}`,
+      url: '/home',
+    }).catch((err) => console.error('[Push] Send failed:', err))
   }
 }
 

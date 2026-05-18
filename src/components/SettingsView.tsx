@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push-client'
 
 export default function SettingsView() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
@@ -9,6 +10,9 @@ export default function SettingsView() {
   const [location, setLocation] = useState<string>('')
   const [locationSaved, setLocationSaved] = useState(false)
   const [locationLoading, setLocationLoading] = useState(false)
+  const [pushSupported, setPushSupported] = useState(false)
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [pushLoading, setPushLoading] = useState(false)
 
   // Load available voices
   const loadVoices = useCallback(() => {
@@ -36,6 +40,30 @@ export default function SettingsView() {
       if (saved) setSelectedVoice(saved)
     }
   }, [])
+
+  // Check push notification support and status
+  useEffect(() => {
+    setPushSupported(isPushSupported())
+    if (isPushSupported()) {
+      isPushSubscribed().then(setPushEnabled)
+    }
+  }, [])
+
+  async function togglePush() {
+    setPushLoading(true)
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush()
+        setPushEnabled(false)
+      } else {
+        const success = await subscribeToPush()
+        setPushEnabled(success)
+      }
+    } catch {
+      // fail silently
+    }
+    setPushLoading(false)
+  }
 
   // Load user profile (location)
   useEffect(() => {
@@ -123,6 +151,32 @@ export default function SettingsView() {
           </button>
         </div>
       </div>
+
+      {/* Push Notifications */}
+      {pushSupported && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-continuum-text mb-1">Push Notifications</h3>
+          <p className="text-xs text-continuum-muted mb-3">
+            Let Emily reach you even when you&apos;re not on the site — reminders, thoughts, and nudges.
+          </p>
+          <button
+            onClick={togglePush}
+            disabled={pushLoading}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition w-full ${
+              pushEnabled
+                ? 'bg-emerald-500/15 border border-emerald-500/30'
+                : 'bg-continuum-surface border border-continuum-border hover:border-continuum-accent/50'
+            }`}
+          >
+            <div className={`w-10 h-6 rounded-full relative transition ${pushEnabled ? 'bg-emerald-500' : 'bg-continuum-border'}`}>
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${pushEnabled ? 'left-5' : 'left-1'}`} />
+            </div>
+            <span className="text-sm text-continuum-text">
+              {pushLoading ? 'Updating...' : pushEnabled ? 'Notifications on' : 'Notifications off'}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Voice Selection */}
       <div className="mb-8">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { sendPushToUser } from '@/lib/push-sender'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +43,15 @@ export async function GET(req: NextRequest) {
           where: { id: reminder.id },
           data: { fired: true },
         })
+
+        // Send a push notification
+        const aiName = reminder.user?.aiName || 'Your AI'
+        await sendPushToUser(reminder.userId, {
+          title: aiName,
+          body: reminder.content,
+          tag: `reminder-${reminder.id}`,
+          url: '/home',
+        }).catch((err) => console.error('[Push] Send failed:', err))
 
         fired++
       } catch (err) {

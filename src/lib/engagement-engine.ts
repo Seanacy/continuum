@@ -26,6 +26,10 @@ export interface EngagementProfile {
 
   // Presence pattern
   presencePattern: 'daily' | 'regular' | 'sporadic' | 'absent'
+
+  // Browser presence (from visibility_change events)
+  avgFocusRatio: number | null  // 0-1 how focused their sessions are (null = no data)
+  isCurrentlyPresent: boolean   // were they here in the last 5 minutes?
 }
 
 // ============================================
@@ -146,6 +150,22 @@ export async function computeEngagement(userId: string): Promise<EngagementProfi
   else if (activeDays >= 10) presencePattern = 'regular'
   else if (activeDays >= 3) presencePattern = 'sporadic'
 
+  // ---- Browser focus ratio (from session_end events that include focusRatio) ----
+  const sessionEndEvents = recentInteractions.filter((i) => i.type === 'session_end')
+  let avgFocusRatio: number | null = null
+  if (sessionEndEvents.length > 0) {
+    const ratios = sessionEndEvents
+      .map((i) => (i.metadata as Record<string, unknown>)?.focusRatio as number)
+      .filter((r) => typeof r === 'number')
+    if (ratios.length > 0) {
+      avgFocusRatio = Math.round((ratios.reduce((s, r) => s + r, 0) / ratios.length) * 100) / 100
+    }
+  }
+
+  // ---- Is currently present? (any interaction in last 5 minutes) ----
+  const fiveMinAgo = new Date(now - 5 * 60 * 1000)
+  const isCurrentlyPresent = recentInteractions.some((i) => new Date(i.createdAt) > fiveMinAgo)
+
   return {
     activeHours,
     avgSessionsPerDay: Math.round(avgSessionsPerDay * 100) / 100,
@@ -156,6 +176,8 @@ export async function computeEngagement(userId: string): Promise<EngagementProfi
     chatFrequency,
     avgMessageLength,
     presencePattern,
+    avgFocusRatio,
+    isCurrentlyPresent,
   }
 }
 
@@ -181,6 +203,19 @@ export function formatEngagementForPrompt(profile: EngagementProfile): string {
 
   if (profile.topicSignals.length > 0) {
     lines.push(`- Behavioral interest signals: ${profile.topicSignals.join(', ')}`)
+  }
+
+  // Browser presence awareness
+  if (profile.avgFocusRatio !== null) {
+    if (profile.avgFocusRatio > 0.8) {
+      lines.push(`- When they're here, they're focused — they don't tab away much.`)
+    } else if (profile.avgFocusRatio < 0.4) {
+      lines.push(`- They tend to have the app open in a background tab — half-present.`)
+    }
+  }
+
+  if (profile.isCurrentlyPresent) {
+    lines.push(`- They're here RIGHT NOW (active in the last few minutes).`)
   }
 
   return lines.join('\n')

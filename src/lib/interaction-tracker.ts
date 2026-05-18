@@ -11,6 +11,7 @@ type InteractionType =
   | 'chat_message'    // sent a chat message
   | 'thread_open'     // opened a specific thread
   | 'session_end'     // leaving the app (beforeunload)
+  | 'visibility_change' // tab became visible or hidden (browser focus)
 
 interface InteractionPayload {
   type: InteractionType
@@ -99,6 +100,40 @@ export function trackTabSwitch(newTab: string) {
 }
 
 // ============================================
+// Browser presence tracking
+// Tracks when user is looking at the tab vs. away
+// ============================================
+let lastVisibleTime: number | null = null
+let lastHiddenTime: number | null = null
+let totalVisibleMs = 0
+let totalHiddenMs = 0
+
+export function getPresenceState() {
+  const now = Date.now()
+  const isVisible = typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
+
+  // Calculate current durations including in-progress state
+  let visibleMs = totalVisibleMs
+  let hiddenMs = totalHiddenMs
+  if (isVisible && lastVisibleTime) {
+    visibleMs += now - lastVisibleTime
+  } else if (!isVisible && lastHiddenTime) {
+    hiddenMs += now - lastHiddenTime
+  }
+
+  const totalMs = visibleMs + hiddenMs
+  const focusRatio = totalMs > 0 ? visibleMs / totalMs : 1
+
+  return {
+    isVisible,
+    focusRatio: Math.round(focusRatio * 100) / 100, // 0-1, how focused they are
+    visibleMs,
+    hiddenMs,
+    sessionMs: totalMs,
+  }
+}
+
+// ============================================
 // Session tracking
 // Logs app_open on mount, session_end on unload
 // ============================================
@@ -107,6 +142,8 @@ let sessionStarted = false
 export function startSession() {
   if (sessionStarted) return
   sessionStarted = true
+
+  lastVisibleTime = Date.now()
 
   trackInteraction('app_open', {
     timestamp: new Date().toISOString(),
@@ -124,17 +161,45 @@ export function startSession() {
         }
       }
 
+      const presence = getPresenceState()
       trackInteraction('session_end', {
-        sessionDurationMs: Date.now() - (tabStartTime || Date.now()),
+        sessionDurationMs: presence.sessionMs,
+        focusRatio: presence.focusRatio,
+        visibleMs: presence.visibleMs,
+        hiddenMs: presence.hiddenMs,
       })
 
       flushNow()
     })
 
-    // Also flush when tab becomes hidden (mobile)
+    // Track visibility changes (tab focus/blur)
     document.addEventListener('visibilitychange', () => {
+      const now = Date.now()
+
       if (document.visibilityState === 'hidden') {
+        // User tabbed away or minimized
+        if (lastVisibleTime) {
+          const visibleDuration = now - lastVisibleTime
+          totalVisibleMs += visibleDuration
+        }
+        lastHiddenTime = now
+        lastVisibleTime = null
+
+        trackInteraction('visibility_change', { state: 'hidden' })
         flushNow()
+      } else {
+        // User came back
+        if (lastHiddenTime) {
+          const hiddenDuration = now - lastHiddenTime
+          totalHiddenMs += hiddenDuration
+
+          trackInteraction('visibility_change', {
+            state: 'visible',
+            awayMs: hiddenDuration,
+          })
+        }
+        lastVisibleTime = now
+        lastHiddenTime = null
       }
     })
   }

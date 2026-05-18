@@ -27,7 +27,8 @@ model User {
   backgroundEvents BackgroundEvent[]
   interactions     Interaction[]
   notifications    Notification[]
-  reminders        Reminder[]
+  reminders          Reminder[]
+  pushSubscriptions  PushSubscription[]
 
   @@map("users")
 }
@@ -159,4 +160,17 @@ model Reminder {
 
   @@index([userId, fired, dueAt])
   @@map("reminders")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String   // encryption key
+  auth      String   // auth secret
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

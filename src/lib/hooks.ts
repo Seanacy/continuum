@@ -78,6 +78,8 @@ export function useChat(threadId?: string) {
           content,
           threadId,
           ...(image ? { image, imageType } : {}),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          localTime: new Date().toISOString(),
         }),
       })
 

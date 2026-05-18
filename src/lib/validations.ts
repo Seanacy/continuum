@@ -17,6 +17,8 @@ export const messageSchema = z.object({
   threadId: z.string().optional(),
   image: z.string().optional(), // base64 image data
   imageType: z.string().optional(), // mime type like image/jpeg
+  timezone: z.string().optional(), // e.g. "America/New_York"
+  localTime: z.string().optional(), // e.g. "2025-03-15T14:30:00"
 })
 
 export type SignupInput = z.infer<typeof signupSchema>

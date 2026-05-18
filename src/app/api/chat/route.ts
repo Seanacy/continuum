@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { content, threadId, image, imageType } = parsed.data
+  const { content, threadId, image, imageType, timezone, localTime } = parsed.data
 
   try {
     // 1. Update energy state
@@ -89,6 +89,8 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       aiName: user.aiName || 'Your AI',
       threadId,
+      timezone,
+      localTime,
     })
 
     // 5. Call LLM with tool use loop

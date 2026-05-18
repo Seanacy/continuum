@@ -14,6 +14,8 @@ model User {
   password  String
   name      String?
   aiName    String?  @map("ai_name")
+  location  String?  // city or area, e.g. "Los Angeles, CA"
+  timezone  String?  // IANA timezone, e.g. "America/Los_Angeles"
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

@@ -6,6 +6,9 @@ export default function SettingsView() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
   const [previewingVoice, setPreviewingVoice] = useState<string | null>(null)
+  const [location, setLocation] = useState<string>('')
+  const [locationSaved, setLocationSaved] = useState(false)
+  const [locationLoading, setLocationLoading] = useState(false)
 
   // Load available voices
   const loadVoices = useCallback(() => {
@@ -26,13 +29,39 @@ export default function SettingsView() {
     }
   }, [loadVoices])
 
-  // Load saved preference
+  // Load saved voice preference
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('continuum-voice')
       if (saved) setSelectedVoice(saved)
     }
   }, [])
+
+  // Load user profile (location)
+  useEffect(() => {
+    fetch('/api/user/profile')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.profile?.location) setLocation(data.profile.location)
+      })
+      .catch(() => {})
+  }, [])
+
+  async function saveLocation() {
+    setLocationLoading(true)
+    try {
+      await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location }),
+      })
+      setLocationSaved(true)
+      setTimeout(() => setLocationSaved(false), 2000)
+    } catch {
+      // fail silently
+    }
+    setLocationLoading(false)
+  }
 
   function selectVoice(voiceName: string) {
     setSelectedVoice(voiceName)
@@ -66,6 +95,34 @@ export default function SettingsView() {
     <div className="h-full overflow-y-auto px-4 py-6">
       <h2 className="text-lg font-semibold text-continuum-text mb-1">Settings</h2>
       <p className="text-sm text-continuum-muted mb-6">Customize your experience</p>
+
+      {/* Location */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-continuum-text mb-1">Your Location</h3>
+        <p className="text-xs text-continuum-muted mb-3">
+          Tell Emily where you are so she can be aware of your time, weather, and season.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="e.g. Los Angeles, CA"
+            className="flex-1 bg-continuum-surface border border-continuum-border rounded-xl px-3.5 py-2.5 text-sm text-continuum-text placeholder:text-continuum-muted focus:outline-none focus:border-continuum-accent"
+          />
+          <button
+            onClick={saveLocation}
+            disabled={locationLoading}
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+              locationSaved
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-continuum-accent/15 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/25'
+            }`}
+          >
+            {locationSaved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+      </div>
 
       {/* Voice Selection */}
       <div className="mb-8">

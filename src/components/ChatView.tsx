@@ -8,10 +8,11 @@ import { useChat } from '@/lib/hooks'
 // ============================================
 function useSpeech() {
   const [speaking, setSpeaking] = useState(false)
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null)
   const [voiceEnabled, setVoiceEnabled] = useState(false)
 
-  const speak = useCallback((text: string) => {
-    if (!voiceEnabled || typeof window === 'undefined' || !window.speechSynthesis) return
+  const speakText = useCallback((text: string, msgId?: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
     window.speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 0.95
@@ -24,20 +25,27 @@ function useSpeech() {
     )
     if (preferred) utterance.voice = preferred
 
-    utterance.onstart = () => setSpeaking(true)
-    utterance.onend = () => setSpeaking(false)
-    utterance.onerror = () => setSpeaking(false)
+    utterance.onstart = () => { setSpeaking(true); setSpeakingMsgId(msgId || null) }
+    utterance.onend = () => { setSpeaking(false); setSpeakingMsgId(null) }
+    utterance.onerror = () => { setSpeaking(false); setSpeakingMsgId(null) }
     window.speechSynthesis.speak(utterance)
-  }, [voiceEnabled])
+  }, [])
+
+  // Auto-speak wrapper (respects voiceEnabled toggle)
+  const speak = useCallback((text: string) => {
+    if (!voiceEnabled) return
+    speakText(text)
+  }, [voiceEnabled, speakText])
 
   const stop = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
       setSpeaking(false)
+      setSpeakingMsgId(null)
     }
   }, [])
 
-  return { speaking, voiceEnabled, setVoiceEnabled, speak, stop }
+  return { speaking, speakingMsgId, voiceEnabled, setVoiceEnabled, speak, speakText, stop }
 }
 
 // ============================================
@@ -201,7 +209,7 @@ export default function ChatView({ threadId }: { threadId?: string }) {
   const [showCamera, setShowCamera] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const { speaking, voiceEnabled, setVoiceEnabled, speak, stop } = useSpeech()
+  const { speaking, speakingMsgId, voiceEnabled, setVoiceEnabled, speak, speakText, stop } = useSpeech()
 
   // Track last AI message to auto-speak
   const lastAiMsgRef = useRef<string>('')
@@ -277,20 +285,55 @@ export default function ChatView({ threadId }: { threadId?: string }) {
             key={msg.id}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div
-              className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-continuum-accent text-white rounded-br-md'
-                  : 'bg-continuum-surface border border-continuum-border text-continuum-text rounded-bl-md'
-              }`}
-            >
-              {msg.content.startsWith('[Sent an image]') ? (
-                <>
-                  <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>
-                  <span>{msg.content.replace('[Sent an image] ', '')}</span>
-                </>
-              ) : (
-                msg.content
+            <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div
+                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-continuum-accent text-white rounded-br-md'
+                    : 'bg-continuum-surface border border-continuum-border text-continuum-text rounded-bl-md'
+                }`}
+              >
+                {msg.content.startsWith('[Sent an image]') ? (
+                  <>
+                    <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>
+                    <span>{msg.content.replace('[Sent an image] ', '')}</span>
+                  </>
+                ) : (
+                  msg.content
+                )}
+              </div>
+              {msg.role === 'assistant' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (speakingMsgId === msg.id) {
+                      stop()
+                    } else {
+                      speakText(msg.content, msg.id)
+                    }
+                  }}
+                  className={`flex-shrink-0 p-1.5 rounded-lg transition ${
+                    speakingMsgId === msg.id
+                      ? 'text-continuum-accent animate-pulse'
+                      : 'text-continuum-muted hover:text-continuum-accent'
+                  }`}
+                  title={speakingMsgId === msg.id ? 'Stop speaking' : 'Read aloud'}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {speakingMsgId === msg.id ? (
+                      <>
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      </>
+                    ) : (
+                      <>
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      </>
+                    )}
+                  </svg>
+                </button>
               )}
             </div>
           </div>

@@ -63,8 +63,9 @@ export function useChat(threadId?: string) {
     }
     setMessages((prev) => [...prev, tempMsg])
 
-    // Show "searching" state after a short delay (if Emily decides to search, the API takes longer)
-    const searchTimer = setTimeout(() => setSearching(true), 3000)
+    // Show "searching" state after a short delay — any web search takes 4+ seconds,
+    // so if we're still waiting after 1.5s, Emily is almost certainly searching
+    const searchTimer = setTimeout(() => setSearching(true), 1500)
 
     try {
       const res = await fetch('/api/chat', {

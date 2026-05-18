@@ -29,7 +29,7 @@ export function useUser() {
 // ============================================
 export function useChat(threadId?: string) {
   const [messages, setMessages] = useState<
-    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string }>
+    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string; imageUrls?: string[] }>
   >([])
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
@@ -84,6 +84,7 @@ export function useChat(threadId?: string) {
         const aiMsg = {
           ...data.message,
           searchQuery: data.searchPerformed ? data.searchQuery : undefined,
+          imageUrls: data.imageUrls || undefined,
         }
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== tempMsg.id),

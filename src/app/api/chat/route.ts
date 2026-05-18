@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, ToolResultMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
 import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thread-engine'
 import { messageSchema } from '@/lib/validations'
-import { searchWeb } from '@/lib/tavily'
+import { searchWeb, searchImages } from '@/lib/tavily'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,7 +96,8 @@ export async function POST(req: NextRequest) {
     let totalTokens = 0
     let finalContent = ''
     const searchQueries: string[] = []
-    const tools = process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL] : []
+    const imageUrls: string[] = []
+    const tools = process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []
 
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
       const response = await callLLM(systemPrompt, history, {
@@ -107,43 +108,38 @@ export async function POST(req: NextRequest) {
 
       totalTokens += response.tokensUsed
 
-      // If Claude wants to search the web
-      if (response.toolUse && response.toolUse.name === 'web_search') {
+      // If Claude wants to use a tool (web search or image search)
+      if (response.toolUse && (response.toolUse.name === 'web_search' || response.toolUse.name === 'image_search')) {
         const query = response.toolUse.input.query as string
+        const isImageSearch = response.toolUse.name === 'image_search'
         searchQueries.push(query)
-        console.log(`[Search] Emily is searching: "${query}"`)
+        console.log(`[Search] Emily is ${isImageSearch ? 'image' : 'web'} searching: "${query}"`)
 
-        let searchResultText: string
+        let toolResultText: string
         try {
-          const searchResults = await searchWeb(query)
-          // Format results for Claude to read
-          searchResultText = searchResults.results
-            .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content}`)
-            .join('\n\n')
-
-          if (!searchResultText) {
-            searchResultText = 'No results found for this search.'
+          if (isImageSearch) {
+            const imageResults = await searchImages(query)
+            if (imageResults.images.length > 0) {
+              // Store image URLs to return to the frontend
+              imageUrls.push(...imageResults.images.slice(0, 3))
+              // Tell Claude about the images so it can describe them
+              toolResultText = `Found ${imageResults.images.length} images. The images will be displayed to the user automatically. Here are the URLs:\n${imageResults.images.slice(0, 3).map((url, i) => `[${i + 1}] ${url}`).join('\n')}\n\nDescribe what the user asked about briefly. Do NOT include the URLs in your response — the images are shown automatically.`
+            } else {
+              toolResultText = 'No images found for this search.'
+            }
+          } else {
+            const searchResults = await searchWeb(query)
+            toolResultText = searchResults.results
+              .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content}`)
+              .join('\n\n')
+            if (!toolResultText) {
+              toolResultText = 'No results found for this search.'
+            }
           }
         } catch (err) {
           console.error('[Search] Tavily error:', err)
-          searchResultText = 'Search failed — unable to reach the search service right now.'
+          toolResultText = 'Search failed — unable to reach the search service right now.'
         }
-
-        // Add Claude's tool use response to history (as assistant message)
-        history.push({
-          role: 'assistant',
-          content: [
-            ...(response.content ? [{ type: 'text' as const, text: response.content }] : []),
-            {
-              type: 'text' as const,
-              text: '', // placeholder — actual tool_use block is handled by the API
-            },
-          ],
-        })
-
-        // Actually, for the Anthropic API, we need to pass the raw content blocks
-        // Let's reconstruct this properly
-        history.pop() // remove the one we just pushed
 
         // Push assistant message with tool_use block
         const assistantBlocks: unknown[] = []
@@ -165,13 +161,13 @@ export async function POST(req: NextRequest) {
             {
               type: 'tool_result',
               tool_use_id: response.toolUse.id,
-              content: searchResultText,
+              content: toolResultText,
             },
           ],
         }
         history.push(toolResult)
 
-        // Continue the loop — Claude will now process the search results
+        // Continue the loop — Claude will now process the results
         continue
       }
 
@@ -257,6 +253,7 @@ export async function POST(req: NextRequest) {
       tokensUsed: totalTokens,
       searchPerformed: searchQueries.length > 0,
       searchQuery: searchQueries[0] || null,
+      imageUrls: imageUrls.length > 0 ? imageUrls : null,
     })
   } catch (error) {
     console.error('Chat error:', error)

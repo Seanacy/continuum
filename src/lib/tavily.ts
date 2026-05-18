@@ -44,3 +44,39 @@ export async function searchWeb(query: string, maxResults = 5): Promise<TavilyRe
     })),
   }
 }
+
+// Image search — returns image URLs
+export interface ImageSearchResponse {
+  query: string
+  images: string[] // array of image URLs
+}
+
+export async function searchImages(query: string, maxResults = 5): Promise<ImageSearchResponse> {
+  const apiKey = process.env.TAVILY_API_KEY
+  if (!apiKey) throw new Error('TAVILY_API_KEY not set')
+
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: apiKey,
+      query,
+      max_results: maxResults,
+      search_depth: 'basic',
+      include_answer: false,
+      include_images: true,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Tavily API error ${res.status}: ${err}`)
+  }
+
+  const data = await res.json()
+
+  return {
+    query,
+    images: (data.images || []).slice(0, maxResults),
+  }
+}

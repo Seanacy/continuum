@@ -165,3 +165,20 @@ export const WEB_SEARCH_TOOL: LLMTool = {
     required: ['query'],
   },
 }
+
+// Image search tool — Emily can find pictures from the internet
+export const IMAGE_SEARCH_TOOL: LLMTool = {
+  name: 'image_search',
+  description:
+    'Search the internet for images and pictures. Use this when the user asks you to find, show, or look up a picture or image of something. For example: "show me a picture of...", "find an image of...", "what does a ... look like?"',
+  input_schema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'What to search for — be descriptive (e.g. "golden retriever puppy playing in snow")',
+      },
+    },
+    required: ['query'],
+  },
+}

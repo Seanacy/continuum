@@ -313,6 +313,21 @@ export default function ChatView({ threadId }: { threadId?: string }) {
                 ) : (
                   msg.content
                 )}
+                {msg.role === 'assistant' && msg.imageUrls && msg.imageUrls.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {msg.imageUrls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt={`Search result ${i + 1}`}
+                        className="rounded-lg max-w-full max-h-64 object-cover border border-continuum-border"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               {msg.role === 'assistant' && (
                 <button

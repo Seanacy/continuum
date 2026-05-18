@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     data: batch.map((i: { type: string; metadata?: Record<string, unknown> }) => ({
       userId: session.userId,
       type: i.type,
-      metadata: i.metadata || {},
+      metadata: (i.metadata || {}) as Prisma.InputJsonValue,
     })),
   })
 

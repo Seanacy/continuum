@@ -32,11 +32,20 @@ export default function HomePage() {
     )
   }
 
+  useEffect(() => {
+    // If loading finished and no user, clear session and redirect to login
+    if (!loading && !user) {
+      fetch('/api/auth/logout', { method: 'POST' })
+        .finally(() => {
+          window.location.href = '/login'
+        })
+    }
+  }, [loading, user])
+
   if (!user) {
-    // Middleware handles the redirect — just show nothing while it kicks in
     return (
       <div className="flex items-center justify-center min-h-screen bg-continuum-bg">
-        <span className="text-continuum-muted animate-pulse">Redirecting...</span>
+        <span className="text-continuum-muted animate-pulse">Loading...</span>
       </div>
     )
   }

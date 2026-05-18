@@ -30,7 +30,7 @@ export function useUser() {
 // ============================================
 export function useChat(threadId?: string) {
   const [messages, setMessages] = useState<
-    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string; imageUrls?: string[] }>
+    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string; imageUrls?: string[]; reminderSet?: { content: string; dueAt: string } }>
   >([])
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
@@ -89,6 +89,7 @@ export function useChat(threadId?: string) {
           ...data.message,
           searchQuery: data.searchPerformed ? data.searchQuery : undefined,
           imageUrls: data.imageUrls || undefined,
+          reminderSet: data.reminderSet || undefined,
         }
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== tempMsg.id),

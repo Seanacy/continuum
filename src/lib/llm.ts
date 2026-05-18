@@ -182,3 +182,24 @@ export const IMAGE_SEARCH_TOOL: LLMTool = {
     required: ['query'],
   },
 }
+
+// Reminder tool — Emily can set reminders for the user
+export const SET_REMINDER_TOOL: LLMTool = {
+  name: 'set_reminder',
+  description:
+    'Set a reminder for the user. Use this when the user asks you to remind them about something, or when you notice something time-sensitive in conversation that they might want to be reminded about. Examples: "remind me to call mom tomorrow", "don\'t let me forget about the meeting at 3", "remind me in an hour to check the oven".',
+  input_schema: {
+    type: 'object',
+    properties: {
+      content: {
+        type: 'string',
+        description: 'What to remind them about — write it as a natural reminder message from you, not a robotic alert. Example: "That call with mom you wanted to make" not "REMINDER: Call mom"',
+      },
+      due_in_minutes: {
+        type: 'number',
+        description: 'How many minutes from now the reminder should fire. Examples: 60 = 1 hour, 1440 = 1 day, 10080 = 1 week. For specific times, calculate the minutes from now.',
+      },
+    },
+    required: ['content', 'due_in_minutes'],
+  },
+}

@@ -305,6 +305,15 @@ export default function ChatView({ threadId }: { threadId?: string }) {
                     Searched: {msg.searchQuery}
                   </span>
                 )}
+                {msg.role === 'assistant' && msg.reminderSet && (
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 mb-2 pb-1.5 border-b border-continuum-border">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    Reminder set
+                  </span>
+                )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>
                     <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>

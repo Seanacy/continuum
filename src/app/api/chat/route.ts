@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, ToolResultMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
@@ -97,7 +97,11 @@ export async function POST(req: NextRequest) {
     let finalContent = ''
     const searchQueries: string[] = []
     const imageUrls: string[] = []
-    const tools = process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []
+    let reminderSet: { content: string; dueAt: string } | null = null
+    const tools = [
+      SET_REMINDER_TOOL,
+      ...(process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []),
+    ]
 
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
       const response = await callLLM(systemPrompt, history, {
@@ -108,37 +112,77 @@ export async function POST(req: NextRequest) {
 
       totalTokens += response.tokensUsed
 
-      // If Claude wants to use a tool (web search or image search)
-      if (response.toolUse && (response.toolUse.name === 'web_search' || response.toolUse.name === 'image_search')) {
-        const query = response.toolUse.input.query as string
-        const isImageSearch = response.toolUse.name === 'image_search'
-        searchQueries.push(query)
-        console.log(`[Search] Emily is ${isImageSearch ? 'image' : 'web'} searching: "${query}"`)
+      // If Claude wants to use a tool
+      if (response.toolUse) {
+        const toolName = response.toolUse.name
+        let toolResultText: string = ''
 
-        let toolResultText: string
-        try {
-          if (isImageSearch) {
-            const imageResults = await searchImages(query)
-            if (imageResults.images.length > 0) {
-              // Store image URLs to return to the frontend
-              imageUrls.push(...imageResults.images.slice(0, 3))
-              // Tell Claude about the images so it can describe them
-              toolResultText = `Found ${imageResults.images.length} images. The images will be displayed to the user automatically. Here are the URLs:\n${imageResults.images.slice(0, 3).map((url, i) => `[${i + 1}] ${url}`).join('\n')}\n\nDescribe what the user asked about briefly. Do NOT include the URLs in your response — the images are shown automatically.`
+        // --- SEARCH TOOLS ---
+        if (toolName === 'web_search' || toolName === 'image_search') {
+          const query = response.toolUse.input.query as string
+          const isImageSearch = toolName === 'image_search'
+          searchQueries.push(query)
+          console.log(`[Search] Emily is ${isImageSearch ? 'image' : 'web'} searching: "${query}"`)
+
+          try {
+            if (isImageSearch) {
+              const imageResults = await searchImages(query)
+              if (imageResults.images.length > 0) {
+                imageUrls.push(...imageResults.images.slice(0, 3))
+                toolResultText = `Found ${imageResults.images.length} images. The images will be displayed to the user automatically. Here are the URLs:\n${imageResults.images.slice(0, 3).map((url, i) => `[${i + 1}] ${url}`).join('\n')}\n\nDescribe what the user asked about briefly. Do NOT include the URLs in your response — the images are shown automatically.`
+              } else {
+                toolResultText = 'No images found for this search.'
+              }
             } else {
-              toolResultText = 'No images found for this search.'
+              const searchResults = await searchWeb(query)
+              toolResultText = searchResults.results
+                .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content}`)
+                .join('\n\n')
+              if (!toolResultText) {
+                toolResultText = 'No results found for this search.'
+              }
             }
-          } else {
-            const searchResults = await searchWeb(query)
-            toolResultText = searchResults.results
-              .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content}`)
-              .join('\n\n')
-            if (!toolResultText) {
-              toolResultText = 'No results found for this search.'
-            }
+          } catch (err) {
+            console.error('[Search] Tavily error:', err)
+            toolResultText = 'Search failed — unable to reach the search service right now.'
           }
-        } catch (err) {
-          console.error('[Search] Tavily error:', err)
-          toolResultText = 'Search failed — unable to reach the search service right now.'
+        }
+
+        // --- REMINDER TOOL ---
+        else if (toolName === 'set_reminder') {
+          const reminderContent = response.toolUse.input.content as string
+          const dueInMinutes = response.toolUse.input.due_in_minutes as number
+          const dueAt = new Date(Date.now() + dueInMinutes * 60 * 1000)
+          console.log(`[Reminder] Emily is setting reminder: "${reminderContent}" due in ${dueInMinutes}m`)
+
+          try {
+            const reminder = await db.reminder.create({
+              data: {
+                userId: user.id,
+                content: reminderContent,
+                dueAt,
+              },
+            })
+            // Format the due time nicely for Emily's confirmation
+            const dueTimeStr = dueAt.toLocaleString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            })
+            toolResultText = `Reminder set successfully. ID: ${reminder.id}. It will fire at ${dueTimeStr}. You can confirm this to the user naturally — don't repeat the exact time robotically, just acknowledge it conversationally.`
+            reminderSet = { content: reminderContent, dueAt: dueAt.toISOString() }
+          } catch (err) {
+            console.error('[Reminder] DB error:', err)
+            toolResultText = 'Failed to save the reminder — something went wrong on my end.'
+          }
+        }
+
+        // --- UNKNOWN TOOL (shouldn't happen) ---
+        else {
+          toolResultText = `Unknown tool: ${toolName}`
         }
 
         // Push assistant message with tool_use block
@@ -254,6 +298,7 @@ export async function POST(req: NextRequest) {
       searchPerformed: searchQueries.length > 0,
       searchQuery: searchQueries[0] || null,
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
+      reminderSet,
     })
   } catch (error) {
     console.error('Chat error:', error)

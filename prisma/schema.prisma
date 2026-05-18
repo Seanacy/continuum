@@ -25,6 +25,7 @@ model User {
   backgroundEvents BackgroundEvent[]
   interactions     Interaction[]
   notifications    Notification[]
+  reminders        Reminder[]
 
   @@map("users")
 }
@@ -143,4 +144,17 @@ model Notification {
 
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  dueAt     DateTime @map("due_at")
+  fired     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, fired, dueAt])
+  @@map("reminders")
 }

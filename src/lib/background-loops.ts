@@ -9,6 +9,7 @@ import { db } from './db'
 import { callLLM } from './llm'
 import { summarizeMoments, getMemoryContext } from './memory-engine'
 import { generateFeedItems } from './feed-engine'
+import { discoverSocialContent } from './social-engine'
 
 // ============================================
 // LOOP 1: MEMORY ROLLUP
@@ -60,6 +61,17 @@ export async function runFeedGeneration(): Promise<{ processed: number }> {
   for (const user of users) {
     try {
       await generateFeedItems(user.id)
+
+      // Also discover social content if Tavily is available
+      let socialPicks = 0
+      if (process.env.TAVILY_API_KEY) {
+        try {
+          socialPicks = await discoverSocialContent(user.id)
+        } catch (err) {
+          console.error(`[Social] Discovery failed for user ${user.id}:`, err)
+        }
+      }
+
       processed++
 
       await db.backgroundEvent.create({
@@ -67,7 +79,7 @@ export async function runFeedGeneration(): Promise<{ processed: number }> {
           userId: user.id,
           type: 'feed_generation',
           status: 'completed',
-          payload: JSON.stringify({ timestamp: new Date().toISOString() }),
+          payload: JSON.stringify({ timestamp: new Date().toISOString(), socialPicks }),
         },
       })
     } catch (error) {

@@ -4,6 +4,7 @@
 
 import { db } from './db'
 import { getMemoryContext } from './memory-engine'
+import { getRecentSocialPicks } from './social-engine'
 
 interface PromptContext {
   userId: string
@@ -19,6 +20,20 @@ export async function buildSystemPrompt(ctx: PromptContext): Promise<string> {
 
   // Get memory context (capped at 800 tokens)
   const memoryBlock = await getMemoryContext(ctx.userId)
+
+  // Get recent social picks for chat drops
+  let socialBlock = ''
+  try {
+    const socialPicks = await getRecentSocialPicks(ctx.userId, 3)
+    if (socialPicks.length > 0) {
+      socialBlock = `\n## Recent Finds from the Internet
+You found these recently and can mention them naturally in conversation if relevant. Don't force it — only bring them up if they connect to what the person is talking about. Drop them casually like a friend sharing a link.
+${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).join('\n')}
+`
+    }
+  } catch {
+    // Social picks are optional — don't break the prompt if they fail
+  }
 
   // Get active thread context if in a thread
   let threadContext = ''
@@ -55,6 +70,7 @@ export async function buildSystemPrompt(ctx: PromptContext): Promise<string> {
 Everything below is what you KNOW about this person. You may reference any of it naturally.
 ${memoryBlock || 'No memories yet — this is a new relationship.'}
 ${threadContext}
+${socialBlock}
 
 ## Critical Rules
 1. ANTI-CONFABULATION: You may ONLY reference information present in the Memory Context above. NEVER fabricate past interactions, preferences, or details. If you're unsure about something, don't claim to remember it.

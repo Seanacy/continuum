@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<string, string> = {
   state_report: 'State',
   thread_update: 'Thread',
   prompt: 'Prompt',
+  social_pick: 'Found for you',
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -17,6 +18,23 @@ const TYPE_COLORS: Record<string, string> = {
   state_report: 'text-green-400',
   thread_update: 'text-yellow-400',
   prompt: 'text-pink-400',
+  social_pick: 'text-cyan-400',
+}
+
+const SOURCE_ICONS: Record<string, string> = {
+  reddit: '💬',
+  twitter: '🐦',
+  youtube: '▶️',
+  github: '💻',
+  news: '📰',
+}
+
+interface SocialPickData {
+  title: string
+  url: string
+  source: string
+  snippet: string
+  commentary: string
 }
 
 export default function FeedView() {
@@ -53,13 +71,95 @@ export default function FeedView() {
 
   return (
     <div className="h-full overflow-y-auto px-4 py-4 space-y-3">
-      {items.map((item) => (
-        <FeedCard key={item.id} item={item} />
-      ))}
+      {items.map((item) =>
+        item.type === 'social_pick' ? (
+          <SocialCard key={item.id} item={item} />
+        ) : (
+          <FeedCard key={item.id} item={item} />
+        )
+      )}
     </div>
   )
 }
 
+// ============================================
+// Social Pick Card — link preview style
+// ============================================
+function SocialCard({
+  item,
+}: {
+  item: {
+    id: string
+    type: string
+    content: string
+    seen: boolean
+    createdAt: string
+  }
+}) {
+  const timeAgo = getTimeAgo(new Date(item.createdAt))
+
+  // Parse the JSON content
+  let pick: SocialPickData | null = null
+  try {
+    pick = JSON.parse(item.content)
+  } catch {
+    // Fallback to regular card if parsing fails
+    return <FeedCard item={item} />
+  }
+
+  if (!pick) return <FeedCard item={item} />
+
+  const sourceIcon = SOURCE_ICONS[pick.source] || '🌐'
+  const sourceName = pick.source.charAt(0).toUpperCase() + pick.source.slice(1)
+
+  return (
+    <div
+      className={`rounded-xl border overflow-hidden transition ${
+        item.seen
+          ? 'bg-continuum-surface border-continuum-border'
+          : 'bg-continuum-surface border-cyan-500/30'
+      }`}
+    >
+      {/* Emily's commentary */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-medium text-cyan-400">Found for you</span>
+          <span className="text-xs text-continuum-muted">{timeAgo}</span>
+        </div>
+        <p className="text-sm text-continuum-text leading-relaxed italic">
+          &ldquo;{pick.commentary}&rdquo;
+        </p>
+      </div>
+
+      {/* Link preview card */}
+      <a
+        href={pick.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block mx-3 mb-3 rounded-lg border border-continuum-border bg-continuum-bg hover:border-continuum-accent/50 transition overflow-hidden"
+      >
+        <div className="px-3 py-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-xs">{sourceIcon}</span>
+            <span className="text-xs text-continuum-muted">{sourceName}</span>
+          </div>
+          <p className="text-sm font-medium text-continuum-text leading-snug line-clamp-2">
+            {pick.title}
+          </p>
+          {pick.snippet && (
+            <p className="text-xs text-continuum-muted mt-1 leading-relaxed line-clamp-2">
+              {pick.snippet}
+            </p>
+          )}
+        </div>
+      </a>
+    </div>
+  )
+}
+
+// ============================================
+// Regular Feed Card
+// ============================================
 function FeedCard({
   item,
 }: {

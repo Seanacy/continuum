@@ -21,7 +21,7 @@ export default function AppShell({
   const [showNotifs, setShowNotifs] = useState(false)
 
   return (
-    <div className="flex flex-col h-screen bg-continuum-bg relative">
+    <div className="flex flex-col h-screen bg-continuum-bg relative" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-continuum-border">
         <h1 className="text-lg font-semibold text-continuum-accent">{aiName}</h1>
@@ -57,7 +57,7 @@ export default function AppShell({
       <main className="flex-1 overflow-hidden">{children}</main>
 
       {/* Bottom nav */}
-      <nav className="flex border-t border-continuum-border">
+      <nav className="flex border-t border-continuum-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <NavButton
           label="Chat"
           active={activeView === 'chat'}

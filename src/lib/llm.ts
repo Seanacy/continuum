@@ -63,7 +63,7 @@ export async function callLLM(
   // Format messages for the API
   const formattedMessages = messages.map((m) => {
     // Tool result messages pass through as-is
-    if ('content' in m && Array.isArray(m.content) && m.content.length > 0 && 'tool_use_id' in (m.content[0] as Record<string, unknown>)) {
+    if ('content' in m && Array.isArray(m.content) && m.content.length > 0 && 'tool_use_id' in (m.content[0] as unknown as Record<string, unknown>)) {
       return m
     }
 

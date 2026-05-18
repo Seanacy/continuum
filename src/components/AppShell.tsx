@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useNotifications } from '@/lib/hooks'
 import NotificationPanel from './NotificationPanel'
 
-type View = 'chat' | 'feed' | 'threads'
+type View = 'chat' | 'feed' | 'threads' | 'settings'
 
 export default function AppShell({
   aiName,
@@ -72,6 +72,11 @@ export default function AppShell({
           label="Threads"
           active={activeView === 'threads'}
           onClick={() => onViewChange('threads')}
+        />
+        <NavButton
+          label="Settings"
+          active={activeView === 'settings'}
+          onClick={() => onViewChange('settings')}
         />
       </nav>
     </div>

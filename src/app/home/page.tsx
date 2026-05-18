@@ -6,9 +6,10 @@ import AppShell from '@/components/AppShell'
 import ChatView from '@/components/ChatView'
 import FeedView from '@/components/FeedView'
 import ThreadsView from '@/components/ThreadsView'
+import SettingsView from '@/components/SettingsView'
 import OnboardingFlow from '@/components/OnboardingFlow'
 
-type View = 'chat' | 'feed' | 'threads'
+type View = 'chat' | 'feed' | 'threads' | 'settings'
 
 export default function HomePage() {
   const { user, loading } = useUser()
@@ -72,6 +73,7 @@ export default function HomePage() {
       {activeView === 'chat' && <ChatView threadId={activeThreadId} />}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
+      {activeView === 'settings' && <SettingsView />}
     </AppShell>
   )
 }

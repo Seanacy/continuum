@@ -18,12 +18,15 @@ function useSpeech() {
     utterance.rate = 0.95
     utterance.pitch = 1.0
 
-    // Try to find a nice voice
+    // Use saved voice preference, fall back to defaults
     const voices = window.speechSynthesis.getVoices()
-    const preferred = voices.find(
+    const savedVoiceName = typeof window !== 'undefined' ? localStorage.getItem('continuum-voice') : null
+    const savedVoice = savedVoiceName ? voices.find((v) => v.name === savedVoiceName) : null
+    const fallback = voices.find(
       (v) => v.name.includes('Samantha') || v.name.includes('Google UK English') || v.name.includes('Daniel')
     )
-    if (preferred) utterance.voice = preferred
+    if (savedVoice) utterance.voice = savedVoice
+    else if (fallback) utterance.voice = fallback
 
     utterance.onstart = () => { setSpeaking(true); setSpeakingMsgId(msgId || null) }
     utterance.onend = () => { setSpeaking(false); setSpeakingMsgId(null) }

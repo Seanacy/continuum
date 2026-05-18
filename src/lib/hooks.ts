@@ -29,10 +29,11 @@ export function useUser() {
 // ============================================
 export function useChat(threadId?: string) {
   const [messages, setMessages] = useState<
-    Array<{ id: string; role: string; content: string; createdAt: string }>
+    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string }>
   >([])
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [searching, setSearching] = useState(false)
 
   const loadMessages = useCallback(async () => {
     setLoading(true)
@@ -52,6 +53,7 @@ export function useChat(threadId?: string) {
 
   const sendMessage = async (content: string, image?: string, imageType?: string) => {
     setSending(true)
+    setSearching(false)
     const displayContent = image ? `[Sent an image] ${content}` : content
     const tempMsg = {
       id: 'temp-' + Date.now(),
@@ -60,6 +62,9 @@ export function useChat(threadId?: string) {
       createdAt: new Date().toISOString(),
     }
     setMessages((prev) => [...prev, tempMsg])
+
+    // Show "searching" state after a short delay (if Emily decides to search, the API takes longer)
+    const searchTimer = setTimeout(() => setSearching(true), 3000)
 
     try {
       const res = await fetch('/api/chat', {
@@ -72,23 +77,31 @@ export function useChat(threadId?: string) {
         }),
       })
 
+      clearTimeout(searchTimer)
+
       if (res.ok) {
         const data = await res.json()
+        const aiMsg = {
+          ...data.message,
+          searchQuery: data.searchPerformed ? data.searchQuery : undefined,
+        }
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== tempMsg.id),
           { ...tempMsg, id: 'user-' + Date.now() },
-          data.message,
+          aiMsg,
         ])
       }
     } catch (error) {
+      clearTimeout(searchTimer)
       console.error('Send failed:', error)
       setMessages((prev) => prev.filter((m) => m.id !== tempMsg.id))
     } finally {
       setSending(false)
+      setSearching(false)
     }
   }
 
-  return { messages, loading, sending, sendMessage, reload: loadMessages }
+  return { messages, loading, sending, searching, sendMessage, reload: loadMessages }
 }
 
 // ============================================

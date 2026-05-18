@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
     // Emily can search the web, read results, and respond — up to MAX_TOOL_ROUNDS searches
     let totalTokens = 0
     let finalContent = ''
+    const searchQueries: string[] = []
     const tools = process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL] : []
 
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
       // If Claude wants to search the web
       if (response.toolUse && response.toolUse.name === 'web_search') {
         const query = response.toolUse.input.query as string
+        searchQueries.push(query)
         console.log(`[Search] Emily is searching: "${query}"`)
 
         let searchResultText: string
@@ -253,6 +255,8 @@ export async function POST(req: NextRequest) {
         createdAt: aiMessage.createdAt,
       },
       tokensUsed: totalTokens,
+      searchPerformed: searchQueries.length > 0,
+      searchQuery: searchQueries[0] || null,
     })
   } catch (error) {
     console.error('Chat error:', error)

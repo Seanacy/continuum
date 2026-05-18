@@ -207,7 +207,7 @@ function CameraModal({
 // Main ChatView
 // ============================================
 export default function ChatView({ threadId }: { threadId?: string }) {
-  const { messages, loading, sending, sendMessage } = useChat(threadId)
+  const { messages, loading, sending, searching, sendMessage } = useChat(threadId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
@@ -296,6 +296,15 @@ export default function ChatView({ threadId }: { threadId?: string }) {
                     : 'bg-continuum-surface border border-continuum-border text-continuum-text rounded-bl-md'
                 }`}
               >
+                {msg.role === 'assistant' && msg.searchQuery && (
+                  <span className="flex items-center gap-1.5 text-xs text-continuum-accent mb-2 pb-1.5 border-b border-continuum-border">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    Searched: {msg.searchQuery}
+                  </span>
+                )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>
                     <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>
@@ -345,7 +354,17 @@ export default function ChatView({ threadId }: { threadId?: string }) {
         {sending && (
           <div className="flex justify-start">
             <div className="bg-continuum-surface border border-continuum-border px-4 py-2.5 rounded-2xl rounded-bl-md">
-              <span className="text-continuum-muted text-sm animate-pulse">...</span>
+              {searching ? (
+                <span className="flex items-center gap-2 text-continuum-accent text-sm animate-pulse">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: '2s' }}>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  Searching the web...
+                </span>
+              ) : (
+                <span className="text-continuum-muted text-sm animate-pulse">Emily is thinking...</span>
+              )}
             </div>
           </div>
         )}

@@ -8,6 +8,7 @@ import { updateUserEnergy } from '@/lib/energy-matcher'
 import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thread-engine'
 import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
+import { detectAndMarkReveals } from '@/lib/reveal-engine'
 
 export const dynamic = 'force-dynamic'
 
@@ -284,7 +285,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 11. Update thread summary
+    // 11. Detect capability reveals in the response (fire-and-forget)
+    detectAndMarkReveals(user.id, finalContent).catch(console.error)
+
+    // 12. Update thread summary
     if (threadId) {
       updateThreadSummary(threadId).catch(console.error)
     }

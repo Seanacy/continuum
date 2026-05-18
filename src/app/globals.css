@@ -27,3 +27,69 @@ input, textarea {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* ============================================
+   Fuzzy Glow Chat Bubbles
+   ============================================ */
+
+.bubble-ai {
+  position: relative;
+  background: rgba(30, 30, 46, 0.75);
+  box-shadow:
+    0 0 12px rgba(139, 92, 246, 0.08),
+    0 0 30px rgba(30, 30, 50, 0.5),
+    0 0 60px rgba(30, 30, 50, 0.3),
+    0 0 100px rgba(30, 30, 50, 0.15);
+}
+
+.bubble-ai::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bubble-user {
+  position: relative;
+  box-shadow:
+    0 0 12px rgba(139, 92, 246, 0.2),
+    0 0 30px rgba(139, 92, 246, 0.15),
+    0 0 60px rgba(139, 92, 246, 0.08),
+    0 0 100px rgba(139, 92, 246, 0.04);
+}
+
+.bubble-user::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15), transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Thinking/loading bubble gets the AI glow too */
+.bubble-thinking {
+  position: relative;
+  background: rgba(30, 30, 46, 0.75);
+  box-shadow:
+    0 0 12px rgba(139, 92, 246, 0.08),
+    0 0 30px rgba(30, 30, 50, 0.5),
+    0 0 60px rgba(30, 30, 50, 0.3);
+}
+
+.bubble-thinking::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+  pointer-events: none;
+}

@@ -6,6 +6,7 @@ import { db } from './db'
 import { getMemoryContext } from './memory-engine'
 import { getRecentSocialPicks } from './social-engine'
 import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
+import { getRevealBlock } from './reveal-engine'
 
 interface PromptContext {
   userId: string
@@ -132,6 +133,14 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
     // World context is optional
   }
 
+  // Get capability reveal block
+  let revealBlock = ''
+  try {
+    revealBlock = await getRevealBlock(ctx.userId)
+  } catch {
+    // Reveal system is optional — don't break the prompt if it fails
+  }
+
   // Parse AI state
   const tone = aiState?.tone || 'warm'
   const energy = aiState?.energy || 'neutral'
@@ -159,6 +168,7 @@ ${threadContext}
 ${socialBlock}
 ${engagementBlock}
 ${worldBlock}
+${revealBlock}
 
 ## Critical Rules
 1. ANTI-CONFABULATION: You may ONLY reference information present in the Memory Context above. NEVER fabricate past interactions, preferences, or details. If you're unsure about something, don't claim to remember it.

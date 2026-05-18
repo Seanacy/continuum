@@ -1,6 +1,8 @@
 // LLM client — wraps Anthropic Claude API
 // Supports text and vision (image) messages
 
+import { CONFIG } from './constants'
+
 export interface LLMMessage {
   role: 'user' | 'assistant'
   content: string | LLMContentBlock[]
@@ -61,7 +63,7 @@ export async function callLLM(
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: CONFIG.MODEL,
       max_tokens: options?.maxTokens || 1024,
       temperature: options?.temperature ?? 0.7,
       system: systemPrompt,

@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
 import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thread-engine'
 import { messageSchema } from '@/lib/validations'
+import { searchWeb } from '@/lib/tavily'
 
 export const dynamic = 'force-dynamic'
 
 const CONTEXT_WINDOW = 20
 const EXTRACTION_INTERVAL = 10
+const MAX_TOOL_ROUNDS = 3 // max times Emily can search per message
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Build history — all past messages as plain text
-    const history: LLMMessage[] = recentMessages
+    const history: (LLMMessage | ToolResultMessage)[] = recentMessages
       .reverse()
       .slice(0, -1) // exclude the message we just saved (we'll add it with the image)
       .map((m: { role: string; content: string }) => ({
@@ -89,18 +91,99 @@ export async function POST(req: NextRequest) {
       threadId,
     })
 
-    // 5. Call LLM
-    const response = await callLLM(systemPrompt, history, {
-      maxTokens: 1024,
-      temperature: 0.7,
-    })
+    // 5. Call LLM with tool use loop
+    // Emily can search the web, read results, and respond — up to MAX_TOOL_ROUNDS searches
+    let totalTokens = 0
+    let finalContent = ''
+    const tools = process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL] : []
+
+    for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+      const response = await callLLM(systemPrompt, history, {
+        maxTokens: 1024,
+        temperature: 0.7,
+        tools,
+      })
+
+      totalTokens += response.tokensUsed
+
+      // If Claude wants to search the web
+      if (response.toolUse && response.toolUse.name === 'web_search') {
+        const query = response.toolUse.input.query as string
+        console.log(`[Search] Emily is searching: "${query}"`)
+
+        let searchResultText: string
+        try {
+          const searchResults = await searchWeb(query)
+          // Format results for Claude to read
+          searchResultText = searchResults.results
+            .map((r, i) => `[${i + 1}] ${r.title}\n${r.url}\n${r.content}`)
+            .join('\n\n')
+
+          if (!searchResultText) {
+            searchResultText = 'No results found for this search.'
+          }
+        } catch (err) {
+          console.error('[Search] Tavily error:', err)
+          searchResultText = 'Search failed — unable to reach the search service right now.'
+        }
+
+        // Add Claude's tool use response to history (as assistant message)
+        history.push({
+          role: 'assistant',
+          content: [
+            ...(response.content ? [{ type: 'text' as const, text: response.content }] : []),
+            {
+              type: 'text' as const,
+              text: '', // placeholder — actual tool_use block is handled by the API
+            },
+          ],
+        })
+
+        // Actually, for the Anthropic API, we need to pass the raw content blocks
+        // Let's reconstruct this properly
+        history.pop() // remove the one we just pushed
+
+        // Push assistant message with tool_use block
+        const assistantBlocks: unknown[] = []
+        if (response.content) {
+          assistantBlocks.push({ type: 'text', text: response.content })
+        }
+        assistantBlocks.push({
+          type: 'tool_use',
+          id: response.toolUse.id,
+          name: response.toolUse.name,
+          input: response.toolUse.input,
+        })
+        history.push({ role: 'assistant', content: assistantBlocks as LLMContentBlock[] })
+
+        // Push tool result
+        const toolResult: ToolResultMessage = {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: response.toolUse.id,
+              content: searchResultText,
+            },
+          ],
+        }
+        history.push(toolResult)
+
+        // Continue the loop — Claude will now process the search results
+        continue
+      }
+
+      // No tool use — Claude gave a final text response
+      finalContent = response.content
+      break
+    }
 
     // 6. Save AI response
     const aiMessage = await db.message.create({
       data: {
         userId: user.id,
         role: 'assistant',
-        content: response.content,
+        content: finalContent,
         threadId,
       },
     })
@@ -118,7 +201,7 @@ export async function POST(req: NextRequest) {
         type: image ? 'vision' : 'chat',
         metadata: JSON.stringify({
           threadId,
-          tokensUsed: response.tokensUsed,
+          tokensUsed: totalTokens,
           hasImage: !!image,
         }),
       },
@@ -166,10 +249,10 @@ export async function POST(req: NextRequest) {
       message: {
         id: aiMessage.id,
         role: 'assistant',
-        content: response.content,
+        content: finalContent,
         createdAt: aiMessage.createdAt,
       },
-      tokensUsed: response.tokensUsed,
+      tokensUsed: totalTokens,
     })
   } catch (error) {
     console.error('Chat error:', error)

@@ -32,10 +32,7 @@ export const CONFIG = {
   MAX_TRAITS: 5,
 
   // LLM
-
-
-  MODEL: 'claude-3-haiku-20240307',
-
+  MODEL: 'claude-haiku-4-5-20251001',
   CHAT_MAX_TOKENS: 1024,
   CHAT_TEMPERATURE: 0.7,
   EXTRACTION_TEMPERATURE: 0.3,

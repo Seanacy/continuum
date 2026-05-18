@@ -24,8 +24,16 @@ export default function HomePage() {
     }
   }, [user, messages.length])
 
-  // If loading finished and no user, clear session and redirect to login
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-continuum-bg">
+        <span className="text-continuum-muted animate-pulse">Loading...</span>
+      </div>
+    )
+  }
+
   useEffect(() => {
+    // If loading finished and no user, clear session and redirect to login
     if (!loading && !user) {
       fetch('/api/auth/logout', { method: 'POST' })
         .finally(() => {
@@ -34,7 +42,7 @@ export default function HomePage() {
     }
   }, [loading, user])
 
-  if (loading || !user) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-continuum-bg">
         <span className="text-continuum-muted animate-pulse">Loading...</span>

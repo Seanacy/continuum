@@ -33,10 +33,12 @@ export default function HomePage() {
   }
 
   if (!user) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login'
-    }
-    return null
+    // Middleware handles the redirect — just show nothing while it kicks in
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-continuum-bg">
+        <span className="text-continuum-muted animate-pulse">Redirecting...</span>
+      </div>
+    )
   }
 
   if (showOnboarding) {

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useFeed } from '@/lib/hooks'
+import { trackInteraction } from '@/lib/interaction-tracker'
 
 const TYPE_LABELS: Record<string, string> = {
   reflection: 'Reflection',
@@ -136,6 +137,7 @@ function SocialCard({
         href={pick.url}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackInteraction('feed_item_tap', { feedItemId: item.id, type: item.type, source: pick.source })}
         className="block mx-3 mb-3 rounded-lg border border-continuum-border bg-continuum-bg hover:border-continuum-accent/50 transition overflow-hidden"
       >
         <div className="px-3 py-2.5">
@@ -175,6 +177,7 @@ function FeedCard({
 
   return (
     <div
+      onClick={() => trackInteraction('feed_item_tap', { feedItemId: item.id, type: item.type })}
       className={`p-4 rounded-xl border transition ${
         item.seen
           ? 'bg-continuum-surface border-continuum-border'

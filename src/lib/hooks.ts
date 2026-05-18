@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { trackInteraction } from './interaction-tracker'
 
 // ============================================
 // useUser — get current authenticated user
@@ -66,6 +67,8 @@ export function useChat(threadId?: string) {
     // Show "searching" state after a short delay — any web search takes 4+ seconds,
     // so if we're still waiting after 1.5s, Emily is almost certainly searching
     const searchTimer = setTimeout(() => setSearching(true), 1500)
+
+    trackInteraction('chat_message', { threadId, hasImage: !!image })
 
     try {
       const res = await fetch('/api/chat', {

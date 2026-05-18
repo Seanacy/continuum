@@ -5,6 +5,7 @@
 import { db } from './db'
 import { callLLM } from './llm'
 import { getMemoryContext } from './memory-engine'
+import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
 
 type FeedType = 'reflection' | 'memory_echo' | 'state_report' | 'thread_update' | 'prompt'
 
@@ -22,6 +23,10 @@ export async function generateFeedItems(userId: string): Promise<void> {
   const user = await db.user.findUnique({ where: { id: userId } })
   if (!user) return
 
+  // Get engagement profile to influence what types of feed items to generate
+  const engagement = await computeEngagement(userId)
+  const engagementContext = formatEngagementForPrompt(engagement)
+
   const candidates: FeedCandidate[] = []
 
   // 1. Memory echoes — surface old memories that are relevant
@@ -33,11 +38,11 @@ export async function generateFeedItems(userId: string): Promise<void> {
   if (threadUpdate) candidates.push(threadUpdate)
 
   // 3. Reflections — AI reflects on patterns/state
-  const reflection = await generateReflection(userId, user.aiName || 'Your AI')
+  const reflection = await generateReflection(userId, user.aiName || 'Your AI', engagementContext)
   if (reflection) candidates.push(reflection)
 
-  // 4. Prompts — generate a conversation starter based on memory
-  const prompt = await generatePrompt(userId, user.aiName || 'Your AI')
+  // 4. Prompts — generate a conversation starter based on memory + engagement
+  const prompt = await generatePrompt(userId, user.aiName || 'Your AI', engagementContext)
   if (prompt) candidates.push(prompt)
 
   // Save candidates to feed (max 3 per generation cycle)
@@ -120,7 +125,7 @@ async function generateThreadUpdate(userId: string): Promise<FeedCandidate | nul
 // ============================================
 // REFLECTION — AI reflects on user patterns
 // ============================================
-async function generateReflection(userId: string, aiName: string): Promise<FeedCandidate | null> {
+async function generateReflection(userId: string, aiName: string, engagementContext?: string): Promise<FeedCandidate | null> {
   const memoryContext = await getMemoryContext(userId)
   if (!memoryContext || memoryContext.length < 50) return null
 
@@ -139,8 +144,11 @@ async function generateReflection(userId: string, aiName: string): Promise<FeedC
     const result = await callLLM(
       `You are ${aiName}. Based on what you know about this person, write ONE short reflection (1-2 sentences). It should feel like a thought you had about them — something you noticed, a pattern, or a gentle observation. Be warm but not performative. Don't ask questions. Don't say "I noticed" — just state the thought.
 
+If engagement data is available, lean toward topics and feed types they actually engage with — not just what they've talked about.
+
 Memory context:
-${memoryContext}`,
+${memoryContext}
+${engagementContext ? '\n' + engagementContext : ''}`,
       [{ role: 'user', content: 'Generate a reflection.' }],
       { maxTokens: 100, temperature: 0.8 }
     )
@@ -158,7 +166,7 @@ ${memoryContext}`,
 // ============================================
 // PROMPT — generate a conversation starter
 // ============================================
-async function generatePrompt(userId: string, aiName: string): Promise<FeedCandidate | null> {
+async function generatePrompt(userId: string, aiName: string, engagementContext?: string): Promise<FeedCandidate | null> {
   const memoryContext = await getMemoryContext(userId)
   if (!memoryContext || memoryContext.length < 50) return null
 
@@ -177,8 +185,11 @@ async function generatePrompt(userId: string, aiName: string): Promise<FeedCandi
     const result = await callLLM(
       `You are ${aiName}. Based on what you know about this person, write ONE short conversation starter (1 sentence). It should reference something specific from their memory — a goal, a project, a decision they mentioned. Frame it as something natural to check in about. Don't be generic.
 
+If engagement data is available, prioritize topics they've been silently engaging with (tapping feed items about) even if they haven't mentioned them in chat recently.
+
 Memory context:
-${memoryContext}`,
+${memoryContext}
+${engagementContext ? '\n' + engagementContext : ''}`,
       [{ role: 'user', content: 'Generate a conversation prompt.' }],
       { maxTokens: 80, temperature: 0.8 }
     )

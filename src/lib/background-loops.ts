@@ -10,6 +10,7 @@ import { callLLM } from './llm'
 import { summarizeMoments, getMemoryContext } from './memory-engine'
 import { generateFeedItems } from './feed-engine'
 import { discoverSocialContent } from './social-engine'
+import { computeEngagement, type EngagementProfile } from './engagement-engine'
 
 // ============================================
 // LOOP 1: MEMORY ROLLUP
@@ -110,55 +111,33 @@ export async function runStateUpdate(): Promise<{ processed: number }> {
 
   for (const user of users) {
     try {
-      // Get recent interactions to analyze
-      const recentInteractions = await db.interaction.findMany({
-        where: {
-          userId: user.id,
-          createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        },
-      })
-
-      // Not enough data to evolve
-      if (recentInteractions.length < 3) continue
-
       const aiState = await db.aiState.findUnique({
         where: { userId: user.id },
       })
       if (!aiState) continue
 
-      const memoryContext = await getMemoryContext(user.id)
-      const currentTraits = JSON.parse(aiState.traits as string)
+      // Get engagement profile — this is the primary signal now
+      const engagement = await computeEngagement(user.id)
+      const currentTraits = JSON.parse(aiState.traits as string) as string[]
 
-      const result = await callLLM(
-        `You manage an AI's evolving personality state. Based on recent interaction patterns and what you know about the user, suggest subtle updates to the AI's traits.
+      // Rule-based energy adjustment from engagement (no LLM needed)
+      const newEnergy = deriveEnergy(engagement)
 
-Current traits: ${currentTraits.join(', ')}
-Current tone: ${aiState.tone}
-Recent interactions: ${recentInteractions.length} in last 24h (types: ${recentInteractions.map((i: { type: string }) => i.type).join(', ')})
+      // Rule-based trait nudges from engagement patterns
+      const nudgedTraits = nudgeTraits(currentTraits, engagement)
 
-Memory context:
-${memoryContext}
+      // Rule-based tone from chat patterns
+      const newTone = deriveTone(aiState.tone, engagement)
 
-Rules:
-- Changes should be SUBTLE — one trait shift at a time max
-- Traits evolve toward matching the user's communication style
-- If user is consistently brief, AI becomes more concise
-- If user engages deeply, AI becomes more exploratory
-- Never lose core warmth
-- Max 5 traits total
-
-Output JSON only: {"traits": ["trait1", "trait2", ...], "tone": "warm|direct|playful|thoughtful"}`,
-        [{ role: 'user', content: 'Suggest personality evolution.' }],
-        { maxTokens: 150, temperature: 0.4 }
-      )
-
-      const updates = JSON.parse(result.content)
+      // Resurface dormant threads if engagement shows interest
+      await resurfaceThreadsFromEngagement(user.id, engagement)
 
       await db.aiState.update({
         where: { userId: user.id },
         data: {
-          traits: JSON.stringify(updates.traits || currentTraits),
-          tone: updates.tone || aiState.tone,
+          traits: JSON.stringify(nudgedTraits),
+          tone: newTone,
+          energy: newEnergy,
         },
       })
 
@@ -169,8 +148,14 @@ Output JSON only: {"traits": ["trait1", "trait2", ...], "tone": "warm|direct|pla
           status: 'completed',
           payload: JSON.stringify({
             previousTraits: currentTraits,
-            newTraits: updates.traits,
-            tone: updates.tone,
+            newTraits: nudgedTraits,
+            tone: newTone,
+            energy: newEnergy,
+            engagement: {
+              presence: engagement.presencePattern,
+              chatFrequency: engagement.chatFrequency,
+              daysSinceLastVisit: engagement.daysSinceLastVisit,
+            },
           }),
         },
       })
@@ -189,6 +174,90 @@ Output JSON only: {"traits": ["trait1", "trait2", ...], "tone": "warm|direct|pla
   }
 
   return { processed }
+}
+
+// ============================================
+// Engagement-driven state rules (no LLM calls)
+// ============================================
+
+function deriveEnergy(engagement: EngagementProfile): string {
+  // If user is absent, AI energy drops to reflective
+  if (engagement.daysSinceLastVisit >= 5) return 'quiet'
+  if (engagement.daysSinceLastVisit >= 3) return 'low'
+
+  // Match energy to user's activity level
+  if (engagement.presencePattern === 'daily' && engagement.chatFrequency === 'high') return 'engaged'
+  if (engagement.presencePattern === 'daily') return 'present'
+  if (engagement.presencePattern === 'regular') return 'neutral'
+  if (engagement.presencePattern === 'sporadic') return 'patient'
+  return 'neutral'
+}
+
+function deriveTone(currentTone: string, engagement: EngagementProfile): string {
+  // If user writes long messages and chats often, lean exploratory
+  if (engagement.chatFrequency === 'high' && engagement.avgMessageLength === 'expansive') return 'thoughtful'
+  // If user is brief, match with directness
+  if (engagement.avgMessageLength === 'brief') return 'direct'
+  // If user is silently present (reads feed but doesn't chat much), stay warm
+  if (engagement.chatFrequency === 'low' && engagement.presencePattern !== 'absent') return 'warm'
+  // If absent, shift to something that acknowledges the gap naturally
+  if (engagement.daysSinceLastVisit >= 3) return 'warm'
+  // Default: keep current tone
+  return currentTone
+}
+
+function nudgeTraits(currentTraits: string[], engagement: EngagementProfile): string[] {
+  const traits = [...currentTraits]
+
+  // Add "patient" if user is sporadic or absent
+  if ((engagement.presencePattern === 'sporadic' || engagement.presencePattern === 'absent') && !traits.includes('patient')) {
+    if (traits.length >= 5) traits.pop()
+    traits.push('patient')
+  }
+
+  // Add "concise" if user writes brief messages
+  if (engagement.avgMessageLength === 'brief' && !traits.includes('concise')) {
+    // Remove "exploratory" or "verbose" if present
+    const idx = traits.findIndex(t => t === 'exploratory' || t === 'verbose')
+    if (idx >= 0) traits.splice(idx, 1)
+    traits.push('concise')
+  }
+
+  // Add "exploratory" if user writes long messages
+  if (engagement.avgMessageLength === 'expansive' && !traits.includes('exploratory')) {
+    const idx = traits.findIndex(t => t === 'concise')
+    if (idx >= 0) traits.splice(idx, 1)
+    if (traits.length < 5) traits.push('exploratory')
+  }
+
+  // Add "observant" if user reads feed a lot but chats less
+  if (engagement.chatFrequency !== 'high' && Object.keys(engagement.feedTypeScores).length > 0 && !traits.includes('observant')) {
+    if (traits.length < 5) traits.push('observant')
+  }
+
+  return traits.slice(0, 5)
+}
+
+async function resurfaceThreadsFromEngagement(userId: string, engagement: EngagementProfile): Promise<void> {
+  if (engagement.topicSignals.length === 0) return
+
+  // Find dormant threads whose title/summary contains topics the user is engaging with
+  const dormantThreads = await db.thread.findMany({
+    where: { userId, status: 'dormant' },
+    select: { id: true, title: true, summary: true },
+  })
+
+  for (const thread of dormantThreads) {
+    const threadText = `${thread.title} ${thread.summary || ''}`.toLowerCase()
+    const matchesSignal = engagement.topicSignals.some(signal => threadText.includes(signal))
+
+    if (matchesSignal) {
+      await db.thread.update({
+        where: { id: thread.id },
+        data: { status: 'resurfaced' },
+      })
+    }
+  }
 }
 
 // ============================================

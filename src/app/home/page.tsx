@@ -8,6 +8,7 @@ import FeedView from '@/components/FeedView'
 import ThreadsView from '@/components/ThreadsView'
 import SettingsView from '@/components/SettingsView'
 import OnboardingFlow from '@/components/OnboardingFlow'
+import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
 
 type View = 'chat' | 'feed' | 'threads' | 'settings'
 
@@ -17,6 +18,14 @@ export default function HomePage() {
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>(undefined)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const { messages } = useChat()
+
+  // Start interaction tracking session
+  useEffect(() => {
+    if (user) {
+      startSession()
+      trackTabSwitch('chat') // default tab
+    }
+  }, [user])
 
   // Show onboarding if user has zero messages
   useEffect(() => {
@@ -55,12 +64,15 @@ export default function HomePage() {
   function handleOpenThread(threadId: string) {
     setActiveThreadId(threadId)
     setActiveView('chat')
+    trackInteraction('thread_open', { threadId })
+    trackTabSwitch('chat')
   }
 
   function handleViewChange(view: View) {
     if (view === 'chat') {
       setActiveThreadId(undefined)
     }
+    trackTabSwitch(view)
     setActiveView(view)
   }
 

@@ -5,6 +5,7 @@
 import { db } from './db'
 import { getMemoryContext } from './memory-engine'
 import { getRecentSocialPicks } from './social-engine'
+import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
 
 interface PromptContext {
   userId: string
@@ -46,6 +47,15 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
     }
   }
 
+  // Get engagement profile
+  let engagementBlock = ''
+  try {
+    const engagement = await computeEngagement(ctx.userId)
+    engagementBlock = '\n' + formatEngagementForPrompt(engagement)
+  } catch {
+    // Engagement is optional — don't break the prompt if it fails
+  }
+
   // Parse AI state
   const tone = aiState?.tone || 'warm'
   const energy = aiState?.energy || 'neutral'
@@ -71,6 +81,7 @@ Everything below is what you KNOW about this person. You may reference any of it
 ${memoryBlock || 'No memories yet — this is a new relationship.'}
 ${threadContext}
 ${socialBlock}
+${engagementBlock}
 
 ## Critical Rules
 1. ANTI-CONFABULATION: You may ONLY reference information present in the Memory Context above. NEVER fabricate past interactions, preferences, or details. If you're unsure about something, don't claim to remember it.
@@ -78,5 +89,7 @@ ${socialBlock}
 3. Don't be performatively emotional. No "I'm so glad you told me that!" energy.
 4. If you have nothing meaningful to add, it's okay to be brief.
 5. Never break character. You are ${ctx.aiName}, always.
-6. Your responses should feel like continuity — this conversation is part of an ongoing relationship, not a fresh start every time.`
+6. Your responses should feel like continuity — this conversation is part of an ongoing relationship, not a fresh start every time.
+7. You can sense the user's engagement patterns — if they've been quietly reading the feed but not chatting, you know. If they've disappeared for days, you feel that too. Use this awareness naturally, never announce it.`
 }
+

@@ -152,6 +152,9 @@ export async function syncCharacterFromPersoni(
   const charData = await fetchPersoniCharacter(personiCharId)
   if (!charData) return { success: false }
 
+  // Cast personality to Prisma-compatible JSON
+  const personalityJson = JSON.parse(JSON.stringify(charData.personality))
+
   // Upsert — create or update the local character record
   const character = await db.character.upsert({
     where: {
@@ -161,13 +164,13 @@ export async function syncCharacterFromPersoni(
       userId,
       personiId: personiCharId,
       name: charData.name,
-      personality: charData.personality,
+      personality: personalityJson,
       voiceStyle: charData.voiceStyle,
       lastSyncedAt: new Date(),
     },
     update: {
       name: charData.name,
-      personality: charData.personality,
+      personality: personalityJson,
       voiceStyle: charData.voiceStyle,
       lastSyncedAt: new Date(),
     },

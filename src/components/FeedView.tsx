@@ -251,7 +251,7 @@ function CreativeWritingCard({ item }: { item: FeedItem }) {
       <div className="px-4 pt-3 pb-1">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-medium text-rose-400">
-            {formatLabel[data.format || ''] || 'Emily wrote this'}
+            {formatLabel[data.format || ''] || 'Written for you'}
           </span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>

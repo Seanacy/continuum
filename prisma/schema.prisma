@@ -16,6 +16,10 @@ model User {
   aiName    String?  @map("ai_name")
   location  String?  // city or area, e.g. "Los Angeles, CA"
   timezone  String?  // IANA timezone, e.g. "America/Los_Angeles"
+  tier      String   @default("free") // "free" or "pro"
+  stripeCustomerId String? @unique @map("stripe_customer_id")
+  stripeSubId      String? @map("stripe_sub_id")
+  isAdmin   Boolean  @default(false) @map("is_admin")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -30,6 +34,7 @@ model User {
   reminders          Reminder[]
   pushSubscriptions  PushSubscription[]
   discoveryAnswers   DiscoveryAnswer[]
+  usageLogs          UsageLog[]
 
   @@map("users")
 }
@@ -190,4 +195,18 @@ model DiscoveryAnswer {
   @@unique([userId, questionId])
   @@index([userId, level])
   @@map("discovery_answers")
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // "chat", "feed_gen", "notification", "search", "vision"
+  tokens    Int      @default(0)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("usage_logs")
 }

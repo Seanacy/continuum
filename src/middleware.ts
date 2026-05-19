@@ -6,7 +6,7 @@ const SECRET = new TextEncoder().encode(
 )
 
 // Routes that require authentication
-const protectedRoutes = ['/home', '/chat', '/feed', '/threads']
+const protectedRoutes = ['/home', '/chat', '/feed', '/threads', '/admin']
 
 // Routes that should redirect to /home if already logged in
 const authRoutes = ['/login', '/signup']
@@ -56,5 +56,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/home/:path*', '/chat/:path*', '/feed/:path*', '/threads/:path*', '/login', '/signup'],
+  matcher: ['/home/:path*', '/chat/:path*', '/feed/:path*', '/threads/:path*', '/admin/:path*', '/login', '/signup'],
 }

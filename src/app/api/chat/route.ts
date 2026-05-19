@@ -10,6 +10,8 @@ import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
 import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
+import { checkRateLimit } from '@/lib/rate-limiter'
+import { logUsage } from '@/lib/usage-tracker'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +35,20 @@ export async function POST(req: NextRequest) {
   }
 
   const { content, threadId, image, imageType, timezone, localTime } = parsed.data
+
+  // Rate limit check
+  const rateLimit = await checkRateLimit(user.id)
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: `You've hit your daily limit of ${rateLimit.limit} messages. Resets at midnight.`,
+        rateLimited: true,
+        remaining: 0,
+        resetsAt: rateLimit.resetsAt,
+      },
+      { status: 429 }
+    )
+  }
 
   try {
     // 1. Update energy state
@@ -240,7 +256,7 @@ export async function POST(req: NextRequest) {
       data: { lastActiveAt: new Date() },
     })
 
-    // 8. Log interaction
+    // 8. Log interaction + usage
     await db.interaction.create({
       data: {
         userId: user.id,
@@ -251,6 +267,12 @@ export async function POST(req: NextRequest) {
           hasImage: !!image,
         }),
       },
+    })
+
+    // Log for rate limiting and analytics
+    await logUsage(user.id, image ? 'vision' : 'chat', totalTokens, {
+      threadId,
+      searchCount: searchQueries.length,
     })
 
     // 9. Memory extraction
@@ -310,6 +332,7 @@ export async function POST(req: NextRequest) {
       searchQuery: searchQueries[0] || null,
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
       reminderSet,
+      remaining: rateLimit.remaining - 1,
     })
   } catch (error) {
     console.error('Chat error:', error)

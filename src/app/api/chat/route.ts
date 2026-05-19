@@ -10,7 +10,7 @@ import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
 import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
-import { checkRateLimit } from '@/lib/rate-limiter'
+import { spendChatCredit } from '@/lib/credit-system'
 import { logUsage } from '@/lib/usage-tracker'
 
 export const dynamic = 'force-dynamic'
@@ -36,15 +36,15 @@ export async function POST(req: NextRequest) {
 
   const { content, threadId, image, imageType, timezone, localTime } = parsed.data
 
-  // Rate limit check
-  const rateLimit = await checkRateLimit(user.id)
-  if (!rateLimit.allowed) {
+  // Credit check — spend one chat credit (free messages first, then purchased)
+  const creditSpend = await spendChatCredit(user.id)
+  if (!creditSpend.allowed) {
     return NextResponse.json(
       {
-        error: `You've hit your daily limit of ${rateLimit.limit} messages. Resets at midnight.`,
+        error: 'You\'re out of chat messages. Purchase video credits to get more — each video credit includes 50 chat messages.',
         rateLimited: true,
         remaining: 0,
-        resetsAt: rateLimit.resetsAt,
+        needsCredits: true,
       },
       { status: 429 }
     )
@@ -332,7 +332,7 @@ export async function POST(req: NextRequest) {
       searchQuery: searchQueries[0] || null,
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
       reminderSet,
-      remaining: rateLimit.remaining - 1,
+      remaining: creditSpend.remaining,
     })
   } catch (error) {
     console.error('Chat error:', error)

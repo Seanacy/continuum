@@ -35,6 +35,15 @@ model User {
   pushSubscriptions  PushSubscription[]
   discoveryAnswers   DiscoveryAnswer[]
   usageLogs          UsageLog[]
+  creditTransactions CreditTransaction[]
+  characters         Character[]
+  videoJobs          VideoJob[]
+
+  // Credit system
+  creditBalance   Int    @default(0) @map("credit_balance")    // chat message credits
+  videoCredits    Int    @default(0) @map("video_credits")     // video generation credits
+  freeMessages    Int    @default(10) @map("free_messages")    // free starter messages remaining
+  personiCharId   String? @map("personi_char_id")              // linked Personi character ID
 
   @@map("users")
 }
@@ -209,4 +218,72 @@ model UsageLog {
   @@index([userId, createdAt])
   @@index([action, createdAt])
   @@map("usage_logs")
+}
+
+// ============================================
+// CREDIT SYSTEM
+// ============================================
+model CreditTransaction {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "purchase", "spend_video", "spend_chat", "bonus", "refund"
+  amount    Int      // positive = added, negative = spent
+  resource  String   // "video_credit", "chat_credit"
+  balanceAfter Int   @map("balance_after")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("credit_transactions")
+}
+
+// ============================================
+// CHARACTER SYSTEM (Personi integration)
+// ============================================
+model Character {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personiId       String?  @map("personi_id")   // ID from Personi's database
+  name            String
+  personality     Json     @default("{}")        // synced from Personi
+  imageUrls       Json     @default("[]")       // 3-4 profile pic URLs
+  voiceStyle      String?  @map("voice_style")  // TTS voice preference
+  isActive        Boolean  @default(true) @map("is_active")
+  lastSyncedAt    DateTime? @map("last_synced_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  videoJobs       VideoJob[]
+
+  @@index([userId])
+  @@unique([userId, personiId])
+  @@map("characters")
+}
+
+// ============================================
+// VIDEO GENERATION PIPELINE
+// ============================================
+model VideoJob {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  characterId   String   @map("character_id")
+  character     Character @relation(fields: [characterId], references: [id])
+  status        String   @default("pending")  // "pending", "scripting", "generating", "stitching", "ready", "failed"
+  script        Json     @default("{}")       // the video script from script engine
+  scenes        Json     @default("[]")       // scene generation results (URLs, status per scene)
+  narrationUrl  String?  @map("narration_url")  // TTS audio file URL
+  finalVideoUrl String?  @map("final_video_url") // stitched output
+  totalCost     Float    @default(0) @map("total_cost")  // actual API cost tracked
+  duration      Int      @default(15)          // target duration in seconds
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@map("video_jobs")
 }

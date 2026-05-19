@@ -11,11 +11,15 @@ export default function AppShell({
   children,
   activeView,
   onViewChange,
+  partnerMode,
+  onPartnerModeToggle,
 }: {
   aiName: string
   children: React.ReactNode
   activeView: View
   onViewChange: (view: View) => void
+  partnerMode?: boolean
+  onPartnerModeToggle?: () => void
 }) {
   const { unreadCount } = useNotifications()
   const [showNotifs, setShowNotifs] = useState(false)
@@ -23,8 +27,33 @@ export default function AppShell({
   return (
     <div className="flex flex-col h-screen bg-continuum-bg relative" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-continuum-border">
-        <h1 className="text-lg font-semibold text-continuum-accent">{aiName}</h1>
+      <header className="flex items-center justify-between px-4 py-3 border-b border-continuum-border relative">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-semibold text-continuum-accent">{aiName}</h1>
+          {activeView === 'chat' && onPartnerModeToggle && (
+            <button
+              onClick={onPartnerModeToggle}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                partnerMode
+                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400'
+                  : 'bg-continuum-surface border border-continuum-border text-continuum-muted hover:border-amber-500/30 hover:text-amber-400/70'
+              }`}
+              title={partnerMode ? 'Creative Partner mode ON' : 'Turn on Creative Partner mode'}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              Create
+            </button>
+          )}
+        </div>
+        {/* Centered app name */}
+        <span
+          className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none"
+          style={{ textShadow: '0 0 10px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.35), 0 0 60px rgba(139, 92, 246, 0.15)' }}
+        >
+          Continuum
+        </span>
         <button
           onClick={() => setShowNotifs(!showNotifs)}
           className="relative p-2 rounded-lg hover:bg-continuum-surface transition"

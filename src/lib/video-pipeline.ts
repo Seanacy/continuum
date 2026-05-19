@@ -98,7 +98,7 @@ async function runPipeline(
 
   await db.videoJob.update({
     where: { id: jobId },
-    data: { script: script as unknown as Record<string, unknown>, duration: script.totalDuration, totalCost },
+    data: { script: JSON.parse(JSON.stringify(script)), duration: script.totalDuration, totalCost },
   })
 
   // ---- STAGE 2: GENERATING SCENES ----
@@ -113,7 +113,7 @@ async function runPipeline(
 
   await db.videoJob.update({
     where: { id: jobId },
-    data: { scenes: sceneResults, totalCost },
+    data: { scenes: JSON.parse(JSON.stringify(sceneResults)), totalCost },
   })
 
   // ---- STAGE 3: NARRATION ----

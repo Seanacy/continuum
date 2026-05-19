@@ -212,6 +212,7 @@ export default function ChatView({ threadId, partnerMode }: { threadId?: string;
   const [showCamera, setShowCamera] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { speaking, speakingMsgId, voiceEnabled, setVoiceEnabled, speak, speakText, stop } = useSpeech()
 
   // Track last AI message to auto-speak
@@ -254,6 +255,30 @@ export default function ChatView({ threadId, partnerMode }: { threadId?: string;
   function handleCapture(base64: string, mimeType: string) {
     setPendingImage({ base64, mimeType })
     setShowCamera(false)
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Only accept images
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file (PNG, JPG, etc.)')
+      return
+    }
+    // Max 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image is too large. Please upload an image under 10MB.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      const base64 = result.split(',')[1]
+      setPendingImage({ base64, mimeType: file.type })
+    }
+    reader.readAsDataURL(file)
+    // Reset input so the same file can be selected again
+    e.target.value = ''
   }
 
   if (loading) {
@@ -434,6 +459,29 @@ export default function ChatView({ threadId, partnerMode }: { threadId?: string;
         className="border-t border-continuum-border px-4 py-3"
       >
         <div className="flex gap-2 items-center">
+          {/* Hidden file input for photo upload */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* Upload Photo Button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2.5 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent text-continuum-muted hover:text-continuum-accent transition"
+            title="Upload screenshot or photo"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </button>
+
           {/* Camera Button */}
           <button
             type="button"

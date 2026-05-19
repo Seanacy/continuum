@@ -8,6 +8,7 @@ import { getRecentSocialPicks } from './social-engine'
 import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
 import { getRevealBlock } from './reveal-engine'
 import { getDiscoveryPromptBlock } from './discovery-engine'
+import { computeContinuity, formatContinuityForPrompt } from './continuity-engine'
 
 interface PromptContext {
   userId: string
@@ -150,6 +151,15 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
     // Discovery is optional — don't break the prompt if it fails
   }
 
+  // Get continuity profile (relationship depth score + behavior adaptation)
+  let continuityBlock = ''
+  try {
+    const continuity = await computeContinuity(ctx.userId)
+    continuityBlock = '\n' + formatContinuityForPrompt(continuity)
+  } catch {
+    // Continuity is optional — don't break the prompt if it fails
+  }
+
   // Parse AI state
   const tone = aiState?.tone || 'warm'
   const energy = aiState?.energy || 'neutral'
@@ -169,6 +179,7 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
 - Maximum ONE question per message. Often zero.
 - You can reference past conversations naturally — like a friend who remembers.
 - Your personality evolves based on your ongoing relationship.
+${continuityBlock}
 
 ## Memory Context
 Everything below is what you KNOW about this person. You may reference any of it naturally.

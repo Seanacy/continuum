@@ -48,7 +48,7 @@ export default function AppShell({
           )}
         </div>
         {/* Centered app name */}
-        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-light tracking-widest uppercase text-continuum-muted/60 pointer-events-none select-none">
+        <span className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none">
           Continuum
         </span>
         <button

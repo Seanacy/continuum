@@ -80,7 +80,7 @@ export async function buildUnifiedContext(userId: string): Promise<UnifiedContex
     }),
   ])
 
-  const aiName = user?.aiName || 'Your AI'
+  const aiName = user?.aiName || 'Emily'
 
   // Format engagement
   const engagementBlock = formatEngagementForPrompt(engagement)

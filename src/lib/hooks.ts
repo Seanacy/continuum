@@ -52,7 +52,7 @@ export function useChat(threadId?: string) {
     loadMessages()
   }, [loadMessages])
 
-  const sendMessage = async (content: string, image?: string, imageType?: string, partnerMode?: boolean) => {
+  const sendMessage = async (content: string, image?: string, imageType?: string) => {
     setSending(true)
     setSearching(false)
     const displayContent = image ? `[Sent an image] ${content}` : content
@@ -78,7 +78,6 @@ export function useChat(threadId?: string) {
           content,
           threadId,
           ...(image ? { image, imageType } : {}),
-          ...(partnerMode ? { partnerMode: true } : {}),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           localTime: new Date().toISOString(),
         }),

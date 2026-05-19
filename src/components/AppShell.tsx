@@ -27,7 +27,7 @@ export default function AppShell({
   return (
     <div className="flex flex-col h-screen bg-continuum-bg relative" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-continuum-border">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-continuum-border relative">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold text-continuum-accent">{aiName}</h1>
           {activeView === 'chat' && onPartnerModeToggle && (
@@ -47,6 +47,10 @@ export default function AppShell({
             </button>
           )}
         </div>
+        {/* Centered app name */}
+        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-light tracking-widest uppercase text-continuum-muted/60 pointer-events-none select-none">
+          Continuum
+        </span>
         <button
           onClick={() => setShowNotifs(!showNotifs)}
           className="relative p-2 rounded-lg hover:bg-continuum-surface transition"

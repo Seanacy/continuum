@@ -1,6 +1,6 @@
 // Social Engine
 // Discovers content from across the internet based on user interests
-// The user's AI curates the best picks and adds its own commentary
+// Emily curates the best picks and adds her own commentary
 // Sources: Twitter/X, Reddit, YouTube, news, blogs — anything Tavily can find
 
 import { db } from './db'
@@ -41,7 +41,7 @@ export async function discoverSocialContent(userId: string): Promise<number> {
   if (!memoryContext || memoryContext.length < 30) return 0 // not enough to know their interests
 
   // Step 1: Have Emily figure out what topics to search for
-  const topics = await extractTopics(memoryContext, user.aiName || 'Your AI')
+  const topics = await extractTopics(memoryContext, user.aiName || 'Emily')
   if (topics.length === 0) return 0
 
   // Step 2: Search for content on those topics
@@ -63,7 +63,7 @@ export async function discoverSocialContent(userId: string): Promise<number> {
   const picks = await curateContent(
     allResults,
     memoryContext,
-    user.aiName || 'Your AI',
+    user.aiName || 'Emily',
     MAX_PICKS_PER_CYCLE - recentPicks.length
   )
 

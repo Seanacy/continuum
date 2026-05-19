@@ -17,7 +17,6 @@ export default function HomePage() {
   const [activeView, setActiveView] = useState<View>('chat')
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>(undefined)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [partnerMode, setPartnerMode] = useState(false)
   const { messages } = useChat()
 
   // Start interaction tracking session
@@ -82,10 +81,8 @@ export default function HomePage() {
       aiName={user.aiName || 'Your AI'}
       activeView={activeView}
       onViewChange={handleViewChange}
-      partnerMode={partnerMode}
-      onPartnerModeToggle={() => setPartnerMode(!partnerMode)}
     >
-      {activeView === 'chat' && <ChatView threadId={activeThreadId} partnerMode={partnerMode} />}
+      {activeView === 'chat' && <ChatView threadId={activeThreadId} />}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
       {activeView === 'settings' && <SettingsView />}

@@ -5,17 +5,17 @@
 // 1. SCRIPTING — LLM generates a video script (scene-by-scene)
 // 2. GENERATING — Higgsfield API generates each scene as a clip (Kling 3.0)
 // 3. NARRATION — ElevenLabs generates voiceover from script narration
-// 4. STITCHING — Shotstack API combines clips + audio into final MP4
+// 4. STITCHING — FFmpeg combines clips + audio into final video (STUBBED)
 // 5. READY — Final video available for download
 //
 // Env vars needed:
 // - HIGGSFIELD_API_KEY: API key from cloud.higgsfield.ai/dashboard
 // - ELEVENLABS_API_KEY: API key from elevenlabs.io
 // - ELEVENLABS_VOICE_ID: default voice ID (optional, falls back to 'Rachel')
-// - SHOTSTACK_API_KEY: API key from dashboard.shotstack.io
-// - SHOTSTACK_ENV: set to 'production' for live renders (default: sandbox/watermarked)
 //
-// All stages gracefully fall back to stubs when API keys are missing.
+// Stitching is still stubbed — needs a server with FFmpeg or a cloud
+// video processing service (like Creatomate, Shotstack, or a Vercel
+// Edge Function with FFmpeg WASM). Everything else is live.
 //
 // Cost tracking: every API call logs its cost so we know actual margins
 
@@ -32,10 +32,6 @@ const HIGGSFIELD_API_KEY = process.env.HIGGSFIELD_API_KEY || ''
 const HIGGSFIELD_API_URL = 'https://api.higgsfield.ai/v1'
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || ''
 const ELEVENLABS_DEFAULT_VOICE = process.env.ELEVENLABS_VOICE_ID || 'Rachel'
-const SHOTSTACK_API_KEY = process.env.SHOTSTACK_API_KEY || ''
-const SHOTSTACK_API_URL = process.env.SHOTSTACK_ENV === 'production'
-  ? 'https://api.shotstack.io/v1'
-  : 'https://api.shotstack.io/stage'  // free sandbox for testing (watermarked)
 
 // ============================================
 // COST CONSTANTS (real costs based on Higgsfield Kling 3.0 + ElevenLabs)
@@ -44,7 +40,7 @@ const COSTS = {
   SCRIPT_GENERATION: 0.03,     // LLM call for script
   SCENE_GENERATION: 0.29,      // per scene — Kling 3.0 via Higgsfield (~6 credits on Plus)
   NARRATION_TTS: 0.04,         // ElevenLabs TTS per video
-  STITCHING: 0.05,             // Shotstack API (~$0.20/min, our videos are ~15s avg)
+  STITCHING: 0.00,             // FFmpeg is free (server compute)
 } as const
 
 // ============================================
@@ -416,180 +412,45 @@ async function generateNarration(
 }
 
 // ============================================
-// STAGE 4: VIDEO STITCHING — Shotstack API
-// Takes scene clips + narration audio and renders a final MP4
-//
-// Env vars:
-// - SHOTSTACK_API_KEY: from dashboard.shotstack.io
-// - SHOTSTACK_ENV: 'production' for live, anything else uses free sandbox (watermarked)
-//
-// How it works:
-// 1. Build a JSON timeline — each scene clip on a video track, narration on an audio track
-// 2. POST to /render — Shotstack queues the render job
-// 3. Poll GET /render/{id} until status = 'done'
-// 4. Return the final video URL
+// STAGE 4: VIDEO STITCHING (STUBBED)
+// Needs a server with FFmpeg or a cloud video service
+// Options: Creatomate, Shotstack, or self-hosted FFmpeg
 // ============================================
 async function stitchVideo(
   scenes: SceneResult[],
   narrationUrl: string,
   script: VideoScript
 ): Promise<string> {
-  // Filter to only scenes that actually rendered
-  const readyScenes = scenes.filter(s => s.status === 'ready' && s.videoUrl && !s.videoUrl.includes('placeholder'))
+  // TODO: Replace with real video stitching
+  // Option 1 — Creatomate API:
+  //   const response = await fetch('https://api.creatomate.com/v1/renders', {
+  //     method: 'POST',
+  //     headers: { Authorization: `Bearer ${CREATOMATE_API_KEY}`, 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       template_id: 'YOUR_TEMPLATE',
+  //       modifications: scenes.map(s => ({ src: s.videoUrl })),
+  //       audio: narrationUrl,
+  //     })
+  //   })
+  //
+  // Option 2 — Self-hosted FFmpeg (on a separate server, not Vercel):
+  //   ffmpeg -i scene1.mp4 -i scene2.mp4 -i scene3.mp4 -i narration.mp3 \
+  //     -filter_complex "[0:v][1:v][2:v]concat=n=3:v=1:a=0[v];[3:a]adelay=0[a]" \
+  //     -map "[v]" -map "[a]" -c:v libx264 -c:a aac output.mp4
+  //
+  // Option 3 — Shotstack API:
+  //   POST https://api.shotstack.io/edit/v1/render with timeline JSON
 
-  // If no API key, fall back to returning first scene as preview
-  if (!SHOTSTACK_API_KEY) {
-    console.log(`[Video] NO SHOTSTACK KEY — stub mode for stitching`)
-    if (readyScenes.length > 0) {
-      console.log(`[Video] Returning first scene as preview`)
-      return readyScenes[0].videoUrl
-    }
-    return `https://placeholder.continuum.app/videos/final_${Date.now()}.mp4`
+  // For now: if all scenes have real URLs, return the first scene's video
+  // This gives the user SOMETHING while stitching is being built out
+  const firstReadyScene = scenes.find(s => s.status === 'ready' && s.videoUrl && !s.videoUrl.includes('placeholder'))
+  if (firstReadyScene) {
+    console.log(`[Video] Stitching not yet implemented — returning first scene as preview`)
+    return firstReadyScene.videoUrl
   }
 
-  // If somehow no scenes rendered, nothing to stitch
-  if (readyScenes.length === 0) {
-    console.warn(`[Video] No ready scenes to stitch — returning placeholder`)
-    return `https://placeholder.continuum.app/videos/final_${Date.now()}.mp4`
-  }
-
-  try {
-    // Build the Shotstack timeline
-    // Each scene becomes a clip on a video track, sequenced one after another
-    let currentStart = 0
-    const videoClips = readyScenes.map((scene) => {
-      const sceneScript = script.scenes.find(s => s.sceneNumber === scene.sceneNumber)
-      const duration = sceneScript?.duration || 5
-      const clip = {
-        asset: {
-          type: 'video' as const,
-          src: scene.videoUrl,
-          volume: 0, // mute scene audio — narration replaces it
-        },
-        start: currentStart,
-        length: duration,
-      }
-      currentStart += duration
-      return clip
-    })
-
-    // Build audio track for narration (plays over the entire video)
-    const audioTrack = {
-      clips: [
-        {
-          asset: {
-            type: 'audio' as const,
-            src: narrationUrl,
-            volume: 1,
-          },
-          start: 0,
-          length: currentStart, // spans the full video length
-        },
-      ],
-    }
-
-    // Video track with all scene clips
-    const videoTrack = {
-      clips: videoClips,
-    }
-
-    const payload = {
-      timeline: {
-        tracks: [
-          videoTrack,  // video on top track
-          audioTrack,  // audio on bottom track
-        ],
-      },
-      output: {
-        format: 'mp4',
-        resolution: 'hd', // 1280x720
-        fps: 30,
-      },
-    }
-
-    console.log(`[Video] Shotstack: Submitting render — ${readyScenes.length} scenes, ${currentStart}s total`)
-
-    // Submit the render job
-    const submitRes = await fetch(`${SHOTSTACK_API_URL}/render`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': SHOTSTACK_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-
-    if (!submitRes.ok) {
-      const errText = await submitRes.text()
-      throw new Error(`Shotstack submit failed (${submitRes.status}): ${errText}`)
-    }
-
-    const submitData = await submitRes.json() as { response?: { id?: string } }
-    const renderId = submitData.response?.id
-
-    if (!renderId) {
-      throw new Error('Shotstack returned no render ID')
-    }
-
-    console.log(`[Video] Shotstack: Render queued — ${renderId}`)
-
-    // Poll for completion
-    const finalUrl = await pollShotstack(renderId)
-
-    console.log(`[Video] Shotstack: Final video ready`)
-
-    return finalUrl
-  } catch (error) {
-    console.error('[Video] Shotstack stitching error:', error)
-
-    // Fall back to first scene if stitching fails
-    if (readyScenes.length > 0) {
-      console.log(`[Video] Falling back to first scene as preview`)
-      return readyScenes[0].videoUrl
-    }
-    return `https://placeholder.continuum.app/videos/final_${Date.now()}.mp4`
-  }
-}
-
-// ============================================
-// SHOTSTACK POLLING — wait for render to complete
-// ============================================
-async function pollShotstack(renderId: string): Promise<string> {
-  const maxAttempts = 60  // 5 minutes at 5s intervals
-  const pollInterval = 5000
-
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(resolve => setTimeout(resolve, pollInterval))
-
-    const statusRes = await fetch(`${SHOTSTACK_API_URL}/render/${renderId}`, {
-      headers: { 'x-api-key': SHOTSTACK_API_KEY },
-    })
-
-    if (!statusRes.ok) {
-      console.warn(`[Video] Shotstack poll failed (${statusRes.status}), retrying...`)
-      continue
-    }
-
-    const statusData = await statusRes.json() as {
-      response?: { status?: string; url?: string; error?: string }
-    }
-    const renderStatus = statusData.response?.status
-
-    if (renderStatus === 'done') {
-      const videoUrl = statusData.response?.url
-      if (!videoUrl) throw new Error('Shotstack render done but no URL in response')
-      return videoUrl
-    }
-
-    if (renderStatus === 'failed') {
-      throw new Error(`Shotstack render failed: ${statusData.response?.error || 'unknown error'}`)
-    }
-
-    // Still rendering — keep polling
-    console.log(`[Video] Shotstack: Still rendering (attempt ${i + 1}/${maxAttempts})...`)
-  }
-
-  throw new Error('Shotstack render timed out after 5 minutes')
+  console.log(`[Video] STUB: Would stitch ${scenes.length} scenes + narration into ${script.totalDuration}s video`)
+  return `https://placeholder.continuum.app/videos/final_${Date.now()}.mp4`
 }
 
 // ============================================

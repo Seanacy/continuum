@@ -1,7 +1,7 @@
 // Continuity Engine
 // Computes a 0–100 "relationship depth" score from existing data.
 // No new tables — reads messages, memories, discovery answers, threads, interactions.
-// The score drives behavioral adaptation: the AI's personality shifts as the relationship deepens.
+// The score drives behavioral adaptation: Emily's personality shifts as the relationship deepens.
 
 import { db } from './db'
 

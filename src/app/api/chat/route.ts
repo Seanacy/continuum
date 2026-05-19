@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
   }
 
   const { content, threadId, image, imageType, timezone, localTime } = parsed.data
-  const partnerMode = body.partnerMode === true
 
   // Credit check — spend one chat credit (free messages first, then purchased)
   const creditSpend = await spendChatCredit(user.id)
@@ -110,7 +109,6 @@ export async function POST(req: NextRequest) {
       threadId,
       timezone,
       localTime,
-      partnerMode,
     })
 
     // 5. Call LLM with tool use loop

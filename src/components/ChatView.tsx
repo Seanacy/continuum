@@ -206,7 +206,7 @@ function CameraModal({
 // ============================================
 // Main ChatView
 // ============================================
-export default function ChatView({ threadId }: { threadId?: string }) {
+export default function ChatView({ threadId, partnerMode }: { threadId?: string; partnerMode?: boolean }) {
   const { messages, loading, sending, searching, sendMessage } = useChat(threadId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
@@ -248,7 +248,7 @@ export default function ChatView({ threadId }: { threadId?: string }) {
     const imageType = pendingImage?.mimeType
     setPendingImage(null)
 
-    await sendMessage(msg, image, imageType)
+    await sendMessage(msg, image, imageType, partnerMode)
   }
 
   function handleCapture(base64: string, mimeType: string) {
@@ -401,7 +401,7 @@ export default function ChatView({ threadId }: { threadId?: string }) {
                   Searching the web...
                 </span>
               ) : (
-                <span className="text-continuum-muted text-sm animate-pulse">Emily is thinking...</span>
+                <span className="text-continuum-muted text-sm animate-pulse">Thinking...</span>
               )}
             </div>
           </div>

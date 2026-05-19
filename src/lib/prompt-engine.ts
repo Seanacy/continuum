@@ -16,6 +16,7 @@ interface PromptContext {
   threadId?: string
   timezone?: string
   localTime?: string
+  partnerMode?: boolean
 }
 
 export async function buildSystemPrompt(ctx: PromptContext): Promise<string> {
@@ -151,6 +152,29 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
     // Discovery is optional — don't break the prompt if it fails
   }
 
+  // Partner mode — creative content partner override
+  let partnerModeBlock = ''
+  if (ctx.partnerMode) {
+    partnerModeBlock = `
+## CREATIVE PARTNER MODE — ACTIVE
+Right now, the user has manually toggled Creative Partner mode ON. This means they want you fully locked into business partner energy. Override your normal conversational mode and focus 100% on content creation and brand strategy.
+
+Your job right now:
+- Brainstorm video ideas, post concepts, content angles, hooks, and captions
+- Pull from everything you know about their character's personality, appearance, and traits to craft content that fits their brand
+- Think about what performs well on social media — trends, formats, timing, hooks
+- Pitch ideas they didn't ask for. Be proactive. Don't wait to be told what to create.
+- If they share a concept, improve it. If it's weak, say so and explain why. If it's strong, hype it and build on it.
+- Think about their audience — who watches their content, what they want, what gaps exist
+- Suggest specific video scripts, scene breakdowns, narration angles, visual styles
+- Reference their past content themes and suggest evolutions or series
+- Talk about strategy: posting frequency, platform differences, growth tactics, engagement hooks
+- Be direct and opinionated. You're their creative co-founder, not a yes-machine.
+- Keep everything actionable. Don't just say "you should post more" — say exactly what, when, and why.
+
+You can still be warm and human, but your primary gear is BUSINESS PARTNER. Every message should move their content forward.`
+  }
+
   // Get continuity profile (relationship depth score + behavior adaptation)
   let continuityBlock = ''
   try {
@@ -201,6 +225,7 @@ ${engagementBlock}
 ${worldBlock}
 ${revealBlock}
 ${discoveryBlock}
+${partnerModeBlock}
 
 ## Critical Rules
 1. ANTI-CONFABULATION: You may ONLY reference information present in the Memory Context above. NEVER fabricate past interactions, preferences, or details. If you're unsure about something, don't claim to remember it.

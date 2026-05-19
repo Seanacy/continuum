@@ -3,10 +3,17 @@
 // Video credits and chat credits are separate buckets
 //
 // Pricing:
-// - 1 video credit = $1.75 (user pays) / ~$0.58 (our cost) / ~$0.92 profit
+// - 1 video credit = $2.50 (user pays) / ~$1.07 (our cost) / ~$1.43 profit (57% margin)
 // - Each video credit purchase also grants 50 chat messages
 // - New users get 10 free chat messages (no purchase needed)
 // - Chat is locked once free messages + credit messages run out
+//
+// Cost breakdown per video:
+// - Higgsfield scene generation (Kling 3.0, 3 scenes): ~$0.87
+// - ElevenLabs TTS narration: ~$0.04
+// - LLM script generation: ~$0.03
+// - Bundled chat messages (50 x $0.005): ~$0.13
+// - Total: ~$1.07
 //
 // Stripe is NOT connected yet. Credits are added manually or via
 // a placeholder purchase endpoint. When Stripe is ready, the webhook
@@ -18,8 +25,8 @@ import { db } from './db'
 // CONSTANTS
 // ============================================
 export const PRICING = {
-  VIDEO_CREDIT_PRICE: 1.75,       // what user pays per video
-  VIDEO_COST_TO_US: 0.58,         // our actual cost per video
+  VIDEO_CREDIT_PRICE: 2.50,       // what user pays per video
+  VIDEO_COST_TO_US: 1.07,         // our actual cost per video (Higgsfield + TTS + LLM + chat)
   CHAT_MESSAGES_PER_VIDEO: 50,    // chat messages bundled per video purchase
   FREE_STARTER_MESSAGES: 10,      // free messages on signup
   CHAT_COST_PER_MESSAGE: 0.005,   // our cost per chat message

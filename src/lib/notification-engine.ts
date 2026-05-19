@@ -82,7 +82,7 @@ export async function generateNotifications(userId: string): Promise<void> {
 function generateAbsenceCheck(ctx: UnifiedContext): {
   type: NotificationType
   content: string
-  referenceId: null
+  referenceId: string | null
 } | null {
   const daysSince = ctx.engagement.daysSinceLastVisit
 

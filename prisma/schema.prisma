@@ -29,6 +29,7 @@ model User {
   notifications    Notification[]
   reminders          Reminder[]
   pushSubscriptions  PushSubscription[]
+  discoveryAnswers   DiscoveryAnswer[]
 
   @@map("users")
 }
@@ -173,4 +174,20 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+model DiscoveryAnswer {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String   @map("question_id")  // maps to registry ID like "l1_think_about"
+  level      Int      @default(1)
+  answer     String
+  source     String   @default("chat")      // "chat" or "settings"
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, questionId])
+  @@index([userId, level])
+  @@map("discovery_answers")
 }

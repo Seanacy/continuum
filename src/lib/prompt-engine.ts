@@ -7,6 +7,7 @@ import { getMemoryContext } from './memory-engine'
 import { getRecentSocialPicks } from './social-engine'
 import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
 import { getRevealBlock } from './reveal-engine'
+import { getDiscoveryPromptBlock } from './discovery-engine'
 
 interface PromptContext {
   userId: string
@@ -141,6 +142,14 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) — ${p.commentary}`).joi
     // Reveal system is optional — don't break the prompt if it fails
   }
 
+  // Get discovery question block (one question per day, slipped into convo)
+  let discoveryBlock = ''
+  try {
+    discoveryBlock = await getDiscoveryPromptBlock(ctx.userId)
+  } catch {
+    // Discovery is optional — don't break the prompt if it fails
+  }
+
   // Parse AI state
   const tone = aiState?.tone || 'warm'
   const energy = aiState?.energy || 'neutral'
@@ -169,6 +178,7 @@ ${socialBlock}
 ${engagementBlock}
 ${worldBlock}
 ${revealBlock}
+${discoveryBlock}
 
 ## Critical Rules
 1. ANTI-CONFABULATION: You may ONLY reference information present in the Memory Context above. NEVER fabricate past interactions, preferences, or details. If you're unsure about something, don't claim to remember it.

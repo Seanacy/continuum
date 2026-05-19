@@ -3,6 +3,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push-client'
 
+interface DiscoveryQuestion {
+  id: string
+  level: number
+  question: string
+  answer: string | null
+}
+
 export default function SettingsView() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
@@ -13,6 +20,13 @@ export default function SettingsView() {
   const [pushSupported, setPushSupported] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
+
+  // Discovery questions state
+  const [discoveryQuestions, setDiscoveryQuestions] = useState<DiscoveryQuestion[]>([])
+  const [discoveryLevel, setDiscoveryLevel] = useState(1)
+  const [editingQuestion, setEditingQuestion] = useState<string | null>(null)
+  const [editingAnswer, setEditingAnswer] = useState('')
+  const [savingAnswer, setSavingAnswer] = useState(false)
 
   // Load available voices
   const loadVoices = useCallback(() => {
@@ -75,6 +89,17 @@ export default function SettingsView() {
       .catch(() => {})
   }, [])
 
+  // Load discovery questions
+  useEffect(() => {
+    fetch('/api/user/discovery')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.questions) setDiscoveryQuestions(data.questions)
+        if (data.currentLevel) setDiscoveryLevel(data.currentLevel)
+      })
+      .catch(() => {})
+  }, [])
+
   async function saveLocation() {
     setLocationLoading(true)
     try {
@@ -119,10 +144,124 @@ export default function SettingsView() {
     window.speechSynthesis.speak(utterance)
   }
 
+  async function saveDiscoveryAnswer(questionId: string) {
+    if (!editingAnswer.trim()) return
+    setSavingAnswer(true)
+    try {
+      await fetch('/api/user/discovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId, answer: editingAnswer.trim() }),
+      })
+      // Update local state
+      setDiscoveryQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId ? { ...q, answer: editingAnswer.trim() } : q
+        )
+      )
+      setEditingQuestion(null)
+      setEditingAnswer('')
+    } catch {
+      // fail silently
+    }
+    setSavingAnswer(false)
+  }
+
+  const answeredCount = discoveryQuestions.filter((q) => q.answer).length
+  const totalCount = discoveryQuestions.length
+
   return (
     <div className="h-full overflow-y-auto px-4 py-6">
       <h2 className="text-lg font-semibold text-continuum-text mb-1">Settings</h2>
       <p className="text-sm text-continuum-muted mb-6">Customize your experience</p>
+
+      {/* Discovery Questions — What Makes You Tick */}
+      {discoveryQuestions.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-continuum-text mb-1">What Makes You Tick</h3>
+          <p className="text-xs text-continuum-muted mb-1">
+            Help Emily understand who you really are. Answer at your own pace — or let her ask in conversation.
+          </p>
+          <p className="text-xs text-continuum-accent mb-4">
+            Level {discoveryLevel} — {answeredCount}/{totalCount} answered
+          </p>
+
+          <div className="space-y-3">
+            {discoveryQuestions.map((q) => {
+              const isEditing = editingQuestion === q.id
+              const hasAnswer = !!q.answer
+
+              return (
+                <div
+                  key={q.id}
+                  className={`rounded-xl border transition ${
+                    hasAnswer
+                      ? 'bg-continuum-surface/50 border-continuum-border'
+                      : 'bg-continuum-surface border-continuum-border hover:border-continuum-accent/50'
+                  }`}
+                >
+                  <div className="px-3.5 py-3">
+                    <p className="text-sm text-continuum-text mb-1">{q.question}</p>
+
+                    {isEditing ? (
+                      <div className="mt-2">
+                        <textarea
+                          value={editingAnswer}
+                          onChange={(e) => setEditingAnswer(e.target.value)}
+                          placeholder="Be honest — this is just between you and Emily..."
+                          className="w-full bg-continuum-bg border border-continuum-border rounded-lg px-3 py-2 text-sm text-continuum-text placeholder:text-continuum-muted focus:outline-none focus:border-continuum-accent resize-none"
+                          rows={3}
+                          autoFocus
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => saveDiscoveryAnswer(q.id)}
+                            disabled={savingAnswer || !editingAnswer.trim()}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-continuum-accent/15 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/25 transition disabled:opacity-30"
+                          >
+                            {savingAnswer ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={() => { setEditingQuestion(null); setEditingAnswer('') }}
+                            className="px-3 py-1.5 rounded-lg text-xs text-continuum-muted hover:text-continuum-text transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : hasAnswer ? (
+                      <div className="mt-1">
+                        <p className="text-xs text-continuum-muted leading-relaxed">{q.answer}</p>
+                        <button
+                          onClick={() => { setEditingQuestion(q.id); setEditingAnswer(q.answer || '') }}
+                          className="text-xs text-continuum-accent mt-1.5 hover:underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setEditingQuestion(q.id); setEditingAnswer('') }}
+                        className="text-xs text-continuum-accent mt-1 hover:underline"
+                      >
+                        Answer this
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {discoveryLevel < 3 && answeredCount === totalCount && totalCount > 0 && (
+            <div className="mt-4 px-3.5 py-3 rounded-xl bg-continuum-accent/10 border border-continuum-accent/20">
+              <p className="text-xs text-continuum-accent">
+                Level {discoveryLevel} complete. Level {discoveryLevel + 1} questions coming soon.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Location */}
       <div className="mb-8">

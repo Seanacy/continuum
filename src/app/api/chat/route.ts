@@ -9,6 +9,7 @@ import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thr
 import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
+import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
 
 export const dynamic = 'force-dynamic'
 
@@ -287,6 +288,10 @@ export async function POST(req: NextRequest) {
 
     // 11. Detect capability reveals in the response (fire-and-forget)
     detectAndMarkReveals(user.id, finalContent).catch(console.error)
+
+    // 12. Discovery system — check if Emily asked a question, check if user answered one
+    detectDiscoveryInResponse(user.id, finalContent).catch(console.error)
+    checkForDiscoveryAnswer(user.id, content).catch(console.error)
 
     // 12. Update thread summary
     if (threadId) {

@@ -1,11 +1,12 @@
 // Feed Engine
 // Generates continuity timeline items
 // Every feed item MUST reference a memory, thread, or state — never random content
+// Now powered by the Continuity Orchestrator — aware of relationship depth,
+// discovery answers, active threads, and engagement patterns.
 
 import { db } from './db'
 import { callLLM } from './llm'
-import { getMemoryContext } from './memory-engine'
-import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
+import { buildUnifiedContext, type UnifiedContext } from './continuity-orchestrator'
 
 type FeedType = 'reflection' | 'memory_echo' | 'state_report' | 'thread_update' | 'prompt'
 
@@ -17,16 +18,10 @@ interface FeedCandidate {
 
 // ============================================
 // GENERATE — create new feed items for a user
-// Called by background loop (Phase 4), not during chat
+// Called by background loop, not during chat
 // ============================================
 export async function generateFeedItems(userId: string): Promise<void> {
-  const user = await db.user.findUnique({ where: { id: userId } })
-  if (!user) return
-
-  // Get engagement profile to influence what types of feed items to generate
-  const engagement = await computeEngagement(userId)
-  const engagementContext = formatEngagementForPrompt(engagement)
-
+  const ctx = await buildUnifiedContext(userId)
   const candidates: FeedCandidate[] = []
 
   // 1. Memory echoes — surface old memories that are relevant
@@ -34,15 +29,15 @@ export async function generateFeedItems(userId: string): Promise<void> {
   if (memoryEcho) candidates.push(memoryEcho)
 
   // 2. Thread updates — check for stale/active threads
-  const threadUpdate = await generateThreadUpdate(userId)
+  const threadUpdate = await generateThreadUpdate(userId, ctx)
   if (threadUpdate) candidates.push(threadUpdate)
 
-  // 3. Reflections — AI reflects on patterns/state
-  const reflection = await generateReflection(userId, user.aiName || 'Your AI', engagementContext)
+  // 3. Reflections — AI reflects on patterns/state (now tier-aware)
+  const reflection = await generateReflection(ctx)
   if (reflection) candidates.push(reflection)
 
-  // 4. Prompts — generate a conversation starter based on memory + engagement
-  const prompt = await generatePrompt(userId, user.aiName || 'Your AI', engagementContext)
+  // 4. Prompts — generate a conversation starter (now uses full context)
+  const prompt = await generatePrompt(ctx)
   if (prompt) candidates.push(prompt)
 
   // Save candidates to feed (max 3 per generation cycle)
@@ -63,7 +58,6 @@ export async function generateFeedItems(userId: string): Promise<void> {
 // MEMORY ECHO — surface a relevant old memory
 // ============================================
 async function generateMemoryEcho(userId: string): Promise<FeedCandidate | null> {
-  // Get a random fact or older moment
   const memories = await db.memory.findMany({
     where: { userId, type: 'fact' },
     orderBy: { createdAt: 'asc' },
@@ -72,10 +66,9 @@ async function generateMemoryEcho(userId: string): Promise<FeedCandidate | null>
 
   if (memories.length === 0) return null
 
-  // Pick a random one
   const memory = memories[Math.floor(Math.random() * memories.length)]
 
-  // Check if we already echoed this recently (avoid repetition)
+  // Check if we already echoed this recently
   const recentEchoes = await db.feedItem.findMany({
     where: {
       userId,
@@ -96,9 +89,9 @@ async function generateMemoryEcho(userId: string): Promise<FeedCandidate | null>
 
 // ============================================
 // THREAD UPDATE — check on stale threads
+// Now references discovery context if relevant
 // ============================================
-async function generateThreadUpdate(userId: string): Promise<FeedCandidate | null> {
-  // Find threads that haven't been touched in 2+ days but are still active
+async function generateThreadUpdate(userId: string, ctx: UnifiedContext): Promise<FeedCandidate | null> {
   const staleThreshold = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
 
   const staleThreads = await db.thread.findMany({
@@ -115,6 +108,29 @@ async function generateThreadUpdate(userId: string): Promise<FeedCandidate | nul
 
   const thread = staleThreads[0]
 
+  // For deeper relationships, generate a more personal thread nudge
+  if (ctx.tier === 'friend' || ctx.tier === 'close' || ctx.tier === 'inner_circle') {
+    try {
+      const result = await callLLM(
+        `You are ${ctx.aiName}. You have an ongoing conversation thread called "${thread.title}" that's gone quiet for a few days.${thread.summary ? ` Last context: ${thread.summary}` : ''}
+
+${ctx.fullContextBlock}
+
+Write a ONE sentence feed post that naturally nudges them back to this thread. Don't say "hey" or "just checking in." Reference something specific from the thread or from what you know about them. Be direct — you know this person well enough.`,
+        [{ role: 'user', content: 'Write thread nudge.' }],
+        { maxTokens: 80, temperature: 0.8 }
+      )
+
+      return {
+        type: 'thread_update',
+        content: result.content.trim(),
+        referenceId: thread.id,
+      }
+    } catch {
+      // Fall through to simple version
+    }
+  }
+
   return {
     type: 'thread_update',
     content: `Still open: "${thread.title}"${thread.summary ? ` — ${thread.summary}` : ''}`,
@@ -124,15 +140,15 @@ async function generateThreadUpdate(userId: string): Promise<FeedCandidate | nul
 
 // ============================================
 // REFLECTION — AI reflects on user patterns
+// Now tier-aware with full context
 // ============================================
-async function generateReflection(userId: string, aiName: string, engagementContext?: string): Promise<FeedCandidate | null> {
-  const memoryContext = await getMemoryContext(userId)
-  if (!memoryContext || memoryContext.length < 50) return null
+async function generateReflection(ctx: UnifiedContext): Promise<FeedCandidate | null> {
+  if (!ctx.memoryBlock || ctx.memoryBlock.length < 50) return null
 
   // Don't generate reflections too often
   const recentReflections = await db.feedItem.findMany({
     where: {
-      userId,
+      userId: ctx.userId,
       type: 'reflection',
       createdAt: { gt: new Date(Date.now() - 12 * 60 * 60 * 1000) },
     },
@@ -142,13 +158,16 @@ async function generateReflection(userId: string, aiName: string, engagementCont
 
   try {
     const result = await callLLM(
-      `You are ${aiName}. Based on what you know about this person, write ONE short reflection (1-2 sentences). It should feel like a thought you had about them — something you noticed, a pattern, or a gentle observation. Be warm but not performative. Don't ask questions. Don't say "I noticed" — just state the thought.
+      `You are ${ctx.aiName}. Write ONE short reflection (1-2 sentences) for your timeline. It should feel like a thought you had about this person — something you noticed, a pattern, a connection between things they've told you.
 
-If engagement data is available, lean toward topics and feed types they actually engage with — not just what they've talked about.
+${ctx.fullContextBlock}
 
-Memory context:
-${memoryContext}
-${engagementContext ? '\n' + engagementContext : ''}`,
+Rules:
+- Don't ask questions.
+- Don't say "I noticed" or "I've been thinking" — just state the thought.
+- If you have discovery answers, connect them to recent behavior or memories.
+- If there are active threads, you can reference them.
+- Match the tone to your relationship depth — be real, not performative.`,
       [{ role: 'user', content: 'Generate a reflection.' }],
       { maxTokens: 100, temperature: 0.8 }
     )
@@ -165,15 +184,15 @@ ${engagementContext ? '\n' + engagementContext : ''}`,
 
 // ============================================
 // PROMPT — generate a conversation starter
+// Now uses full context including discovery + threads
 // ============================================
-async function generatePrompt(userId: string, aiName: string, engagementContext?: string): Promise<FeedCandidate | null> {
-  const memoryContext = await getMemoryContext(userId)
-  if (!memoryContext || memoryContext.length < 50) return null
+async function generatePrompt(ctx: UnifiedContext): Promise<FeedCandidate | null> {
+  if (!ctx.memoryBlock || ctx.memoryBlock.length < 50) return null
 
   // Don't generate prompts too often
   const recentPrompts = await db.feedItem.findMany({
     where: {
-      userId,
+      userId: ctx.userId,
       type: 'prompt',
       createdAt: { gt: new Date(Date.now() - 8 * 60 * 60 * 1000) },
     },
@@ -183,13 +202,17 @@ async function generatePrompt(userId: string, aiName: string, engagementContext?
 
   try {
     const result = await callLLM(
-      `You are ${aiName}. Based on what you know about this person, write ONE short conversation starter (1 sentence). It should reference something specific from their memory — a goal, a project, a decision they mentioned. Frame it as something natural to check in about. Don't be generic.
+      `You are ${ctx.aiName}. Write ONE short conversation starter (1 sentence) for your timeline. It should make this person want to open a conversation with you.
 
-If engagement data is available, prioritize topics they've been silently engaging with (tapping feed items about) even if they haven't mentioned them in chat recently.
+${ctx.fullContextBlock}
 
-Memory context:
-${memoryContext}
-${engagementContext ? '\n' + engagementContext : ''}`,
+Rules:
+- Reference something specific — a goal, a project, a thread, a discovery answer, a pattern.
+- Don't be generic. "How's your day?" is terrible. "Did that website redesign ever go live?" is great.
+- If they've been quiet (sporadic/absent), acknowledge it without guilt-tripping.
+- If they have active threads, you can pick up from one.
+- If you know what stresses them or what they think about all day (from discovery), weave it in.
+- Match depth to relationship tier. Stranger = lighter. Inner circle = direct.`,
       [{ role: 'user', content: 'Generate a conversation prompt.' }],
       { maxTokens: 80, temperature: 0.8 }
     )

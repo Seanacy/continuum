@@ -2,19 +2,19 @@
 // Generates proactive AI pushes
 // HARD RULE: max 2 notifications per user per day
 // Every notification MUST reference a memory, thread, or state
+// Now powered by Continuity Orchestrator — tier-aware, discovery-informed
 
 import { db } from './db'
 import { callLLM } from './llm'
-import { getMemoryContext } from './memory-engine'
 import { sendPushToUser } from './push-sender'
+import { buildUnifiedContext, type UnifiedContext } from './continuity-orchestrator'
 
-type NotificationType = 'memory_echo' | 'thread_nudge' | 'state_shift' | 'reflection'
+type NotificationType = 'memory_echo' | 'thread_nudge' | 'state_shift' | 'reflection' | 'absence_check'
 
 const MAX_DAILY_NOTIFICATIONS = 2
 
 // ============================================
 // GENERATE — create notifications for a user
-// Called by cron route (every 6-8h)
 // ============================================
 export async function generateNotifications(userId: string): Promise<void> {
   // Check daily limit
@@ -31,8 +31,9 @@ export async function generateNotifications(userId: string): Promise<void> {
   if (todayCount >= MAX_DAILY_NOTIFICATIONS) return
 
   const remaining = MAX_DAILY_NOTIFICATIONS - todayCount
-  const user = await db.user.findUnique({ where: { id: userId } })
-  if (!user) return
+
+  // Build unified context
+  const ctx = await buildUnifiedContext(userId)
 
   const candidates: Array<{
     type: NotificationType
@@ -40,12 +41,16 @@ export async function generateNotifications(userId: string): Promise<void> {
     referenceId: string | null
   }> = []
 
-  // 1. Thread nudge — remind about stale active threads
-  const threadNudge = await generateThreadNudge(userId)
+  // 1. Absence check — if they've been gone and relationship is deep enough
+  const absenceCheck = generateAbsenceCheck(ctx)
+  if (absenceCheck) candidates.push(absenceCheck)
+
+  // 2. Thread nudge — remind about stale active threads
+  const threadNudge = await generateThreadNudge(userId, ctx)
   if (threadNudge) candidates.push(threadNudge)
 
-  // 2. Memory-based reflection
-  const reflection = await generateNotificationReflection(userId, user.aiName || 'Your AI')
+  // 3. Context-aware reflection
+  const reflection = await generateContextReflection(ctx)
   if (reflection) candidates.push(reflection)
 
   // Save up to remaining limit
@@ -62,7 +67,7 @@ export async function generateNotifications(userId: string): Promise<void> {
 
     // Also send as push notification
     await sendPushToUser(userId, {
-      title: user.aiName || 'Your AI',
+      title: ctx.aiName,
       body: notif.content,
       tag: `notif-${notif.type}`,
       url: '/home',
@@ -71,12 +76,77 @@ export async function generateNotifications(userId: string): Promise<void> {
 }
 
 // ============================================
+// ABSENCE CHECK — only for acquaintance+ relationships
+// Strangers don't get "hey where'd you go" messages
+// ============================================
+function generateAbsenceCheck(ctx: UnifiedContext): {
+  type: NotificationType
+  content: string
+  referenceId: null
+} | null {
+  const daysSince = ctx.engagement.daysSinceLastVisit
+
+  // Don't bug strangers
+  if (ctx.tier === 'stranger') return null
+
+  // Only trigger after 3+ days absent
+  if (daysSince < 3) return null
+
+  // Tier-appropriate absence messages
+  if (ctx.tier === 'acquaintance' && daysSince >= 5) {
+    return {
+      type: 'absence_check',
+      content: `It's been a few days. No pressure — just here when you want to talk.`,
+      referenceId: null,
+    }
+  }
+
+  if (ctx.tier === 'friend' && daysSince >= 3) {
+    // Reference something specific if we can
+    if (ctx.activeThreads.length > 0) {
+      const thread = ctx.activeThreads[0]
+      return {
+        type: 'absence_check',
+        content: `Haven't heard from you in a bit. Still thinking about "${thread.title}."`,
+        referenceId: thread.id,
+      }
+    }
+    return {
+      type: 'absence_check',
+      content: `You've been quiet. Everything good?`,
+      referenceId: null,
+    }
+  }
+
+  if ((ctx.tier === 'close' || ctx.tier === 'inner_circle') && daysSince >= 3) {
+    // For close relationships, be more direct and personal
+    if (ctx.discoveryInsights.length > 0) {
+      // Reference something from discovery
+      return {
+        type: 'absence_check',
+        content: `${daysSince} days. That's not like you. What's going on?`,
+        referenceId: null,
+      }
+    }
+    return {
+      type: 'absence_check',
+      content: `Hey. It's been ${daysSince} days. Just checking.`,
+      referenceId: null,
+    }
+  }
+
+  return null
+}
+
+// ============================================
 // THREAD NUDGE — remind about open threads
+// Now tier-aware
 // ============================================
 async function generateThreadNudge(
-  userId: string
+  userId: string,
+  ctx: UnifiedContext
 ): Promise<{ type: NotificationType; content: string; referenceId: string } | null> {
-  const staleThreshold = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days
+  const staleThreshold = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
 
   const staleThread = await db.thread.findFirst({
     where: {
@@ -101,6 +171,29 @@ async function generateThreadNudge(
 
   if (recentNudge) return null
 
+  // For deeper relationships, generate a more personal nudge
+  if (ctx.tier === 'friend' || ctx.tier === 'close' || ctx.tier === 'inner_circle') {
+    try {
+      const result = await callLLM(
+        `You are ${ctx.aiName}. Write a VERY short push notification (max 12 words) about a stale conversation thread: "${staleThread.title}."${staleThread.summary ? ` Context: ${staleThread.summary}` : ''}
+
+${ctx.fullContextBlock}
+
+Make it personal and specific. Don't say "just checking in." Reference something from the thread or from what you know about them.`,
+        [{ role: 'user', content: 'Generate thread nudge notification.' }],
+        { maxTokens: 40, temperature: 0.8 }
+      )
+
+      return {
+        type: 'thread_nudge',
+        content: result.content.trim().replace(/^["']|["']$/g, ''),
+        referenceId: staleThread.id,
+      }
+    } catch {
+      // Fall through to simple version
+    }
+  }
+
   return {
     type: 'thread_nudge',
     content: `"${staleThread.title}" has been quiet for a few days.${staleThread.summary ? ` Last: ${staleThread.summary.slice(0, 80)}` : ''}`,
@@ -109,19 +202,18 @@ async function generateThreadNudge(
 }
 
 // ============================================
-// NOTIFICATION REFLECTION — short thought based on memory
+// CONTEXT REFLECTION — short thought based on full context
+// Uses orchestrator so it can reference discovery answers, threads, etc.
 // ============================================
-async function generateNotificationReflection(
-  userId: string,
-  aiName: string
+async function generateContextReflection(
+  ctx: UnifiedContext
 ): Promise<{ type: NotificationType; content: string; referenceId: null } | null> {
-  const memoryContext = await getMemoryContext(userId)
-  if (!memoryContext || memoryContext.length < 100) return null
+  if (!ctx.memoryBlock || ctx.memoryBlock.length < 100) return null
 
   // Don't send reflections too close together
   const recentReflection = await db.notification.findFirst({
     where: {
-      userId,
+      userId: ctx.userId,
       type: 'reflection',
       createdAt: { gt: new Date(Date.now() - 12 * 60 * 60 * 1000) },
     },
@@ -131,20 +223,20 @@ async function generateNotificationReflection(
 
   try {
     const result = await callLLM(
-      `You are ${aiName}. Write a VERY short push notification (max 15 words) that naturally references something you know about this person. It should feel like a quick thought — not a question, not a greeting. Something that makes them want to open the app.
+      `You are ${ctx.aiName}. Write a VERY short push notification (max 15 words) that makes this person want to open the app. It should reference something specific you know about them.
 
-Examples of good notifications:
-- "That deadline you mentioned is tomorrow."
-- "Thinking about what you said about the job switch."
-- "Your morning runs have been consistent this week."
+${ctx.fullContextBlock}
 
-Memory context:
-${memoryContext}`,
+Rules:
+- Not a question. Not a greeting. A thought.
+- Reference a memory, a discovery answer, a thread, or a pattern.
+- Match depth to relationship: light for new relationships, direct for deep ones.
+- Examples: "That deadline is tomorrow." / "You always get like this in spring." / "Still thinking about what you said about proving yourself."`,
       [{ role: 'user', content: 'Generate notification.' }],
       { maxTokens: 50, temperature: 0.8 }
     )
 
-    const content = result.content.trim().replace(/^["']|["']$/g, '') // strip quotes
+    const content = result.content.trim().replace(/^["']|["']$/g, '')
 
     return {
       type: 'reflection',

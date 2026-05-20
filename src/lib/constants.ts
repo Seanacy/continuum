@@ -1,0 +1,40 @@
+// Continuum — central configuration
+
+export const CONFIG = {
+  // Memory
+  MEMORY_TOKEN_CAP: 800,
+  MEMORY_EXTRACTION_INTERVAL: 10, // every N messages
+  MEMORY_ROLLUP_AGE_HOURS: 24,
+
+  // Feed
+  MAX_FEED_ITEMS_PER_CYCLE: 3,
+  REFLECTION_COOLDOWN_HOURS: 12,
+  PROMPT_COOLDOWN_HOURS: 8,
+  MEMORY_ECHO_COOLDOWN_DAYS: 7,
+
+  // Notifications
+  MAX_DAILY_NOTIFICATIONS: 2,
+  NOTIFICATION_REFLECTION_COOLDOWN_HOURS: 12,
+  THREAD_NUDGE_COOLDOWN_DAYS: 2,
+  THREAD_STALE_DAYS: 3,
+
+  // Chat
+  CONTEXT_WINDOW: 20, // messages sent to LLM
+  MAX_MESSAGE_LENGTH: 5000,
+
+  // Token budget
+  DAILY_TOKEN_BUDGET: 15000,
+
+  // Personality
+  DEFAULT_TONE: 'warm',
+  DEFAULT_ENERGY: 'neutral',
+  DEFAULT_TRAITS: ['attentive', 'curious'],
+  MAX_TRAITS: 5,
+
+  // LLM
+  MODEL: 'claude-haiku-4-5-20251001',
+  CHAT_MAX_TOKENS: 1024,
+  CHAT_TEMPERATURE: 0.7,
+  EXTRACTION_TEMPERATURE: 0.3,
+  FEED_TEMPERATURE: 0.8,
+} as const

@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  aiName    String?  @map("ai_name")
+  location  String?  // city or area, e.g. "Los Angeles, CA"
+  timezone  String?  // IANA timezone, e.g. "America/Los_Angeles"
+  tier      String   @default("free") // "free" or "pro"
+  stripeCustomerId String? @unique @map("stripe_customer_id")
+  stripeSubId      String? @map("stripe_sub_id")
+  isAdmin   Boolean  @default(false) @map("is_admin")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  aiState          AiState?
+  messages         Message[]
+  memories         Memory[]
+  feedItems        FeedItem[]
+  threads          Thread[]
+  backgroundEvents BackgroundEvent[]
+  interactions     Interaction[]
+  notifications    Notification[]
+  reminders          Reminder[]
+  pushSubscriptions  PushSubscription[]
+  discoveryAnswers   DiscoveryAnswer[]
+  usageLogs          UsageLog[]
+  creditTransactions CreditTransaction[]
+  characters         Character[]
+  videoJobs          VideoJob[]
+
+  // Credit system
+  creditBalance   Int    @default(0) @map("credit_balance")    // chat message credits
+  videoCredits    Int    @default(0) @map("video_credits")     // video generation credits
+  freeMessages    Int    @default(10) @map("free_messages")    // free starter messages remaining
+  personiCharId   String? @map("personi_char_id")              // linked Personi character ID
+  mission         String? @map("mission")                     // user's WHY — why they created the AI, what they need it to do
+
+  @@map("users")
+}
+
+model AiState {
+  id           String   @id @default(cuid())
+  userId       String   @unique @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tone         String   @default("warm")
+  energy       String   @default("neutral")
+  traits       Json     @default("[]")
+  context      Json     @default("{}")
+  lastActiveAt DateTime @default(now()) @map("last_active_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_state")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  threadId  String?  @map("thread_id")
+  thread    Thread?  @relation(fields: [threadId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("messages")
+}
+
+model Memory {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  content   String
+  source    String?
+  weight    Float     @default(1.0)
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("memory")
+}
+
+model FeedItem {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  content     String
+  referenceId String?  @map("reference_id")
+  seen        Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("feed_items")
+}
+
+model Thread {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  status    String   @default("active")
+  summary   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages Message[]
+
+  @@index([userId, status])
+  @@map("threads")
+}
+
+model BackgroundEvent {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  payload   Json     @default("{}")
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("background_events")
+}
+
+model Interaction {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("interactions")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     String
+  referenceId String?  @map("reference_id")
+  type        String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  dueAt     DateTime @map("due_at")
+  fired     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, fired, dueAt])
+  @@map("reminders")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String   // encryption key
+  auth      String   // auth secret
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model DiscoveryAnswer {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String   @map("question_id")  // maps to registry ID like "l1_think_about"
+  level      Int      @default(1)
+  answer     String
+  source     String   @default("chat")      // "chat" or "settings"
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, questionId])
+  @@index([userId, level])
+  @@map("discovery_answers")
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // "chat", "feed_gen", "notification", "search", "vision"
+  tokens    Int      @default(0)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("usage_logs")
+}
+
+// ============================================
+// CREDIT SYSTEM
+// ============================================
+model CreditTransaction {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "purchase", "spend_video", "spend_chat", "bonus", "refund"
+  amount    Int      // positive = added, negative = spent
+  resource  String   // "video_credit", "chat_credit"
+  balanceAfter Int   @map("balance_after")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("credit_transactions")
+}
+
+// ============================================
+// CHARACTER SYSTEM (Personi integration)
+// ============================================
+model Character {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personiId       String?  @map("personi_id")   // ID from Personi's database
+  name            String
+  personality     Json     @default("{}")        // full personality blob from Personi
+  backstory       String?                        // character's background/origin story
+  speakingStyle   String?  @map("speaking_style") // how the character talks (tone, cadence, phrases)
+  interests       Json     @default("[]")        // character's interests and passions
+  imageUrls       Json     @default("[]")        // 3-4 profile pic URLs
+  voiceStyle      String?  @map("voice_style")   // TTS voice preference
+  isActive        Boolean  @default(true) @map("is_active")
+  lastSyncedAt    DateTime? @map("last_synced_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  videoJobs       VideoJob[]
+
+  @@index([userId])
+  @@unique([userId, personiId])
+  @@map("characters")
+}
+
+// ============================================
+// VIDEO GENERATION PIPELINE
+// ============================================
+model VideoJob {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  characterId   String   @map("character_id")
+  character     Character @relation(fields: [characterId], references: [id])
+  status        String   @default("pending")  // "pending", "scripting", "generating", "stitching", "ready", "failed"
+  script        Json     @default("{}")       // the video script from script engine
+  scenes        Json     @default("[]")       // scene generation results (URLs, status per scene)
+  narrationUrl  String?  @map("narration_url")  // TTS audio file URL
+  finalVideoUrl String?  @map("final_video_url") // stitched output
+  totalCost     Float    @default(0) @map("total_cost")  // actual API cost tracked
+  duration      Int      @default(15)          // target duration in seconds
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@map("video_jobs")
+}

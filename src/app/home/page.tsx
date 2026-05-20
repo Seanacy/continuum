@@ -7,10 +7,11 @@ import ChatView from '@/components/ChatView'
 import FeedView from '@/components/FeedView'
 import ThreadsView from '@/components/ThreadsView'
 import SettingsView from '@/components/SettingsView'
+import CharacterBuilder from '@/components/CharacterBuilder'
 import OnboardingFlow from '@/components/OnboardingFlow'
 import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
 
-type View = 'chat' | 'feed' | 'threads' | 'settings'
+type View = 'chat' | 'feed' | 'threads' | 'create' | 'settings'
 
 export default function HomePage() {
   const { user, loading } = useUser()
@@ -88,6 +89,7 @@ export default function HomePage() {
       {activeView === 'chat' && <ChatView threadId={activeThreadId} partnerMode={partnerMode} />}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
+      {activeView === 'create' && <CharacterBuilder />}
       {activeView === 'settings' && <SettingsView />}
     </AppShell>
   )

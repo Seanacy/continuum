@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     missionStatement,
     uniqueEdge,
     contentPillars,
+    visualTraits,
   } = body
 
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
     missionStatement: missionStatement || null,
     uniqueEdge: uniqueEdge || null,
     contentPillars: JSON.parse(JSON.stringify(contentPillars || [])),
+    visualTraits: JSON.parse(JSON.stringify(visualTraits || {})),
     isActive: true,
   }
 

@@ -17,6 +17,7 @@ import VisualCreator from './VisualCreator'
 import ContentFactory from './ContentFactory'
 import RemindersPanel from './RemindersPanel'
 import BuildAssistant from './BuildAssistant'
+import ImageCarousel from './ImageCarousel'
 
 // ============================================
 // TYPES
@@ -266,7 +267,9 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                   className="rounded-xl border border-continuum-border bg-continuum-surface p-5"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    {c.imageUrls?.[0] ? (
+                    {c.characterImages?.length > 0 ? (
+                      <ImageCarousel images={c.characterImages} size="sm" />
+                    ) : c.imageUrls?.[0] ? (
                       <img src={c.imageUrls[0]} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
                     ) : (
                       <span className="w-12 h-12 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent font-bold text-xl flex-shrink-0">
@@ -948,14 +951,24 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
           customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
             ? existingCharacter.customizations as Record<string, any>
             : {},
-          nicheType: nicheType || undefined,
+          nicheType: nicheType || existingCharacter.nicheType || undefined,
+          visualTraits: existingCharacter.visualTraits && typeof existingCharacter.visualTraits === 'object'
+            ? existingCharacter.visualTraits as Record<string, any>
+            : undefined,
+          characterImages: Array.isArray(existingCharacter.characterImages)
+            ? existingCharacter.characterImages
+            : [],
         }}
         onUpdate={() => {
           // Refresh character data
           fetch('/api/characters/mine')
             .then(r => r.ok ? r.json() : null)
             .then(data => {
-              if (data?.character) setExistingCharacter(data.character)
+              if (data?.characters) {
+                setAllCharacters(data.characters)
+                const updated = data.characters.find((c: any) => c.id === existingCharacter.id)
+                if (updated) setExistingCharacter(updated)
+              }
             })
             .catch(() => {})
         }}

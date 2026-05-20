@@ -18,6 +18,8 @@ function formatCharacter(c: any) {
     uniqueEdge: c.uniqueEdge,
     contentPillars: c.contentPillars,
     imageUrls: c.imageUrls,
+    visualTraits: c.visualTraits,
+    characterImages: c.characterImages || [],
     personality: c.personality,
     backstory: c.backstory,
     speakingStyle: c.speakingStyle,
@@ -38,6 +40,7 @@ export async function GET() {
     const characters = await db.character.findMany({
       where: { userId: user.id, isActive: true },
       orderBy: { updatedAt: 'desc' },
+      include: { characterImages: { orderBy: { position: 'asc' } } },
     })
 
     if (characters.length === 0) {

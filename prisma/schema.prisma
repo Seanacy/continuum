@@ -269,6 +269,8 @@ model Character {
   uniqueEdge      String?  @map("unique_edge")    // what makes this character stand out
   contentPillars  Json     @default("[]") @map("content_pillars") // AI-suggested content pillars
 
+  visualTraits    Json     @default("{}") @map("visual_traits") // face/body trait selections for image generation
+
   isActive        Boolean  @default(true) @map("is_active")
   lastSyncedAt    DateTime? @map("last_synced_at")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -276,10 +278,29 @@ model Character {
 
   videoJobs       VideoJob[]
   messages        Message[]
+  characterImages CharacterImage[]
 
   @@index([userId])
   @@unique([userId, personiId])
   @@map("characters")
+}
+
+// ============================================
+// CHARACTER IMAGES (generated profile images)
+// ============================================
+model CharacterImage {
+  id          String   @id @default(cuid())
+  characterId String   @map("character_id")
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  imageType   String   @map("image_type")  // "head_front", "head_left", "head_right", "body_front", "body_left", "body_right"
+  imageUrl    String   @map("image_url")
+  position    Int      @default(0)          // display order
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([characterId])
+  @@unique([characterId, imageType])
+  @@map("character_images")
 }
 
 // ============================================

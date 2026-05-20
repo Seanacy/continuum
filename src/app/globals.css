@@ -34,28 +34,6 @@ input, textarea {
 
 .bubble-ai {
   position: relative;
-  background: rgba(30, 30, 46, 0.5);
-  border: none;
-  box-shadow:
-    0 0 20px rgba(30, 30, 50, 0.6),
-    0 0 50px rgba(30, 30, 50, 0.4),
-    0 0 100px rgba(30, 30, 50, 0.25),
-    0 0 160px rgba(30, 30, 50, 0.12);
-}
-
-.bubble-ai::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 60%);
-  filter: blur(25px);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.bubble-user {
-  position: relative;
   background: rgba(139, 92, 246, 0.12);
   border: none;
   box-shadow:
@@ -67,7 +45,7 @@ input, textarea {
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
-.bubble-user::before {
+.bubble-ai::before {
   content: '';
   position: absolute;
   inset: -20px;
@@ -78,13 +56,35 @@ input, textarea {
   pointer-events: none;
 }
 
-.bubble-user::after {
+.bubble-ai::after {
   content: '';
   position: absolute;
   inset: -6px;
   border-radius: inherit;
   background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.2), transparent 60%);
   filter: blur(16px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bubble-user {
+  position: relative;
+  background: rgba(30, 30, 46, 0.5);
+  border: none;
+  box-shadow:
+    0 0 20px rgba(30, 30, 50, 0.6),
+    0 0 50px rgba(30, 30, 50, 0.4),
+    0 0 100px rgba(30, 30, 50, 0.25),
+    0 0 160px rgba(30, 30, 50, 0.12);
+}
+
+.bubble-user::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 60%);
+  filter: blur(25px);
   z-index: -1;
   pointer-events: none;
 }

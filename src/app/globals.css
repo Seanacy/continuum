@@ -34,41 +34,44 @@ input, textarea {
 
 .bubble-ai {
   position: relative;
-  background: rgba(30, 30, 46, 0.75);
+  background: rgba(30, 30, 46, 0.5);
+  border: none;
   box-shadow:
-    0 0 12px rgba(139, 92, 246, 0.08),
-    0 0 30px rgba(30, 30, 50, 0.5),
-    0 0 60px rgba(30, 30, 50, 0.3),
-    0 0 100px rgba(30, 30, 50, 0.15);
+    0 0 20px rgba(30, 30, 50, 0.6),
+    0 0 50px rgba(30, 30, 50, 0.4),
+    0 0 100px rgba(30, 30, 50, 0.25),
+    0 0 160px rgba(30, 30, 50, 0.12);
 }
 
 .bubble-ai::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: -10px;
   border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 70%);
-  filter: blur(10px);
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 60%);
+  filter: blur(25px);
   z-index: -1;
   pointer-events: none;
 }
 
 .bubble-user {
   position: relative;
+  background: rgba(139, 92, 246, 0.35);
+  border: none;
   box-shadow:
-    0 0 12px rgba(139, 92, 246, 0.2),
-    0 0 30px rgba(139, 92, 246, 0.15),
-    0 0 60px rgba(139, 92, 246, 0.08),
-    0 0 100px rgba(139, 92, 246, 0.04);
+    0 0 20px rgba(139, 92, 246, 0.15),
+    0 0 50px rgba(139, 92, 246, 0.1),
+    0 0 100px rgba(139, 92, 246, 0.06),
+    0 0 160px rgba(139, 92, 246, 0.03);
 }
 
 .bubble-user::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: -10px;
   border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15), transparent 70%);
-  filter: blur(10px);
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.12), transparent 60%);
+  filter: blur(25px);
   z-index: -1;
   pointer-events: none;
 }
@@ -76,20 +79,21 @@ input, textarea {
 /* Thinking/loading bubble gets the AI glow too */
 .bubble-thinking {
   position: relative;
-  background: rgba(30, 30, 46, 0.75);
+  background: rgba(30, 30, 46, 0.5);
+  border: none;
   box-shadow:
-    0 0 12px rgba(139, 92, 246, 0.08),
-    0 0 30px rgba(30, 30, 50, 0.5),
-    0 0 60px rgba(30, 30, 50, 0.3);
+    0 0 20px rgba(30, 30, 50, 0.6),
+    0 0 50px rgba(30, 30, 50, 0.4),
+    0 0 100px rgba(30, 30, 50, 0.25);
 }
 
 .bubble-thinking::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: -10px;
   border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 70%);
-  filter: blur(10px);
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.06), transparent 60%);
+  filter: blur(25px);
   z-index: -1;
   pointer-events: none;
 }

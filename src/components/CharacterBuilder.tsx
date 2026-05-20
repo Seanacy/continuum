@@ -21,7 +21,7 @@ type BuildMode = 'pick' | 'instant' | 'custom'
 type Step = 'mode' | 'template' | 'category' | 'review'
 
 interface Selections {
-  [categoryId: string]: string // categoryId -> bundleId
+  [categoryKey: string]: string // categoryKey -> bundleId
 }
 
 interface Customizations {
@@ -71,7 +71,7 @@ export default function CharacterBuilder() {
 
   // Derived
   const currentCategory = CATEGORIES[currentCategoryIndex]
-  const categoryBundles = currentCategory ? (BUNDLES[currentCategory.id] || []) : []
+  const categoryBundles = currentCategory ? (BUNDLES[currentCategory.key] || []) : []
   const searchResults = searchQuery.length >= 2 ? fuzzySearch(searchQuery) : []
   const contentPillars = useMemo(() => {
     if (selections.niche && selections.personality) {
@@ -86,12 +86,12 @@ export default function CharacterBuilder() {
   // ============================================
   // HANDLERS
   // ============================================
-  function selectBundle(categoryId: string, bundleId: string) {
-    setSelections(prev => ({ ...prev, [categoryId]: bundleId }))
+  function selectBundle(categoryKey: string, bundleId: string) {
+    setSelections(prev => ({ ...prev, [categoryKey]: bundleId }))
   }
 
-  function setCustomText(categoryId: string, text: string) {
-    setCustomizations(prev => ({ ...prev, [`${categoryId}_custom`]: text }))
+  function setCustomText(categoryKey: string, text: string) {
+    setCustomizations(prev => ({ ...prev, [`${categoryKey}_custom`]: text }))
   }
 
   function applyTemplate(template: Template) {
@@ -253,7 +253,7 @@ export default function CharacterBuilder() {
                   <span className="text-2xl">{t.emoji}</span>
                   <span className="text-base font-semibold text-white">{t.name}</span>
                 </div>
-                <p className="text-sm text-continuum-muted ml-11">{t.description}</p>
+                <p className="text-sm text-continuum-muted ml-11">{t.desc}</p>
               </button>
             ))}
           </div>
@@ -266,8 +266,8 @@ export default function CharacterBuilder() {
   // CATEGORY BUILDER — Custom Build, step by step
   // ============================================
   if (step === 'category' && currentCategory) {
-    const selectedBundleId = selections[currentCategory.id]
-    const customText = customizations[`${currentCategory.id}_custom`] || ''
+    const selectedBundleId = selections[currentCategory.key]
+    const customText = customizations[`${currentCategory.key}_custom`] || ''
 
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
@@ -290,8 +290,8 @@ export default function CharacterBuilder() {
             />
           </div>
 
-          <h2 className="text-lg font-bold text-white mb-1">{currentCategory.emoji} {currentCategory.label}</h2>
-          <p className="text-sm text-continuum-muted mb-4">{currentCategory.description}</p>
+          <h2 className="text-lg font-bold text-white mb-1">{currentCategory.icon} {currentCategory.label}</h2>
+          <p className="text-sm text-continuum-muted mb-4">Pick the option that fits your character best.</p>
 
           {/* Search */}
           <div className="relative mb-4">
@@ -315,12 +315,12 @@ export default function CharacterBuilder() {
           {/* Bundle options */}
           <div className="space-y-2 mb-4">
             {(searchQuery.length >= 2
-              ? searchResults.filter(r => r.bundle.category === currentCategory.id).map(r => r.bundle)
+              ? searchResults.filter(r => r.category === currentCategory.key)
               : categoryBundles
             ).map(bundle => (
               <button
                 key={bundle.id}
-                onClick={() => selectBundle(currentCategory.id, bundle.id)}
+                onClick={() => selectBundle(currentCategory.key, bundle.id)}
                 className={`w-full text-left p-3 rounded-lg border transition-all ${
                   selectedBundleId === bundle.id
                     ? 'border-continuum-accent bg-continuum-accent/10'
@@ -329,20 +329,18 @@ export default function CharacterBuilder() {
               >
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-medium ${selectedBundleId === bundle.id ? 'text-continuum-accent' : 'text-white'}`}>
-                    {bundle.emoji} {bundle.label}
+                    {bundle.emoji} {bundle.name}
                   </span>
                   {selectedBundleId === bundle.id && (
                     <span className="text-continuum-accent text-xs">✓</span>
                   )}
                 </div>
-                <p className="text-xs text-continuum-muted mt-0.5">{bundle.description}</p>
-                {bundle.tags && bundle.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {bundle.tags.slice(0, 4).map(tag => (
-                      <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-continuum-bg text-continuum-muted">
-                        {tag}
-                      </span>
-                    ))}
+                <p className="text-xs text-continuum-muted mt-0.5">{bundle.desc}</p>
+                {bundle.tag && (
+                  <div className="mt-1.5">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-continuum-bg text-continuum-muted">
+                      {bundle.tag}
+                    </span>
                   </div>
                 )}
               </button>
@@ -356,7 +354,7 @@ export default function CharacterBuilder() {
             </label>
             <textarea
               value={customText}
-              onChange={e => setCustomText(currentCategory.id, e.target.value)}
+              onChange={e => setCustomText(currentCategory.key, e.target.value)}
               placeholder={`Describe your character's ${currentCategory.label.toLowerCase()} in your own words...`}
               rows={3}
               className="w-full px-3 py-2 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none resize-none"
@@ -391,8 +389,6 @@ export default function CharacterBuilder() {
   // REVIEW — Final summary + save
   // ============================================
   if (step === 'review') {
-    const summary = getSelectionSummary(selections)
-
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
         <div className="max-w-lg mx-auto">
@@ -431,16 +427,16 @@ export default function CharacterBuilder() {
             <h3 className="text-sm font-semibold text-white mb-2">Personality Build</h3>
             <div className="space-y-2">
               {CATEGORIES.map(cat => {
-                const bundleId = selections[cat.id]
-                const bundle = bundleId ? getBundle(bundleId) : null
-                const custom = customizations[`${cat.id}_custom`]
+                const bundleId = selections[cat.key]
+                const bundle = bundleId ? getBundle(cat.key, bundleId) : null
+                const custom = customizations[`${cat.key}_custom`]
                 const hasValue = bundle || custom
 
                 return (
                   <div
-                    key={cat.id}
+                    key={cat.key}
                     onClick={() => {
-                      const idx = CATEGORIES.findIndex(c => c.id === cat.id)
+                      const idx = CATEGORIES.findIndex(c => c.key === cat.key)
                       setCurrentCategoryIndex(idx)
                       setBuildMode('custom')
                       setStep('category')
@@ -453,7 +449,7 @@ export default function CharacterBuilder() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-white">
-                        {cat.emoji} {cat.label}
+                        {cat.icon} {cat.label}
                       </span>
                       {hasValue ? (
                         <span className="text-xs text-continuum-accent">✓ Set</span>
@@ -462,10 +458,10 @@ export default function CharacterBuilder() {
                       )}
                     </div>
                     {bundle && (
-                      <p className="text-xs text-continuum-muted mt-0.5">{bundle.emoji} {bundle.label}</p>
+                      <p className="text-xs text-continuum-muted mt-0.5">{bundle.emoji} {bundle.name}</p>
                     )}
                     {custom && !bundle && (
-                      <p className="text-xs text-continuum-muted mt-0.5 truncate">"{custom}"</p>
+                      <p className="text-xs text-continuum-muted mt-0.5 truncate">&quot;{custom}&quot;</p>
                     )}
                   </div>
                 )

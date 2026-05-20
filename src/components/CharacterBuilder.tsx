@@ -22,7 +22,7 @@ import BuildAssistant from './BuildAssistant'
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom'
-type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'assistant'
+type Step = 'list' | 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'assistant'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -36,7 +36,7 @@ interface Customizations {
 // MAIN COMPONENT
 // ============================================
 export default function CharacterBuilder() {
-  const [step, setStep] = useState<Step>('mode')
+  const [step, setStep] = useState<Step>('list')
   const [buildMode, setBuildMode] = useState<BuildMode>('pick')
   const [selections, setSelections] = useState<Selections>({})
   const [customizations, setCustomizations] = useState<Customizations>({})
@@ -50,28 +50,51 @@ export default function CharacterBuilder() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [existingCharacter, setExistingCharacter] = useState<any>(null)
+  const [allCharacters, setAllCharacters] = useState<any[]>([])
   const [loadingCharacter, setLoadingCharacter] = useState(true)
 
-  // Load existing character on mount
+  // Load all characters on mount
   useEffect(() => {
     fetch('/api/characters/mine')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.character) {
-          const c = data.character
-          setExistingCharacter(c)
-          setCharacterName(c.name || '')
-          setSelections(c.selections && typeof c.selections === 'object' ? c.selections : {})
-          setCustomizations(c.customizations && typeof c.customizations === 'object' ? c.customizations : {})
-          setNicheType(c.nicheType || '')
-          setNicheAudience(c.nicheAudience || '')
-          setMissionStatement(c.missionStatement || '')
-          setUniqueEdge(c.uniqueEdge || '')
+        const chars = data?.characters || []
+        setAllCharacters(chars)
+        // If no characters exist, skip straight to mode picker (create new)
+        if (chars.length === 0) {
+          setStep('mode')
         }
       })
-      .catch(() => {})
+      .catch(() => { setStep('mode') })
       .finally(() => setLoadingCharacter(false))
   }, [])
+
+  // Load a specific character's data into the form
+  function loadCharacter(c: any) {
+    setExistingCharacter(c)
+    setCharacterName(c.name || '')
+    setSelections(c.selections && typeof c.selections === 'object' ? c.selections : {})
+    setCustomizations(c.customizations && typeof c.customizations === 'object' ? c.customizations : {})
+    setNicheType(c.nicheType || '')
+    setNicheAudience(c.nicheAudience || '')
+    setMissionStatement(c.missionStatement || '')
+    setUniqueEdge(c.uniqueEdge || '')
+    setStep('mode')
+  }
+
+  // Start creating a brand new character (clear all fields)
+  function startNewCharacter() {
+    setExistingCharacter(null)
+    setCharacterName('')
+    setSelections({})
+    setCustomizations({})
+    setNicheType('')
+    setNicheAudience('')
+    setMissionStatement('')
+    setUniqueEdge('')
+    setCurrentCategoryIndex(0)
+    setStep('mode')
+  }
 
   // Derived
   const currentCategory = CATEGORIES[currentCategoryIndex]
@@ -146,6 +169,11 @@ export default function CharacterBuilder() {
         setExistingCharacter(data.character)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
+        // Refresh the character list so the list screen stays in sync
+        fetch('/api/characters/mine')
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d?.characters) setAllCharacters(d.characters) })
+          .catch(() => {})
       }
     } catch (e) {
       console.error('Save failed:', e)
@@ -166,7 +194,65 @@ export default function CharacterBuilder() {
   }
 
   // ============================================
-  // MODE PICKER — first screen
+  // CHARACTER LIST — pick which character to edit, or create new
+  // ============================================
+  if (step === 'list') {
+    return (
+      <div className="h-full overflow-y-auto p-4 pb-8">
+        <div className="max-w-lg mx-auto">
+          <h2 className="text-xl font-bold text-white mb-1">Your Characters</h2>
+          <p className="text-sm text-continuum-muted mb-6">
+            Pick a character to edit, or create a new one.
+          </p>
+
+          {allCharacters.map((c: any) => (
+            <button
+              key={c.id}
+              onClick={() => loadCharacter(c)}
+              className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-continuum-accent/50 transition-all flex items-center gap-3"
+            >
+              {c.imageUrls?.[0] ? (
+                <img src={c.imageUrls[0]} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <span className="w-10 h-10 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent font-bold text-lg flex-shrink-0">
+                  {c.name?.[0] || '?'}
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-base font-semibold text-white block truncate">{c.name}</span>
+                {c.nicheType && (
+                  <span className="text-xs text-continuum-muted">{c.nicheType}</span>
+                )}
+              </div>
+              <span className="text-xs text-continuum-muted">Edit</span>
+            </button>
+          ))}
+
+          {allCharacters.length < 5 && (
+            <button
+              onClick={startNewCharacter}
+              className="w-full text-left p-4 mb-3 rounded-xl border border-dashed border-continuum-accent/40 bg-continuum-accent/5 hover:border-continuum-accent/70 hover:bg-continuum-accent/10 transition-all flex items-center gap-3"
+            >
+              <span className="w-10 h-10 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent text-xl flex-shrink-0">+</span>
+              <div>
+                <span className="text-base font-semibold text-white block">Create New Character</span>
+                <span className="text-xs text-continuum-muted">{5 - allCharacters.length} slot{5 - allCharacters.length !== 1 ? 's' : ''} remaining</span>
+              </div>
+            </button>
+          )}
+
+          {allCharacters.length >= 5 && (
+            <p className="text-xs text-continuum-muted text-center mt-4">
+              You&apos;ve reached the 5-character limit. Deactivate one to create a new one.
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
+  // MODE PICKER — second screen (edit existing or build new)
   // ============================================
   if (step === 'mode') {
     return (

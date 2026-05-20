@@ -100,6 +100,9 @@ export interface PersoniCharacterData {
   name: string
   personality: Record<string, unknown>  // full trait layers from Personi
   traits: string[]
+  backstory?: string                    // character's background/origin story
+  speakingStyle?: string                // how the character talks
+  interests?: string[]                  // character's interests and passions
   voiceStyle?: string
 }
 
@@ -134,7 +137,10 @@ export async function fetchPersoniCharacter(personiCharId: string): Promise<Pers
       name: data.name,
       personality: data.personality || data.layers || {},
       traits: data.traits || [],
-      voiceStyle: data.voiceStyle,
+      backstory: data.backstory || data.background || undefined,
+      speakingStyle: data.speakingStyle || data.speaking_style || data.toneDescription || undefined,
+      interests: data.interests || [],
+      voiceStyle: data.voiceStyle || data.voice_style || undefined,
     }
   } catch (error) {
     console.error('[Personi] Fetch error:', error)
@@ -155,6 +161,9 @@ export async function syncCharacterFromPersoni(
   // Cast personality to Prisma-compatible JSON
   const personalityJson = JSON.parse(JSON.stringify(charData.personality))
 
+  // Cast arrays to Prisma-compatible JSON
+  const interestsJson = JSON.parse(JSON.stringify(charData.interests || []))
+
   // Upsert — create or update the local character record
   const character = await db.character.upsert({
     where: {
@@ -165,12 +174,18 @@ export async function syncCharacterFromPersoni(
       personiId: personiCharId,
       name: charData.name,
       personality: personalityJson,
+      backstory: charData.backstory || null,
+      speakingStyle: charData.speakingStyle || null,
+      interests: interestsJson,
       voiceStyle: charData.voiceStyle,
       lastSyncedAt: new Date(),
     },
     update: {
       name: charData.name,
       personality: personalityJson,
+      backstory: charData.backstory || null,
+      speakingStyle: charData.speakingStyle || null,
+      interests: interestsJson,
       voiceStyle: charData.voiceStyle,
       lastSyncedAt: new Date(),
     },

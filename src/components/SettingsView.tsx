@@ -21,6 +21,11 @@ export default function SettingsView() {
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
 
+  // Mission state
+  const [mission, setMission] = useState<string>('')
+  const [missionSaved, setMissionSaved] = useState(false)
+  const [missionLoading, setMissionLoading] = useState(false)
+
   // Discovery questions state
   const [discoveryQuestions, setDiscoveryQuestions] = useState<DiscoveryQuestion[]>([])
   const [discoveryLevel, setDiscoveryLevel] = useState(1)
@@ -79,12 +84,13 @@ export default function SettingsView() {
     setPushLoading(false)
   }
 
-  // Load user profile (location)
+  // Load user profile (location + mission)
   useEffect(() => {
     fetch('/api/user/profile')
       .then((r) => r.json())
       .then((data) => {
         if (data.profile?.location) setLocation(data.profile.location)
+        if (data.profile?.mission) setMission(data.profile.mission)
       })
       .catch(() => {})
   }, [])
@@ -114,6 +120,22 @@ export default function SettingsView() {
       // fail silently
     }
     setLocationLoading(false)
+  }
+
+  async function saveMission() {
+    setMissionLoading(true)
+    try {
+      await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mission }),
+      })
+      setMissionSaved(true)
+      setTimeout(() => setMissionSaved(false), 2000)
+    } catch {
+      // fail silently
+    }
+    setMissionLoading(false)
   }
 
   function selectVoice(voiceName: string) {
@@ -174,6 +196,32 @@ export default function SettingsView() {
     <div className="h-full overflow-y-auto px-4 py-6">
       <h2 className="text-lg font-semibold text-continuum-text mb-1">Settings</h2>
       <p className="text-sm text-continuum-muted mb-6">Customize your experience</p>
+
+      {/* User Mission — Your WHY */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-continuum-text mb-1">What&apos;s Your Mission?</h3>
+        <p className="text-xs text-continuum-muted mb-3">
+          Your AI works best when it knows why you&apos;re here. Tell it why you&apos;re creating an AI character and what you need it to do. Give it your WHY.
+        </p>
+        <textarea
+          value={mission}
+          onChange={(e) => setMission(e.target.value)}
+          placeholder="Example: I'm building a skincare brand and I want my AI to help me create content that gets followers and builds trust with my audience."
+          className="w-full bg-continuum-surface border border-continuum-border rounded-xl px-3.5 py-2.5 text-sm text-continuum-text placeholder:text-continuum-muted focus:outline-none focus:border-continuum-accent resize-none mb-2"
+          rows={4}
+        />
+        <button
+          onClick={saveMission}
+          disabled={missionLoading}
+          className={`px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+            missionSaved
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              : 'bg-continuum-accent/15 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/25'
+          }`}
+        >
+          {missionSaved ? 'Saved' : 'Save Mission'}
+        </button>
+      </div>
 
       {/* Discovery Questions — What Makes You Tick */}
       {discoveryQuestions.length > 0 && (

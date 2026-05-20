@@ -20,6 +20,7 @@ export async function GET() {
       aiName: true,
       location: true,
       timezone: true,
+      mission: true,
     },
   })
 
@@ -43,6 +44,11 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
+  // Mission gets a higher character limit — it's the user's full WHY
+  if (typeof body.mission === 'string') {
+    updates.mission = body.mission.trim().slice(0, 1000)
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
   }
@@ -56,6 +62,7 @@ export async function PATCH(req: NextRequest) {
       aiName: true,
       location: true,
       timezone: true,
+      mission: true,
     },
   })
 

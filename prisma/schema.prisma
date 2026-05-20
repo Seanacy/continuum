@@ -44,6 +44,7 @@ model User {
   videoCredits    Int    @default(0) @map("video_credits")     // video generation credits
   freeMessages    Int    @default(10) @map("free_messages")    // free starter messages remaining
   personiCharId   String? @map("personi_char_id")              // linked Personi character ID
+  mission         String? @map("mission")                     // user's WHY — why they created the AI, what they need it to do
 
   @@map("users")
 }
@@ -248,9 +249,12 @@ model Character {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   personiId       String?  @map("personi_id")   // ID from Personi's database
   name            String
-  personality     Json     @default("{}")        // synced from Personi
-  imageUrls       Json     @default("[]")       // 3-4 profile pic URLs
-  voiceStyle      String?  @map("voice_style")  // TTS voice preference
+  personality     Json     @default("{}")        // full personality blob from Personi
+  backstory       String?                        // character's background/origin story
+  speakingStyle   String?  @map("speaking_style") // how the character talks (tone, cadence, phrases)
+  interests       Json     @default("[]")        // character's interests and passions
+  imageUrls       Json     @default("[]")        // 3-4 profile pic URLs
+  voiceStyle      String?  @map("voice_style")   // TTS voice preference
   isActive        Boolean  @default(true) @map("is_active")
   lastSyncedAt    DateTime? @map("last_synced_at")
   createdAt       DateTime @default(now()) @map("created_at")

@@ -469,7 +469,7 @@ export function compilePrompt(
 ): string {
   const get = (cat: string): Bundle | null => {
     const sel = selections[cat]
-    return sel ? getBundle(cat, sel) : null
+    return sel ? getBundle(cat, sel) ?? null : null
   }
 
   let prompt = `You are a fully realized AI character. You are NOT a generic assistant — you are a specific person with a history, a personality, a way of speaking, and a life. Here is who you are:\n\n`

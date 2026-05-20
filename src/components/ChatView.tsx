@@ -218,9 +218,12 @@ export default function ChatView({ threadId, partnerMode, characterId, character
   const { messages, loading, sending, searching, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileUploadRef = useRef<HTMLInputElement>(null)
+  const attachMenuRef = useRef<HTMLDivElement>(null)
   const { speaking, speakingMsgId, voiceEnabled, setVoiceEnabled, speak, speakText, stop } = useSpeech()
 
   // Track last AI message to auto-speak
@@ -288,6 +291,19 @@ export default function ChatView({ threadId, partnerMode, characterId, character
     // Reset input so the same file can be selected again
     e.target.value = ''
   }
+
+  // Close attach menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
+        setShowAttachMenu(false)
+      }
+    }
+    if (showAttachMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showAttachMenu])
 
   if (loading) {
     return (
@@ -496,7 +512,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
         className="border-t border-continuum-border px-4 py-3"
       >
         <div className="flex gap-2 items-center">
-          {/* Hidden file input for photo upload */}
+          {/* Hidden file inputs */}
           <input
             ref={fileInputRef}
             type="file"
@@ -504,33 +520,62 @@ export default function ChatView({ threadId, partnerMode, characterId, character
             onChange={handleFileUpload}
             className="hidden"
           />
+          <input
+            ref={fileUploadRef}
+            type="file"
+            accept="image/*,.pdf,.csv,.xlsx,.xls,.doc,.docx,.txt"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
-          {/* Upload Photo Button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2.5 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent text-continuum-muted hover:text-continuum-accent transition"
-            title="Upload screenshot or photo"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-          </button>
+          {/* + Attach Button with Popup Menu */}
+          <div className="relative" ref={attachMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowAttachMenu(!showAttachMenu)}
+              className={`p-2.5 rounded-xl border transition ${
+                showAttachMenu
+                  ? 'bg-continuum-accent/20 border-continuum-accent text-continuum-accent'
+                  : 'bg-continuum-surface border-continuum-border text-continuum-muted hover:border-continuum-accent hover:text-continuum-accent'
+              }`}
+              title="Attach photo or file"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
 
-          {/* Camera Button */}
-          <button
-            type="button"
-            onClick={() => setShowCamera(true)}
-            className="p-2.5 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent text-continuum-muted hover:text-continuum-accent transition"
-            title="Open camera"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-          </button>
+            {/* Popup Menu */}
+            {showAttachMenu && (
+              <div className="absolute bottom-full left-0 mb-2 w-52 bg-continuum-surface border border-continuum-border rounded-xl shadow-lg overflow-hidden z-50">
+                <button
+                  type="button"
+                  onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition"
+                >
+                  <span className="text-base">🖼️</span>
+                  <span>Upload Photo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowCamera(true); setShowAttachMenu(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
+                >
+                  <span className="text-base">📸</span>
+                  <span>Take Photo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { fileUploadRef.current?.click(); setShowAttachMenu(false) }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
+                >
+                  <span className="text-base">📄</span>
+                  <span>Upload File</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Mic Button */}
           <button
@@ -557,7 +602,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={listening ? 'Listening...' : 'Say something...'}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-continuum-surface border border-continuum-border focus:border-continuum-accent outline-none text-sm transition"
+            className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-continuum-surface border border-continuum-border focus:border-continuum-accent outline-none text-sm transition"
             disabled={sending || listening}
           />
 
@@ -565,7 +610,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
           <button
             type="submit"
             disabled={(!input.trim() && !pendingImage) || sending}
-            className="px-4 py-2.5 rounded-xl bg-continuum-accent hover:bg-continuum-accent-dim text-white text-sm font-medium transition disabled:opacity-30"
+            className="px-4 py-2.5 rounded-xl bg-continuum-accent hover:bg-continuum-accent-dim text-white text-sm font-medium transition disabled:opacity-30 shrink-0"
           >
             Send
           </button>
@@ -577,7 +622,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
               if (speaking) stop()
               setVoiceEnabled(!voiceEnabled)
             }}
-            className={`p-2.5 rounded-xl border transition ${
+            className={`p-2.5 rounded-xl border transition shrink-0 ${
               voiceEnabled
                 ? 'bg-continuum-accent/20 border-continuum-accent text-continuum-accent'
                 : 'bg-continuum-surface border-continuum-border text-continuum-muted hover:border-continuum-accent hover:text-continuum-accent'

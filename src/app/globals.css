@@ -56,22 +56,22 @@ input, textarea {
 
 .bubble-user {
   position: relative;
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.45);
   border: none;
   box-shadow:
-    0 0 20px rgba(139, 92, 246, 0.15),
-    0 0 50px rgba(139, 92, 246, 0.1),
-    0 0 100px rgba(139, 92, 246, 0.06),
-    0 0 160px rgba(139, 92, 246, 0.03);
+    0 0 20px rgba(139, 92, 246, 0.5),
+    0 0 50px rgba(139, 92, 246, 0.35),
+    0 0 100px rgba(139, 92, 246, 0.2),
+    0 0 160px rgba(139, 92, 246, 0.1);
 }
 
 .bubble-user::before {
   content: '';
   position: absolute;
-  inset: -10px;
+  inset: -12px;
   border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.12), transparent 60%);
-  filter: blur(25px);
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.18), transparent 65%);
+  filter: blur(28px);
   z-index: -1;
   pointer-events: none;
 }

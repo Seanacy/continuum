@@ -74,11 +74,11 @@ export default function CharacterBuilder() {
   const categoryBundles = currentCategory ? (BUNDLES[currentCategory.key] || []) : []
   const searchResults = searchQuery.length >= 2 ? fuzzySearch(searchQuery) : []
   const contentPillars = useMemo(() => {
-    if (selections.niche && selections.personality) {
-      return suggestContentPillars(selections.niche, selections.personality)
+    if (selections.niche) {
+      return suggestContentPillars(selections)
     }
     return []
-  }, [selections.niche, selections.personality])
+  }, [selections])
 
   const selectionCount = Object.keys(selections).length
   const totalCategories = CATEGORIES.length

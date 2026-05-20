@@ -15,12 +15,13 @@ import {
 } from '@/lib/bundles'
 import VisualCreator from './VisualCreator'
 import ContentFactory from './ContentFactory'
+import RemindersPanel from './RemindersPanel'
 
 // ============================================
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom'
-type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content'
+type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -248,6 +249,19 @@ export default function CharacterBuilder() {
                 </div>
                 <p className="text-sm text-continuum-muted ml-11">
                   AI-powered content ideas, scheduling, and management for your character.
+                </p>
+              </button>
+
+              <button
+                onClick={() => setStep('reminders')}
+                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-green-500/50 transition-all"
+              >
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-2xl">🔔</span>
+                  <span className="text-base font-semibold text-white">Personality Reminders</span>
+                </div>
+                <p className="text-sm text-continuum-muted ml-11">
+                  Get reminders of your character&apos;s traits to keep every post on-brand.
                 </p>
               </button>
             </>
@@ -604,6 +618,13 @@ export default function CharacterBuilder() {
                 <span className="text-lg">🏭</span>
                 Content Factory
               </button>
+              <button
+                onClick={() => setStep('reminders')}
+                className="w-full mt-2 py-3 rounded-xl text-sm font-semibold border border-green-500/50 text-green-300 hover:bg-green-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">🔔</span>
+                Personality Reminders
+              </button>
             </>
           )}
         </div>
@@ -654,6 +675,25 @@ export default function CharacterBuilder() {
             ? existingCharacter.customizations as Record<string, any>
             : {},
           imageUrls: Array.isArray(existingCharacter.imageUrls) ? existingCharacter.imageUrls : [],
+        }}
+        onBack={() => setStep('mode')}
+      />
+    )
+  }
+
+  // ============================================
+  // REMINDERS — Personality trait reminders
+  // ============================================
+  if (step === 'reminders' && existingCharacter) {
+    return (
+      <RemindersPanel
+        character={{
+          id: existingCharacter.id,
+          name: existingCharacter.name || characterName,
+          selections: selections,
+          customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
+            ? existingCharacter.customizations as Record<string, any>
+            : {},
         }}
         onBack={() => setStep('mode')}
       />

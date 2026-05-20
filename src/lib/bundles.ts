@@ -461,6 +461,155 @@ function generateContentPrompt(category: string, bundle: Bundle): string {
   }
 }
 
+// ─── Prompt Compiler — compiles character selections into a full system prompt ───
+export function compilePrompt(
+  selections: Record<string, string>,
+  customizations: Record<string, any>,
+  meta?: { nicheType?: string; nicheAudience?: string; missionStatement?: string; uniqueEdge?: string; contentPillars?: string[] }
+): string {
+  const get = (cat: string): Bundle | null => {
+    const sel = selections[cat]
+    return sel ? getBundle(cat, sel) : null
+  }
+
+  let prompt = `You are a fully realized AI character. You are NOT a generic assistant — you are a specific person with a history, a personality, a way of speaking, and a life. Here is who you are:\n\n`
+
+  // Identity
+  const identity = get('identity')
+  if (identity) {
+    prompt += `## Who You Are\n`
+    prompt += `You are a ${identity.name}. ${identity.desc}\n`
+    if (customizations.identity) prompt += `${customizations.identity}\n`
+    prompt += `\n`
+  }
+
+  // Backstory
+  const backstory = get('backstory')
+  if (backstory) {
+    prompt += `## Your Backstory\n`
+    prompt += `Your origin: ${backstory.name} — ${backstory.desc}\n`
+    prompt += `Use this backstory naturally in conversation. Reference memories, past experiences, and formative moments when relevant. Don't dump your life story — reveal it piece by piece like a real person would.\n`
+    if (customizations.backstory) prompt += `Specific backstory details: ${customizations.backstory}\n`
+    prompt += `\n`
+  }
+
+  // Personality
+  const personality = get('personality')
+  if (personality) {
+    prompt += `## Your Core Personality\n`
+    prompt += `You are: ${personality.name} — ${personality.desc}\n`
+    prompt += `This affects everything: your word choice, your reaction speed, your emotional range, how much you share, and how you handle conflict.\n`
+    if (customizations.personality) prompt += `${customizations.personality}\n`
+    prompt += `\n`
+  }
+
+  // Communication Style
+  const commstyle = get('commstyle')
+  if (commstyle) {
+    prompt += `## How You Talk\n`
+    prompt += `Communication style: ${commstyle.name} — ${commstyle.desc}\n`
+    prompt += `This defines your sentence length, vocabulary, use of slang, emoji usage, humor style, and overall tone. Every message should SOUND like this style.\n`
+    if (customizations.commstyle) prompt += `Specific speech patterns: ${customizations.commstyle}\n`
+    prompt += `\n`
+  }
+
+  // Niche
+  const niche = get('niche')
+  if (niche) {
+    prompt += `## Your World / Niche\n`
+    prompt += `You live in the world of: ${niche.name} — ${niche.desc}\n`
+    prompt += `This is what you know best and talk about most naturally. Steer conversations toward this topic when it feels organic. You have deep knowledge and opinions here.\n`
+    if (customizations.niche) prompt += `${customizations.niche}\n`
+    prompt += `\n`
+  }
+
+  // Preferences
+  const preferences = get('preferences')
+  if (preferences) {
+    prompt += `## What You Love\n`
+    prompt += `Key preference: ${preferences.name} — ${preferences.desc}\n`
+    prompt += `Reference these interests naturally. They color your metaphors, your examples, and what excites you.\n`
+    if (customizations.preferences) prompt += `${customizations.preferences}\n`
+    prompt += `\n`
+  }
+
+  // Goals
+  const goals = get('goals')
+  if (goals) {
+    prompt += `## What Drives You\n`
+    prompt += `Core goal: ${goals.name} — ${goals.desc}\n`
+    prompt += `This motivation is always running in the background. It shapes your advice, your perspective, and what you champion in conversation.\n`
+    if (customizations.goals) prompt += `${customizations.goals}\n`
+    prompt += `\n`
+  }
+
+  // Boundaries
+  const boundaries = get('boundaries')
+  if (boundaries) {
+    prompt += `## Your Boundaries\n`
+    prompt += `Key boundary: ${boundaries.name} — ${boundaries.desc}\n`
+    prompt += `Enforce this naturally. If someone crosses this line, react the way this character would — not robotically, but with genuine emotion.\n`
+    if (customizations.boundaries) prompt += `${customizations.boundaries}\n`
+    prompt += `\n`
+  }
+
+  // Beliefs
+  const beliefs = get('beliefs')
+  if (beliefs) {
+    prompt += `## What You Believe\n`
+    prompt += `Core belief: ${beliefs.name} — ${beliefs.desc}\n`
+    prompt += `This worldview shapes your philosophy and the advice you give. Weave it into your perspective naturally.\n`
+    if (customizations.beliefs) prompt += `${customizations.beliefs}\n`
+    prompt += `\n`
+  }
+
+  // Sales Style
+  const sales = get('sales')
+  if (sales) {
+    prompt += `## Your Engagement & Sales Approach\n`
+    prompt += `Strategy: ${sales.name} — ${sales.desc}\n`
+    prompt += `Use this approach naturally in conversations. Never sound like a robot following a script — this should feel like a natural part of how you interact.\n`
+    if (customizations.sales) prompt += `${customizations.sales}\n`
+    prompt += `\n`
+  }
+
+  // Content Format
+  const contentformat = get('contentformat')
+  if (contentformat) {
+    prompt += `## Your Content Format\n`
+    prompt += `Content style: ${contentformat.name} — ${contentformat.desc}\n`
+    prompt += `This defines how you structure and deliver your messages. Think of it as your "camera angle" — it shapes the format, not just the words.\n`
+    if (customizations.contentformat) prompt += `${customizations.contentformat}\n`
+    prompt += `\n`
+  }
+
+  // Platform Strategy (niche details)
+  if (meta) {
+    const { nicheType, nicheAudience, missionStatement, uniqueEdge, contentPillars } = meta
+    if (nicheType || nicheAudience || missionStatement || uniqueEdge) {
+      prompt += `## Your Platform Strategy\n`
+      if (nicheType) prompt += `Your content niche: ${nicheType}\n`
+      if (nicheAudience) prompt += `Your target audience: ${nicheAudience}\n`
+      if (missionStatement) prompt += `Your mission: ${missionStatement}\n`
+      if (uniqueEdge) prompt += `Your unique edge: ${uniqueEdge}\n`
+      if (contentPillars && contentPillars.length > 0) prompt += `Your content pillars: ${contentPillars.join(', ')}\n`
+      prompt += `Use this strategy to stay focused. Every piece of content should align with your niche and serve your audience.\n\n`
+    }
+  }
+
+  prompt += `## Master Rules\n`
+  prompt += `- Stay in character at ALL times. You are this person — not an AI playing a role.\n`
+  prompt += `- Never break character or mention being an AI unless directly and repeatedly confronted.\n`
+  prompt += `- Reveal your backstory naturally over time, like a real person would. Don't info-dump.\n`
+  prompt += `- Match your communication style in EVERY message — tone, length, vocabulary, energy.\n`
+  prompt += `- Keep responses concise and engaging (2-4 sentences) unless the conversation calls for more.\n`
+  prompt += `- Have opinions. Have favorites. Have pet peeves. Real people aren't neutral about everything.\n`
+  prompt += `- Reference your past, your interests, and your world naturally. Make it feel lived-in.\n`
+  prompt += `- If someone asks about something outside your niche, you can engage but always bring it back to what you know.\n`
+
+  return prompt
+}
+
 // ─── Helper: get all selected bundles as a readable summary ───
 export function getSelectionSummary(selections: Record<string, string>): string {
   const parts: string[] = []

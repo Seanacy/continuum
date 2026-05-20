@@ -16,12 +16,13 @@ import {
 import VisualCreator from './VisualCreator'
 import ContentFactory from './ContentFactory'
 import RemindersPanel from './RemindersPanel'
+import BuildAssistant from './BuildAssistant'
 
 // ============================================
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom'
-type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders'
+type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'assistant'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -262,6 +263,19 @@ export default function CharacterBuilder() {
                 </div>
                 <p className="text-sm text-continuum-muted ml-11">
                   Get reminders of your character&apos;s traits to keep every post on-brand.
+                </p>
+              </button>
+
+              <button
+                onClick={() => setStep('assistant')}
+                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-blue-500/50 transition-all"
+              >
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-2xl">🤖</span>
+                  <span className="text-base font-semibold text-white">Build Assistant</span>
+                </div>
+                <p className="text-sm text-continuum-muted ml-11">
+                  View and export your character&apos;s compiled system prompt.
                 </p>
               </button>
             </>
@@ -625,6 +639,13 @@ export default function CharacterBuilder() {
                 <span className="text-lg">🔔</span>
                 Personality Reminders
               </button>
+              <button
+                onClick={() => setStep('assistant')}
+                className="w-full mt-2 py-3 rounded-xl text-sm font-semibold border border-blue-500/50 text-blue-300 hover:bg-blue-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">🤖</span>
+                Build Assistant
+              </button>
             </>
           )}
         </div>
@@ -694,6 +715,30 @@ export default function CharacterBuilder() {
           customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
             ? existingCharacter.customizations as Record<string, any>
             : {},
+        }}
+        onBack={() => setStep('mode')}
+      />
+    )
+  }
+
+  // ============================================
+  // BUILD ASSISTANT — System prompt compiler
+  // ============================================
+  if (step === 'assistant' && existingCharacter) {
+    return (
+      <BuildAssistant
+        character={{
+          id: existingCharacter.id,
+          name: existingCharacter.name || characterName,
+          selections: selections,
+          customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
+            ? existingCharacter.customizations as Record<string, any>
+            : {},
+          nicheType: nicheType || existingCharacter.nicheType || undefined,
+          nicheAudience: nicheAudience || existingCharacter.nicheAudience || undefined,
+          missionStatement: missionStatement || existingCharacter.missionStatement || undefined,
+          uniqueEdge: uniqueEdge || existingCharacter.uniqueEdge || undefined,
+          contentPillars: (existingCharacter.contentPillars as string[]) || undefined,
         }}
         onBack={() => setStep('mode')}
       />

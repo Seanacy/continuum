@@ -106,7 +106,7 @@ export default function HomePage() {
       )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
-      {activeView === 'create' && <CharacterBuilder />}
+      {activeView === 'create' && <CharacterBuilder onGoToChat={() => handleViewChange('chat')} />}
       {activeView === 'settings' && <SettingsView />}
     </AppShell>
   )

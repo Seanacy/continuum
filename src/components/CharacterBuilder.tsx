@@ -35,7 +35,11 @@ interface Customizations {
 // ============================================
 // MAIN COMPONENT
 // ============================================
-export default function CharacterBuilder() {
+interface CharacterBuilderProps {
+  onGoToChat?: () => void
+}
+
+export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) {
   const [step, setStep] = useState<Step>('list')
   const [buildMode, setBuildMode] = useState<BuildMode>('pick')
   const [selections, setSelections] = useState<Selections>({})
@@ -696,9 +700,19 @@ export default function CharacterBuilder() {
           </button>
 
           {saved && (
-            <p className="text-center text-xs text-green-400 mt-2">
-              Your character is live! Chat with them now in the Chat tab.
-            </p>
+            <div className="text-center mt-3">
+              <p className="text-xs text-green-400 mb-3">
+                Your character is live!
+              </p>
+              {onGoToChat && (
+                <button
+                  onClick={onGoToChat}
+                  className="w-full py-3 rounded-xl text-sm font-semibold bg-continuum-accent text-white hover:bg-continuum-accent/80 transition-all"
+                >
+                  Back to Chat →
+                </button>
+              )}
+            </div>
           )}
 
           {/* Visual Creator + Content Factory buttons */}

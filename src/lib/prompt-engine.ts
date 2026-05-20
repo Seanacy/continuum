@@ -246,6 +246,59 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
         lines.push(`\nVoice style: ${character.voiceStyle}`)
       }
 
+      // --- Bundle selections (Personi merge) ---
+      // These fields are optional — old characters won't have them.
+      // When present, they add richer identity context from the bundle system.
+      const selections = character.selections as Record<string, string> | null
+      const customizations = character.customizations as Record<string, string> | null
+
+      if (selections && typeof selections === 'object' && Object.keys(selections).length > 0) {
+        const CATEGORY_LABELS: Record<string, string> = {
+          identity: 'Identity archetype',
+          backstory: 'Origin story style',
+          personality: 'Personality type',
+          commstyle: 'Communication style',
+          niche: 'Content niche',
+          preferences: 'Preferences',
+          goals: 'Goals',
+          boundaries: 'Boundaries',
+          beliefs: 'Core beliefs',
+          sales: 'Sales approach',
+          contentformat: 'Content format',
+        }
+
+        const bundleLines: string[] = []
+        for (const [cat, bundleId] of Object.entries(selections)) {
+          if (!bundleId) continue
+          const label = CATEGORY_LABELS[cat] || cat
+          // If the user wrote custom text for this category, use that instead of the bundle ID
+          const customKey = `${cat}_custom`
+          const customText = customizations?.[customKey]
+          bundleLines.push(`- ${label}: ${customText || bundleId}`)
+        }
+
+        if (bundleLines.length > 0) {
+          lines.push(`\nCharacter build selections:\n${bundleLines.join('\n')}`)
+        }
+      }
+
+      if (character.nicheType) {
+        lines.push(`\nYour niche: ${character.nicheType}${character.nicheAudience ? ` — target audience: ${character.nicheAudience}` : ''}`)
+      }
+
+      if (character.missionStatement) {
+        lines.push(`\nYour character's mission: ${character.missionStatement}`)
+      }
+
+      if (character.uniqueEdge) {
+        lines.push(`\nWhat makes you unique: ${character.uniqueEdge}`)
+      }
+
+      const pillars = character.contentPillars as string[] | null
+      if (pillars && Array.isArray(pillars) && pillars.length > 0) {
+        lines.push(`\nContent pillars (the themes you always come back to): ${pillars.join(', ')}`)
+      }
+
       lines.push(`\nThis is your core identity. Everything above defines who you are — your personality, your history, how you talk, what you care about. Stay true to this in every interaction. You are not a generic AI. You are ${character.name}.`)
 
       characterBlock = lines.join('\n')

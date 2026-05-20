@@ -255,6 +255,17 @@ model Character {
   interests       Json     @default("[]")        // character's interests and passions
   imageUrls       Json     @default("[]")        // 3-4 profile pic URLs
   voiceStyle      String?  @map("voice_style")   // TTS voice preference
+
+  // --- Personi bundle selections & customizations ---
+  selections      Json     @default("{}")         // bundle picks per category e.g. { identity: "the-creator", backstory: "rags-to-riches" }
+  customizations  Json     @default("{}")         // custom text overrides, reminders config, etc.
+  compiledPrompt  String?  @map("compiled_prompt") // full system prompt assembled from bundles
+  nicheType       String?  @map("niche_type")     // e.g. "Fitness", "Beauty", "Tech"
+  nicheAudience   String?  @map("niche_audience") // target audience description
+  missionStatement String? @map("mission_statement") // character's mission
+  uniqueEdge      String?  @map("unique_edge")    // what makes this character stand out
+  contentPillars  Json     @default("[]")         // AI-suggested content pillars
+
   isActive        Boolean  @default(true) @map("is_active")
   lastSyncedAt    DateTime? @map("last_synced_at")
   createdAt       DateTime @default(now()) @map("created_at")

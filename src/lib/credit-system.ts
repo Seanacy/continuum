@@ -3,17 +3,18 @@
 // Video credits and chat credits are separate buckets
 //
 // Pricing:
-// - 1 video credit = $2.50 (user pays) / ~$1.07 (our cost) / ~$1.43 profit (57% margin)
+// - 1 video credit = $2.50 (user pays) / ~$1.00 (our cost) / ~$1.50 profit (60% margin)
 // - Each video credit purchase also grants 50 chat messages
-// - New users get 10 free chat messages (no purchase needed)
+// - New users get 10 free chat messages (costs us $0.002 — basically free)
 // - Chat is locked once free messages + credit messages run out
 //
 // Cost breakdown per video:
 // - Higgsfield scene generation (Kling 3.0, 3 scenes): ~$0.87
+// - Shotstack video stitching (~$0.20/min, ~15s avg): ~$0.05
 // - ElevenLabs TTS narration: ~$0.04
-// - LLM script generation: ~$0.03
-// - Bundled chat messages (50 x $0.005): ~$0.13
-// - Total: ~$1.07
+// - LLM script generation (Haiku): ~$0.03
+// - Bundled chat messages (50 x $0.0002 Haiku): ~$0.01
+// - Total: ~$1.00
 //
 // Stripe is NOT connected yet. Credits are added manually or via
 // a placeholder purchase endpoint. When Stripe is ready, the webhook
@@ -26,10 +27,10 @@ import { db } from './db'
 // ============================================
 export const PRICING = {
   VIDEO_CREDIT_PRICE: 2.50,       // what user pays per video
-  VIDEO_COST_TO_US: 1.07,         // our actual cost per video (Higgsfield + TTS + LLM + chat)
+  VIDEO_COST_TO_US: 1.00,         // our actual cost per video (Higgsfield + Shotstack + TTS + LLM + chat)
   CHAT_MESSAGES_PER_VIDEO: 50,    // chat messages bundled per video purchase
-  FREE_STARTER_MESSAGES: 10,      // free messages on signup
-  CHAT_COST_PER_MESSAGE: 0.005,   // our cost per chat message
+  FREE_STARTER_MESSAGES: 10,      // free messages on signup (costs us ~$0.002 total)
+  CHAT_COST_PER_MESSAGE: 0.0002,  // our cost per chat message (Haiku model)
 } as const
 
 // ============================================

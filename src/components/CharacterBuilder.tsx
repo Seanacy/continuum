@@ -13,12 +13,13 @@ import {
   type Category,
   type Template,
 } from '@/lib/bundles'
+import VisualCreator from './VisualCreator'
 
 // ============================================
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom'
-type Step = 'mode' | 'template' | 'category' | 'review'
+type Step = 'mode' | 'template' | 'category' | 'review' | 'visual'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -209,18 +210,33 @@ export default function CharacterBuilder() {
 
           {/* If existing character, show quick edit */}
           {existingCharacter && Object.keys(existingCharacter.selections || {}).length > 0 && (
-            <button
-              onClick={() => setStep('review')}
-              className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-green-500/50 transition-all"
-            >
-              <div className="flex items-center gap-3 mb-1">
-                <span className="text-2xl">✏️</span>
-                <span className="text-base font-semibold text-white">Quick Edit</span>
-              </div>
-              <p className="text-sm text-continuum-muted ml-11">
-                Jump straight to your current build and tweak specific things.
-              </p>
-            </button>
+            <>
+              <button
+                onClick={() => setStep('review')}
+                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-green-500/50 transition-all"
+              >
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-2xl">✏️</span>
+                  <span className="text-base font-semibold text-white">Quick Edit</span>
+                </div>
+                <p className="text-sm text-continuum-muted ml-11">
+                  Jump straight to your current build and tweak specific things.
+                </p>
+              </button>
+
+              <button
+                onClick={() => setStep('visual')}
+                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-purple-500/50 transition-all"
+              >
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-2xl">🎨</span>
+                  <span className="text-base font-semibold text-white">Create Their Look</span>
+                </div>
+                <p className="text-sm text-continuum-muted ml-11">
+                  Generate your character&apos;s face using AI — 4 reference angles for consistent content.
+                </p>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -556,8 +572,48 @@ export default function CharacterBuilder() {
               Your character is live! Chat with them now in the Chat tab.
             </p>
           )}
+
+          {/* Visual Creator button — always show if character exists */}
+          {existingCharacter && (
+            <button
+              onClick={() => setStep('visual')}
+              className="w-full mt-4 py-3 rounded-xl text-sm font-semibold border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center gap-2"
+            >
+              <span className="text-lg">🎨</span>
+              Create {existingCharacter.name}&apos;s Look
+            </button>
+          )}
         </div>
       </div>
+    )
+  }
+
+  // ============================================
+  // VISUAL CREATOR — Create Their Look
+  // ============================================
+  if (step === 'visual' && existingCharacter) {
+    return (
+      <VisualCreator
+        character={{
+          id: existingCharacter.id,
+          name: existingCharacter.name || characterName,
+          selections: selections,
+          customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
+            ? existingCharacter.customizations as Record<string, any>
+            : {},
+          nicheType: nicheType || undefined,
+        }}
+        onUpdate={() => {
+          // Refresh character data
+          fetch('/api/characters/mine')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if (data?.character) setExistingCharacter(data.character)
+            })
+            .catch(() => {})
+        }}
+        onBack={() => setStep('review')}
+      />
     )
   }
 

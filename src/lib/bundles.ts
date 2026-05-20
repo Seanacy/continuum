@@ -283,8 +283,36 @@ export const SYNONYM_MAP: Record<string, string[]> = {
   sales: ['selling', 'monetize', 'affiliate', 'product', 'promote', 'marketing'],
 }
 
-// ─── 7 Pre-Built Templates ───
+// ─── 9 Pre-Built Templates ───
 export const TEMPLATES: Template[] = [
+  {
+    id: 'tpl-adult-creator',
+    emoji: '🔥',
+    name: 'Adult Content Creator',
+    desc: 'Confident, flirty creator who builds a loyal fanbase through exclusive content, teasing, and personal connection.',
+    selections: { identity: 'id-25', backstory: 'bs-10', personality: 'p-14', commstyle: 'cs-7', niche: 'n-1', preferences: 'pr-22', goals: 'g-1', boundaries: 'b-2', beliefs: 'bl-7', sales: 's-3', contentformat: 'cf-3' },
+  },
+  {
+    id: 'tpl-model',
+    emoji: '📸',
+    name: 'Model',
+    desc: 'Aesthetic-driven creator focused on visuals, brand deals, and building a premium image. Camera-ready 24/7.',
+    selections: { identity: 'id-19', backstory: 'bs-2', personality: 'p-8', commstyle: 'cs-4', niche: 'n-3', preferences: 'pr-12', goals: 'g-13', boundaries: 'b-4', beliefs: 'bl-22', sales: 's-6', contentformat: 'cf-3' },
+  },
+  {
+    id: 'tpl-hustle-bro',
+    emoji: '🚀',
+    name: 'Hustle Entrepreneur',
+    desc: 'High-energy startup founder who sees opportunity everywhere. All about the grind.',
+    selections: { identity: 'id-11', backstory: 'bs-10', personality: 'p-22', commstyle: 'cs-12', niche: 'n-10', preferences: 'pr-3', goals: 'g-8', boundaries: 'b-3', beliefs: 'bl-18', sales: 's-6' },
+  },
+  {
+    id: 'tpl-ig-influencer',
+    emoji: '🤖',
+    name: 'AI Influencer',
+    desc: 'Complete AI influencer with niche positioning, hook-based communication, and built-in sales strategy.',
+    selections: { identity: 'id-23', backstory: 'bs-10', personality: 'p-1', commstyle: 'cs-13', niche: 'n-4', preferences: 'pr-17', goals: 'g-13', boundaries: 'b-4', beliefs: 'bl-3', sales: 's-9', contentformat: 'cf-1' },
+  },
   {
     id: 'tpl-fitness',
     emoji: '💪',
@@ -314,25 +342,11 @@ export const TEMPLATES: Template[] = [
     selections: { identity: 'id-5', backstory: 'bs-3', personality: 'p-13', commstyle: 'cs-4', preferences: 'pr-9', goals: 'g-11', boundaries: 'b-18', beliefs: 'bl-1', sales: 's-4' },
   },
   {
-    id: 'tpl-hustle-bro',
-    emoji: '🚀',
-    name: 'Hustle Entrepreneur',
-    desc: 'High-energy startup founder who sees opportunity everywhere. All about the grind.',
-    selections: { identity: 'id-11', backstory: 'bs-10', personality: 'p-22', commstyle: 'cs-12', niche: 'n-10', preferences: 'pr-3', goals: 'g-8', boundaries: 'b-3', beliefs: 'bl-18', sales: 's-6' },
-  },
-  {
     id: 'tpl-cozy-gamer',
     emoji: '🎮',
     name: 'Cozy Gamer',
     desc: 'Chill gamer who loves late-night sessions, memes, and wholesome vibes.',
     selections: { identity: 'id-9', backstory: 'bs-12', personality: 'p-5', commstyle: 'cs-9', niche: 'n-2', preferences: 'pr-18', goals: 'g-6', boundaries: 'b-13', beliefs: 'bl-8', sales: 's-5' },
-  },
-  {
-    id: 'tpl-ig-influencer',
-    emoji: '📸',
-    name: 'Instagram AI Influencer',
-    desc: 'Complete AI influencer with niche positioning, hook-based communication, and built-in sales strategy.',
-    selections: { identity: 'id-23', backstory: 'bs-10', personality: 'p-1', commstyle: 'cs-13', niche: 'n-4', preferences: 'pr-17', goals: 'g-13', boundaries: 'b-4', beliefs: 'bl-3', sales: 's-9', contentformat: 'cf-1' },
   },
 ]
 

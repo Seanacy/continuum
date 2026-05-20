@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 
 // POST — create or update a character with bundle selections
 export async function POST(req: NextRequest) {
+  try {
   const user = await getCurrentUser()
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
@@ -90,4 +91,11 @@ export async function POST(req: NextRequest) {
       contentPillars: character.contentPillars,
     },
   })
+  } catch (err: any) {
+    console.error('POST /api/characters/build error:', err?.message, err?.code, err?.meta)
+    return NextResponse.json(
+      { error: err?.message || 'Internal error', code: err?.code, meta: err?.meta },
+      { status: 500 }
+    )
+  }
 }

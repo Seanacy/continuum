@@ -4,7 +4,30 @@ import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-// GET — return the user's active character (most recently updated)
+// Shape a character row into the API response format
+function formatCharacter(c: any) {
+  return {
+    id: c.id,
+    name: c.name,
+    selections: c.selections,
+    customizations: c.customizations,
+    compiledPrompt: c.compiledPrompt,
+    nicheType: c.nicheType,
+    nicheAudience: c.nicheAudience,
+    missionStatement: c.missionStatement,
+    uniqueEdge: c.uniqueEdge,
+    contentPillars: c.contentPillars,
+    imageUrls: c.imageUrls,
+    personality: c.personality,
+    backstory: c.backstory,
+    speakingStyle: c.speakingStyle,
+    interests: c.interests,
+    voiceStyle: c.voiceStyle,
+  }
+}
+
+// GET — return ALL of the user's active characters (newest first)
+// Also returns `character` (the first one) for backward compatibility
 export async function GET() {
   try {
     const user = await getCurrentUser()
@@ -12,34 +35,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    const character = await db.character.findFirst({
+    const characters = await db.character.findMany({
       where: { userId: user.id, isActive: true },
       orderBy: { updatedAt: 'desc' },
     })
 
-    if (!character) {
-      return NextResponse.json({ character: null })
+    if (characters.length === 0) {
+      return NextResponse.json({ character: null, characters: [] })
     }
 
     return NextResponse.json({
-      character: {
-        id: character.id,
-        name: character.name,
-        selections: character.selections,
-        customizations: character.customizations,
-        compiledPrompt: character.compiledPrompt,
-        nicheType: character.nicheType,
-        nicheAudience: character.nicheAudience,
-        missionStatement: character.missionStatement,
-        uniqueEdge: character.uniqueEdge,
-        contentPillars: character.contentPillars,
-        imageUrls: character.imageUrls,
-        personality: character.personality,
-        backstory: character.backstory,
-        speakingStyle: character.speakingStyle,
-        interests: character.interests,
-        voiceStyle: character.voiceStyle,
-      },
+      character: formatCharacter(characters[0]),        // backward compat
+      characters: characters.map(formatCharacter),      // full list
     })
   } catch (err: any) {
     console.error('GET /api/characters/mine error:', err?.message, err?.code, err?.meta)

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { content, threadId, image, imageType, timezone, localTime } = parsed.data
+  const { content, threadId, characterId, image, imageType, timezone, localTime } = parsed.data
   const partnerMode = body.partnerMode === true
 
   // Credit check — spend one chat credit (free messages first, then purchased)
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
         role: 'user',
         content: messageContent,
         threadId,
+        characterId: characterId || null,
       },
     })
 
@@ -103,14 +104,33 @@ export async function POST(req: NextRequest) {
       history.push({ role: 'user', content })
     }
 
-    // 4. Build system prompt
+    // 4. Fetch character(s) for prompt
+    let activeCharacter = null
+    let allCharacters: any[] = []
+    try {
+      allCharacters = await db.character.findMany({
+        where: { userId: user.id, isActive: true },
+        orderBy: { updatedAt: 'desc' },
+      })
+      if (characterId) {
+        activeCharacter = allCharacters.find((c: any) => c.id === characterId) || allCharacters[0] || null
+      } else {
+        activeCharacter = allCharacters[0] || null
+      }
+    } catch {
+      // Character fetch is optional
+    }
+
+    // Build system prompt
     const systemPrompt = await buildSystemPrompt({
       userId: user.id,
-      aiName: user.aiName || 'Your AI',
+      aiName: activeCharacter?.name || user.aiName || 'Your AI',
       threadId,
       timezone,
       localTime,
       partnerMode,
+      character: activeCharacter,
+      allCharacters,
     })
 
     // 5. Call LLM with tool use loop
@@ -242,13 +262,14 @@ export async function POST(req: NextRequest) {
       break
     }
 
-    // 6. Save AI response
+    // 6. Save AI response (tagged with the active character)
     const aiMessage = await db.message.create({
       data: {
         userId: user.id,
         role: 'assistant',
         content: finalContent,
         threadId,
+        characterId: activeCharacter?.id || null,
       },
     })
 
@@ -328,6 +349,8 @@ export async function POST(req: NextRequest) {
         role: 'assistant',
         content: finalContent,
         createdAt: aiMessage.createdAt,
+        characterId: activeCharacter?.id || null,
+        characterName: activeCharacter?.name || null,
       },
       tokensUsed: totalTokens,
       searchPerformed: searchQueries.length > 0,
@@ -363,9 +386,21 @@ export async function GET(req: NextRequest) {
       ...(threadId ? { threadId } : { threadId: null }),
       ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
     },
+    include: {
+      character: { select: { id: true, name: true } },
+    },
     orderBy: { createdAt: 'desc' },
     take: limit,
   })
 
-  return NextResponse.json({ messages: messages.reverse() })
+  return NextResponse.json({
+    messages: messages.reverse().map((m: any) => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      createdAt: m.createdAt,
+      characterId: m.characterId,
+      characterName: m.character?.name || null,
+    })),
+  })
 }

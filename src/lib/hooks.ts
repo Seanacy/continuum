@@ -26,11 +26,63 @@ export function useUser() {
 }
 
 // ============================================
+// useCharacters — fetch all user's active characters
+// ============================================
+export interface CharacterSummary {
+  id: string
+  name: string
+  imageUrls: string[]
+  nicheType: string | null
+}
+
+export function useCharacters() {
+  const [characters, setCharacters] = useState<CharacterSummary[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/characters/mine')
+      if (res.ok) {
+        const data = await res.json()
+        setCharacters(
+          (data.characters || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            imageUrls: c.imageUrls || [],
+            nicheType: c.nicheType || null,
+          }))
+        )
+      }
+    } catch {
+      // Silently fail — characters are optional
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { characters, loading, reload: load }
+}
+
+// ============================================
 // useChat — manage chat state
 // ============================================
-export function useChat(threadId?: string) {
+export function useChat(threadId?: string, characterId?: string) {
   const [messages, setMessages] = useState<
-    Array<{ id: string; role: string; content: string; createdAt: string; searchQuery?: string; imageUrls?: string[]; reminderSet?: { content: string; dueAt: string } }>
+    Array<{
+      id: string
+      role: string
+      content: string
+      createdAt: string
+      characterId?: string | null
+      characterName?: string | null
+      searchQuery?: string
+      imageUrls?: string[]
+      reminderSet?: { content: string; dueAt: string }
+    }>
   >([])
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
@@ -77,6 +129,7 @@ export function useChat(threadId?: string) {
         body: JSON.stringify({
           content,
           threadId,
+          characterId,
           ...(image ? { image, imageType } : {}),
           ...(partnerMode ? { partnerMode: true } : {}),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

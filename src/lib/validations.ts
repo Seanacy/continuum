@@ -15,6 +15,7 @@ export const loginSchema = z.object({
 export const messageSchema = z.object({
   content: z.string().min(1).max(5000),
   threadId: z.string().optional(),
+  characterId: z.string().optional(), // which AI character is active
   image: z.string().optional(), // base64 image data
   imageType: z.string().optional(), // mime type like image/jpeg
   timezone: z.string().optional(), // e.g. "America/New_York"

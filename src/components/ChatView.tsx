@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useChat } from '@/lib/hooks'
+import { useChat, CharacterSummary } from '@/lib/hooks'
 
 // ============================================
 // Voice Output — Text-to-Speech
@@ -206,8 +206,16 @@ function CameraModal({
 // ============================================
 // Main ChatView
 // ============================================
-export default function ChatView({ threadId, partnerMode }: { threadId?: string; partnerMode?: boolean }) {
-  const { messages, loading, sending, searching, sendMessage } = useChat(threadId)
+interface ChatViewProps {
+  threadId?: string
+  partnerMode?: boolean
+  characterId?: string
+  characters?: CharacterSummary[]
+  onCharacterChange?: (id: string) => void
+}
+
+export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange }: ChatViewProps) {
+  const { messages, loading, sending, searching, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
@@ -299,6 +307,32 @@ export default function ChatView({ threadId, partnerMode }: { threadId?: string;
         />
       )}
 
+      {/* Character Tabs */}
+      {characters && characters.length > 1 && (
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-continuum-border overflow-x-auto">
+          {characters.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => onCharacterChange?.(c.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+                c.id === characterId
+                  ? 'bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/40'
+                  : 'bg-continuum-surface text-continuum-muted border border-continuum-border hover:border-continuum-accent/40'
+              }`}
+            >
+              {c.imageUrls?.[0] ? (
+                <img src={c.imageUrls[0]} alt="" className="w-4 h-4 rounded-full object-cover" />
+              ) : (
+                <span className="w-4 h-4 rounded-full bg-continuum-accent/30 flex items-center justify-center text-[10px]">
+                  {c.name[0]}
+                </span>
+              )}
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 && (
@@ -321,6 +355,9 @@ export default function ChatView({ threadId, partnerMode }: { threadId?: string;
                     : 'text-continuum-text rounded-bl-md bubble-ai'
                 }`}
               >
+                {msg.role === 'assistant' && msg.characterName && characters && characters.length > 1 && (
+                  <span className="block text-[10px] font-semibold text-continuum-accent/70 mb-1">{msg.characterName}</span>
+                )}
                 {msg.role === 'assistant' && msg.searchQuery && (
                   <span className="flex items-center gap-1.5 text-xs text-continuum-accent mb-2 pb-1.5 border-b border-continuum-border">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

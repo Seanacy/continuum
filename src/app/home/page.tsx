@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUser, useChat } from '@/lib/hooks'
+import { useUser, useChat, useCharacters } from '@/lib/hooks'
 import AppShell from '@/components/AppShell'
 import ChatView from '@/components/ChatView'
 import FeedView from '@/components/FeedView'
@@ -20,6 +20,15 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [partnerMode, setPartnerMode] = useState(false)
   const { messages } = useChat()
+  const { characters, reload: reloadCharacters } = useCharacters()
+  const [activeCharacterId, setActiveCharacterId] = useState<string | undefined>(undefined)
+
+  // Auto-select first character when characters load
+  useEffect(() => {
+    if (characters.length > 0 && !activeCharacterId) {
+      setActiveCharacterId(characters[0].id)
+    }
+  }, [characters, activeCharacterId])
 
   // Start interaction tracking session
   useEffect(() => {
@@ -86,7 +95,15 @@ export default function HomePage() {
       partnerMode={partnerMode}
       onPartnerModeToggle={() => setPartnerMode(!partnerMode)}
     >
-      {activeView === 'chat' && <ChatView threadId={activeThreadId} partnerMode={partnerMode} />}
+      {activeView === 'chat' && (
+        <ChatView
+          threadId={activeThreadId}
+          partnerMode={partnerMode}
+          characterId={activeCharacterId}
+          characters={characters}
+          onCharacterChange={setActiveCharacterId}
+        />
+      )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
       {activeView === 'create' && <CharacterBuilder />}

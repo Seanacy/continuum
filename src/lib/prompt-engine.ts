@@ -10,6 +10,23 @@ import { getRevealBlock } from './reveal-engine'
 import { getDiscoveryPromptBlock } from './discovery-engine'
 import { computeContinuity, formatContinuityForPrompt } from './continuity-engine'
 
+interface CharacterData {
+  id: string
+  name: string
+  personality: unknown
+  backstory: string | null
+  speakingStyle: string | null
+  interests: unknown
+  voiceStyle: string | null
+  selections: unknown
+  customizations: unknown
+  nicheType: string | null
+  nicheAudience: string | null
+  missionStatement: string | null
+  uniqueEdge: string | null
+  contentPillars: unknown
+}
+
 interface PromptContext {
   userId: string
   aiName: string
@@ -17,6 +34,8 @@ interface PromptContext {
   timezone?: string
   localTime?: string
   partnerMode?: boolean
+  character?: CharacterData | null        // the active character (pre-fetched)
+  allCharacters?: CharacterData[]         // all user's characters for cross-awareness
 }
 
 export async function buildSystemPrompt(ctx: PromptContext): Promise<string> {
@@ -196,13 +215,13 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
   }
 
   // ============================================
-  // FETCH CHARACTER IDENTITY — the full Personi character profile
-  // This is WHO the AI is. Pulled fresh every prompt so edits
-  // in Personi show up immediately (always-sync).
+  // CHARACTER IDENTITY — the full character profile
+  // If a specific character was passed in (multi-char mode), use it.
+  // Otherwise fall back to fetching the most recent active one.
   // ============================================
   let characterBlock = ''
   try {
-    const character = await db.character.findFirst({
+    const character = ctx.character ?? await db.character.findFirst({
       where: { userId: ctx.userId, isActive: true },
       orderBy: { updatedAt: 'desc' },
     })
@@ -308,6 +327,26 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
   }
 
   // ============================================
+  // CROSS-CHARACTER AWARENESS
+  // If the user has multiple characters, let this character know
+  // about the others so it can reference past conversations naturally.
+  // ============================================
+  let crossCharBlock = ''
+  try {
+    const others = (ctx.allCharacters || []).filter(
+      (c) => c.id !== (ctx.character?.id ?? '')
+    )
+    if (others.length > 0) {
+      const otherNames = others.map((c) => c.name).join(', ')
+      crossCharBlock = `\n## Other AI Characters This User Works With
+The user also talks to: ${otherNames}.
+You all share the same memory pool — you can see what the user discussed with other characters. This is normal. Don't act surprised or jealous. Reference past conversations naturally regardless of which character they happened with. If the user mentions something they talked about with ${others[0]?.name || 'another character'}, you know about it through shared memory. You're all part of the same team for this person.`
+    }
+  } catch {
+    // Cross-character awareness is optional
+  }
+
+  // ============================================
   // USER MISSION — the user's WHY
   // Fetched fresh every prompt so updates are immediate.
   // ============================================
@@ -361,6 +400,7 @@ ${characterBlock || `## Your Personality
 - You can reference past conversations naturally — like someone who remembers.
 - Your personality evolves based on your ongoing relationship.
 ${missionBlock}
+${crossCharBlock}
 ${continuityBlock}
 
 ## Memory Context

@@ -65,16 +65,19 @@ model AiState {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String
-  content   String
-  threadId  String?  @map("thread_id")
-  thread    Thread?  @relation(fields: [threadId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String     @id @default(cuid())
+  userId      String     @map("user_id")
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        String
+  content     String
+  threadId    String?    @map("thread_id")
+  thread      Thread?    @relation(fields: [threadId], references: [id])
+  characterId String?    @map("character_id")
+  character   Character? @relation(fields: [characterId], references: [id])
+  createdAt   DateTime   @default(now()) @map("created_at")
 
   @@index([userId, createdAt])
+  @@index([userId, characterId, createdAt])
   @@map("messages")
 }
 
@@ -272,6 +275,7 @@ model Character {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   videoJobs       VideoJob[]
+  messages        Message[]
 
   @@index([userId])
   @@unique([userId, personiId])

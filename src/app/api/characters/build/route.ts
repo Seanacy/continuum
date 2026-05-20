@@ -69,7 +69,17 @@ export async function POST(req: NextRequest) {
       data,
     })
   } else {
-    // Create new
+    // Create new — enforce 5-character limit
+    const activeCount = await db.character.count({
+      where: { userId: user.id, isActive: true },
+    })
+    if (activeCount >= 5) {
+      return NextResponse.json(
+        { error: 'You can have up to 5 characters. Deactivate one to create a new one.' },
+        { status: 403 }
+      )
+    }
+
     character = await db.character.create({
       data: {
         ...data,

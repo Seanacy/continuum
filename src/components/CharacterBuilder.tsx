@@ -14,12 +14,13 @@ import {
   type Template,
 } from '@/lib/bundles'
 import VisualCreator from './VisualCreator'
+import ContentFactory from './ContentFactory'
 
 // ============================================
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom'
-type Step = 'mode' | 'template' | 'category' | 'review' | 'visual'
+type Step = 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -234,6 +235,19 @@ export default function CharacterBuilder() {
                 </div>
                 <p className="text-sm text-continuum-muted ml-11">
                   Generate your character&apos;s face using AI — 4 reference angles for consistent content.
+                </p>
+              </button>
+
+              <button
+                onClick={() => setStep('content')}
+                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-amber-500/50 transition-all"
+              >
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-2xl">🏭</span>
+                  <span className="text-base font-semibold text-white">Content Factory</span>
+                </div>
+                <p className="text-sm text-continuum-muted ml-11">
+                  AI-powered content ideas, scheduling, and management for your character.
                 </p>
               </button>
             </>
@@ -573,15 +587,24 @@ export default function CharacterBuilder() {
             </p>
           )}
 
-          {/* Visual Creator button — always show if character exists */}
+          {/* Visual Creator + Content Factory buttons */}
           {existingCharacter && (
-            <button
-              onClick={() => setStep('visual')}
-              className="w-full mt-4 py-3 rounded-xl text-sm font-semibold border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="text-lg">🎨</span>
-              Create {existingCharacter.name}&apos;s Look
-            </button>
+            <>
+              <button
+                onClick={() => setStep('visual')}
+                className="w-full mt-4 py-3 rounded-xl text-sm font-semibold border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">🎨</span>
+                Create {existingCharacter.name}&apos;s Look
+              </button>
+              <button
+                onClick={() => setStep('content')}
+                className="w-full mt-2 py-3 rounded-xl text-sm font-semibold border border-amber-500/50 text-amber-300 hover:bg-amber-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">🏭</span>
+                Content Factory
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -613,6 +636,26 @@ export default function CharacterBuilder() {
             .catch(() => {})
         }}
         onBack={() => setStep('review')}
+      />
+    )
+  }
+
+  // ============================================
+  // CONTENT FACTORY — AI content management
+  // ============================================
+  if (step === 'content' && existingCharacter) {
+    return (
+      <ContentFactory
+        character={{
+          id: existingCharacter.id,
+          name: existingCharacter.name || characterName,
+          selections: selections,
+          customizations: existingCharacter.customizations && typeof existingCharacter.customizations === 'object'
+            ? existingCharacter.customizations as Record<string, any>
+            : {},
+          imageUrls: Array.isArray(existingCharacter.imageUrls) ? existingCharacter.imageUrls : [],
+        }}
+        onBack={() => setStep('mode')}
       />
     )
   }

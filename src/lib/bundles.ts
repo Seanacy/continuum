@@ -403,6 +403,64 @@ export function getBundle(category: string, bundleId: string): Bundle | undefine
   return BUNDLES[category]?.find(b => b.id === bundleId)
 }
 
+// ─── Trait Reminders: Content Ideas from Bundle Selections ───
+export interface TraitReminder {
+  category: string
+  categoryLabel: string
+  bundleName: string
+  emoji: string
+  prompt: string
+}
+
+export function getTraitReminders(selections: Record<string, string>): TraitReminder[] {
+  const reminders: TraitReminder[] = []
+
+  // Only generate for these content-relevant categories
+  const contentCategories = ['identity', 'personality', 'backstory', 'niche', 'commstyle', 'preferences']
+
+  for (const catKey of contentCategories) {
+    const bundleId = selections[catKey]
+    if (!bundleId) continue
+    const bundle = getBundle(catKey, bundleId)
+    if (!bundle) continue
+    const cat = CATEGORIES.find(c => c.key === catKey)
+    if (!cat) continue
+
+    const prompt = generateContentPrompt(catKey, bundle)
+    if (prompt) {
+      reminders.push({
+        category: catKey,
+        categoryLabel: cat.label,
+        bundleName: bundle.name,
+        emoji: bundle.emoji,
+        prompt,
+      })
+    }
+  }
+
+  return reminders
+}
+
+function generateContentPrompt(category: string, bundle: Bundle): string {
+  const n = bundle.name
+  switch (category) {
+    case 'identity':
+      return `Create a "day in the life" post as a ${n}. Show your audience what a real day looks like — the grind, the wins, the behind-the-scenes moments that make you relatable.`
+    case 'personality':
+      return `Your personality is "${n}" — write a short-form post (caption or hook) that shows this side of you. Let the personality shine through naturally, not as a label.`
+    case 'backstory':
+      return `Use your "${n}" origin story to connect with your audience. Share a lesson, a turning point, or a vulnerable moment that shaped who you are today.`
+    case 'niche':
+      return `As a ${n}, create a content piece that establishes authority in your space. Think: tips, myth-busting, or a hot take that only someone in your niche would know.`
+    case 'commstyle':
+      return `Your communication style is "${n}" — write an opening hook for a video or post that immediately shows this energy. First 3 seconds matter.`
+    case 'preferences':
+      return `Your audience loves you for your "${n}" energy. Create a post that leans into this preference — recommend something, share a routine, or show why this matters to you.`
+    default:
+      return ''
+  }
+}
+
 // ─── Helper: get all selected bundles as a readable summary ───
 export function getSelectionSummary(selections: Record<string, string>): string {
   const parts: string[] = []

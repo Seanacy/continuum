@@ -21,7 +21,7 @@ import BuildAssistant from './BuildAssistant'
 // ============================================
 // TYPES
 // ============================================
-type BuildMode = 'pick' | 'instant' | 'custom'
+type BuildMode = 'pick' | 'instant' | 'custom' | 'premium'
 type Step = 'list' | 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'assistant'
 
 interface Selections {
@@ -198,52 +198,87 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
   }
 
   // ============================================
-  // CHARACTER LIST — pick which character to edit, or create new
+  // CHARACTER LIST — dashboard-style persona cards
   // ============================================
   if (step === 'list') {
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-xl font-bold text-white mb-1">Your Characters</h2>
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-white mb-1">My Characters</h2>
           <p className="text-sm text-continuum-muted mb-6">
-            Pick a character to edit, or create a new one.
+            Manage and chat with your AI personalities.
           </p>
 
-          {allCharacters.map((c: any) => (
-            <button
-              key={c.id}
-              onClick={() => loadCharacter(c)}
-              className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-continuum-accent/50 transition-all flex items-center gap-3"
-            >
-              {c.imageUrls?.[0] ? (
-                <img src={c.imageUrls[0]} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <span className="w-10 h-10 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent font-bold text-lg flex-shrink-0">
-                  {c.name?.[0] || '?'}
-                </span>
-              )}
-              <div className="flex-1 min-w-0">
-                <span className="text-base font-semibold text-white block truncate">{c.name}</span>
-                {c.nicheType && (
-                  <span className="text-xs text-continuum-muted">{c.nicheType}</span>
-                )}
-              </div>
-              <span className="text-xs text-continuum-muted">Edit</span>
-            </button>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {allCharacters.map((c: any) => {
+              const traitCount = c.selections && typeof c.selections === 'object'
+                ? Object.keys(c.selections).length : 0
 
-          {allCharacters.length < 5 && (
-            <button
-              onClick={startNewCharacter}
-              className="w-full text-left p-4 mb-3 rounded-xl border border-dashed border-continuum-accent/40 bg-continuum-accent/5 hover:border-continuum-accent/70 hover:bg-continuum-accent/10 transition-all flex items-center gap-3"
-            >
-              <span className="w-10 h-10 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent text-xl flex-shrink-0">+</span>
-              <div>
-                <span className="text-base font-semibold text-white block">Create New Character</span>
-                <span className="text-xs text-continuum-muted">{5 - allCharacters.length} slot{5 - allCharacters.length !== 1 ? 's' : ''} remaining</span>
-              </div>
-            </button>
-          )}
+              return (
+                <div
+                  key={c.id}
+                  className="rounded-xl border border-continuum-border bg-continuum-surface p-5"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    {c.imageUrls?.[0] ? (
+                      <img src={c.imageUrls[0]} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <span className="w-12 h-12 rounded-full bg-continuum-accent/20 flex items-center justify-center text-continuum-accent font-bold text-xl flex-shrink-0">
+                        {c.name?.[0] || '?'}
+                      </span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-white truncate">{c.name}</h3>
+                      <p className="text-xs text-continuum-muted">
+                        {traitCount} traits selected{c.nicheType ? ` — ${c.nicheType}` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-continuum-muted mb-4">
+                    <span>Traits: <strong className="text-continuum-accent">{traitCount}/{totalCategories}</strong></span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => loadCharacter(c)}
+                      className="w-full py-2 rounded-lg text-xs font-semibold bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/30 transition-all"
+                    >
+                      ✏️ Edit Character
+                    </button>
+                    <button
+                      onClick={() => { loadCharacter(c); setStep('visual') }}
+                      className="w-full py-2 rounded-lg text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+                    >
+                      🎨 Create Their Look
+                    </button>
+                    <button
+                      onClick={() => { loadCharacter(c); setStep('content') }}
+                      className="w-full py-2 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+                    >
+                      🏭 Content Factory
+                    </button>
+                    <button
+                      onClick={() => { loadCharacter(c); setStep('reminders') }}
+                      className="w-full py-2 rounded-lg text-xs font-semibold bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all"
+                    >
+                      🔔 Reminders
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+
+            {allCharacters.length < 5 && (
+              <button
+                onClick={startNewCharacter}
+                className="rounded-xl border-2 border-dashed border-continuum-border hover:border-continuum-accent/50 bg-transparent p-5 flex flex-col items-center justify-center gap-3 min-h-[200px] transition-all"
+              >
+                <span className="text-4xl text-continuum-muted">+</span>
+                <span className="text-base font-semibold text-continuum-muted">Create New Character</span>
+              </button>
+            )}
+          </div>
 
           {allCharacters.length >= 5 && (
             <p className="text-xs text-continuum-muted text-center mt-4">
@@ -256,119 +291,169 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
   }
 
   // ============================================
-  // MODE PICKER — second screen (edit existing or build new)
+  // MODE PICKER — 3-column Personi-style layout
   // ============================================
   if (step === 'mode') {
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-xl font-bold text-white mb-1">
-            {existingCharacter ? `Edit ${existingCharacter.name}` : 'Build Your Character'}
+        <div className="max-w-4xl mx-auto">
+          {/* Back button for existing characters */}
+          {allCharacters.length > 0 && (
+            <button onClick={() => setStep('list')} className="text-sm text-continuum-muted mb-6 hover:text-white transition">
+              ← My Characters
+            </button>
+          )}
+
+          <h2 className="text-3xl font-bold text-white text-center mb-2">
+            {existingCharacter ? `Edit ${existingCharacter.name}` : 'How Do You Want to Build?'}
           </h2>
-          <p className="text-sm text-continuum-muted mb-6">
-            {existingCharacter
-              ? 'Update your character\'s personality, style, and traits.'
-              : 'Choose how you want to create your AI character.'}
+          <p className="text-sm text-continuum-muted text-center mb-8">
+            Pick your speed. You can always go deeper later.
           </p>
 
-          {/* Instant — Template */}
-          <button
-            onClick={() => { setBuildMode('instant'); setStep('template') }}
-            className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-continuum-accent/50 transition-all"
-          >
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-2xl">⚡</span>
-              <span className="text-base font-semibold text-white">Instant Build</span>
-              <span className="text-xs text-continuum-muted ml-auto">~2 min</span>
-            </div>
-            <p className="text-sm text-continuum-muted ml-11">
-              Pick a pre-built template and start creating content immediately.
-            </p>
-          </button>
+          {/* 3-column mode cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            {/* Instant Character */}
+            <button
+              onClick={() => { setBuildMode('instant'); setStep('template') }}
+              className="relative rounded-xl border border-continuum-border bg-continuum-surface p-6 text-center hover:border-continuum-accent/50 transition-all flex flex-col items-center"
+            >
+              <span className="text-4xl mb-3">⚡</span>
+              <span className="text-sm text-continuum-accent font-medium mb-2">~2 min</span>
+              <h3 className="text-lg font-bold text-white mb-3 leading-tight">Instant<br />Character</h3>
+              <p className="text-sm text-continuum-muted mb-5">
+                We pick everything for you. Just name it and go. Swap any trait later if you want.
+              </p>
+              <div className="text-left w-full space-y-2 mb-5">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Auto-filled traits</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Ready to chat immediately</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Edit anytime</span>
+                </div>
+              </div>
+              <div className="mt-auto pt-4 border-t border-continuum-border w-full">
+                <span className="text-sm font-semibold text-continuum-accent">Start Instantly →</span>
+              </div>
+            </button>
 
-          {/* Custom — Step by step */}
-          <button
-            onClick={() => { setBuildMode('custom'); setCurrentCategoryIndex(0); setStep('category') }}
-            className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-purple-500/50 transition-all"
-          >
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-2xl">🎨</span>
-              <span className="text-base font-semibold text-white">Custom Build</span>
-              <span className="text-xs text-continuum-muted ml-auto">~15 min</span>
-            </div>
-            <p className="text-sm text-continuum-muted ml-11">
-              Go category by category — pick traits, voice, niche, goals, and more.
-            </p>
-          </button>
+            {/* Custom Character — Most Popular */}
+            <button
+              onClick={() => { setBuildMode('custom'); setCurrentCategoryIndex(0); setStep('category') }}
+              className="relative rounded-xl border border-purple-500/50 bg-continuum-surface p-6 text-center hover:border-purple-400/70 transition-all flex flex-col items-center"
+            >
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-continuum-accent text-white text-xs font-bold rounded-full">
+                Most Popular
+              </span>
+              <span className="text-4xl mb-3">🎯</span>
+              <span className="text-sm text-continuum-accent font-medium mb-2">~15 min</span>
+              <h3 className="text-lg font-bold text-white mb-3 leading-tight">Custom<br />Character</h3>
+              <p className="text-sm text-continuum-muted mb-5">
+                Walk through each category and pick the bundles that fit. Simple guided steps.
+              </p>
+              <div className="text-left w-full space-y-2 mb-5">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Step-by-step wizard</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Pick from 190+ bundles</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Optional customization</span>
+                </div>
+              </div>
+              <div className="mt-auto pt-4 border-t border-continuum-border w-full">
+                <span className="text-sm font-semibold text-continuum-accent">Start Building →</span>
+              </div>
+            </button>
 
-          {/* If existing character, show quick edit */}
+            {/* Premium Character */}
+            <button
+              onClick={() => { setBuildMode('premium'); setCurrentCategoryIndex(0); setStep('category') }}
+              className="relative rounded-xl border border-continuum-border bg-continuum-surface p-6 text-center hover:border-continuum-accent/50 transition-all flex flex-col items-center"
+            >
+              <span className="text-4xl mb-3">💎</span>
+              <span className="text-sm text-continuum-accent font-medium mb-2">~45 min</span>
+              <h3 className="text-lg font-bold text-white mb-3 leading-tight">Premium<br />Character</h3>
+              <p className="text-sm text-continuum-muted mb-5">
+                Full control. Every step opens the editor so you can write backstory, catchphrases, and fine details.
+              </p>
+              <div className="text-left w-full space-y-2 mb-5">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Deep customization on every trait</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Backstory &amp; speech patterns</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span>Maximum personality depth</span>
+                </div>
+              </div>
+              <div className="mt-auto pt-4 border-t border-continuum-border w-full">
+                <span className="text-sm font-semibold text-continuum-accent">Go Deep →</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Template pills */}
+          <div className="text-center mb-8">
+            <p className="text-sm text-continuum-muted mb-4">Or start from a template:</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {TEMPLATES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => applyTemplate(t)}
+                  className="px-4 py-2 rounded-full border border-continuum-border bg-continuum-surface text-sm text-white hover:border-continuum-accent/50 transition-all"
+                >
+                  {t.emoji} {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Existing character quick-access buttons */}
           {existingCharacter && Object.keys(existingCharacter.selections || {}).length > 0 && (
-            <>
-              <button
-                onClick={() => setStep('review')}
-                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-green-500/50 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">✏️</span>
-                  <span className="text-base font-semibold text-white">Quick Edit</span>
-                </div>
-                <p className="text-sm text-continuum-muted ml-11">
-                  Jump straight to your current build and tweak specific things.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setStep('visual')}
-                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-purple-500/50 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">🎨</span>
-                  <span className="text-base font-semibold text-white">Create Their Look</span>
-                </div>
-                <p className="text-sm text-continuum-muted ml-11">
-                  Generate your character&apos;s face using AI — 4 reference angles for consistent content.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setStep('content')}
-                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-amber-500/50 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">🏭</span>
-                  <span className="text-base font-semibold text-white">Content Factory</span>
-                </div>
-                <p className="text-sm text-continuum-muted ml-11">
-                  AI-powered content ideas, scheduling, and management for your character.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setStep('reminders')}
-                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-green-500/50 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">🔔</span>
-                  <span className="text-base font-semibold text-white">Personality Reminders</span>
-                </div>
-                <p className="text-sm text-continuum-muted ml-11">
-                  Get reminders of your character&apos;s traits to keep every post on-brand.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setStep('assistant')}
-                className="w-full text-left p-4 mb-3 rounded-xl border border-continuum-border bg-continuum-surface hover:border-blue-500/50 transition-all"
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-2xl">🤖</span>
-                  <span className="text-base font-semibold text-white">Build Assistant</span>
-                </div>
-                <p className="text-sm text-continuum-muted ml-11">
-                  View and export your character&apos;s compiled system prompt.
-                </p>
-              </button>
-            </>
+            <div className="border-t border-continuum-border pt-6 mt-2">
+              <h3 className="text-sm font-semibold text-white text-center mb-4">Quick Actions for {existingCharacter.name}</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                <button
+                  onClick={() => setStep('review')}
+                  className="py-3 rounded-xl text-xs font-semibold bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/30 transition-all"
+                >
+                  ✏️ Quick Edit
+                </button>
+                <button
+                  onClick={() => setStep('visual')}
+                  className="py-3 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+                >
+                  🎨 Create Look
+                </button>
+                <button
+                  onClick={() => setStep('content')}
+                  className="py-3 rounded-xl text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+                >
+                  🏭 Content
+                </button>
+                <button
+                  onClick={() => setStep('reminders')}
+                  className="py-3 rounded-xl text-xs font-semibold bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all"
+                >
+                  🔔 Reminders
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -411,82 +496,75 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
   }
 
   // ============================================
-  // CATEGORY BUILDER — Custom Build, step by step
+  // CATEGORY BUILDER — Personi-style 2-column card grid
   // ============================================
   if (step === 'category' && currentCategory) {
     const selectedBundleId = selections[currentCategory.key]
     const customText = customizations[`${currentCategory.key}_custom`] || ''
+    const displayBundles = searchQuery.length >= 2
+      ? searchResults.filter(r => r.category === currentCategory.key)
+      : categoryBundles
 
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
-        <div className="max-w-lg mx-auto">
-          {/* Progress */}
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={prevCategory} className="text-sm text-continuum-muted hover:text-white transition">
-              ← {currentCategoryIndex === 0 ? 'Back' : CATEGORIES[currentCategoryIndex - 1]?.label}
-            </button>
-            <span className="text-xs text-continuum-muted">
-              {currentCategoryIndex + 1} / {totalCategories}
-            </span>
+        <div className="max-w-4xl mx-auto">
+          {/* Step counter */}
+          <p className="text-sm font-bold text-continuum-accent text-center mb-4 tracking-wide">
+            STEP {currentCategoryIndex + 1} OF {totalCategories}
+          </p>
+
+          {/* Category icon + name */}
+          <div className="text-center mb-2">
+            <span className="text-5xl">{currentCategory.icon}</span>
+            <h2 className="text-3xl font-bold text-white mt-2">{currentCategory.label}</h2>
           </div>
+          <p className="text-sm text-continuum-muted text-center mb-8">
+            Pick one that fits your character (or skip)
+          </p>
 
-          {/* Progress bar */}
-          <div className="w-full h-1 bg-continuum-border rounded-full mb-5">
-            <div
-              className="h-1 bg-continuum-accent rounded-full transition-all duration-300"
-              style={{ width: `${((currentCategoryIndex + 1) / totalCategories) * 100}%` }}
-            />
-          </div>
+          {/* Search — only show if many bundles */}
+          {categoryBundles.length > 8 && (
+            <div className="relative mb-6 max-w-md mx-auto">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={`Search ${currentCategory.label.toLowerCase()}...`}
+                className="w-full px-4 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-continuum-muted hover:text-white"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
 
-          <h2 className="text-lg font-bold text-white mb-1">{currentCategory.icon} {currentCategory.label}</h2>
-          <p className="text-sm text-continuum-muted mb-4">Pick the option that fits your character best.</p>
-
-          {/* Search */}
-          <div className="relative mb-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder={`Search ${currentCategory.label.toLowerCase()}...`}
-              className="w-full px-4 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-continuum-muted hover:text-white"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Bundle options */}
-          <div className="space-y-2 mb-4">
-            {(searchQuery.length >= 2
-              ? searchResults.filter(r => r.category === currentCategory.key)
-              : categoryBundles
-            ).map(bundle => (
+          {/* 2-column bundle card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {displayBundles.map(bundle => (
               <button
                 key={bundle.id}
                 onClick={() => selectBundle(currentCategory.key, bundle.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-all ${
+                className={`text-left p-5 rounded-xl border transition-all ${
                   selectedBundleId === bundle.id
                     ? 'border-continuum-accent bg-continuum-accent/10'
                     : 'border-continuum-border bg-continuum-surface hover:border-continuum-accent/30'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm font-medium ${selectedBundleId === bundle.id ? 'text-continuum-accent' : 'text-white'}`}>
-                    {bundle.emoji} {bundle.name}
-                  </span>
-                  {selectedBundleId === bundle.id && (
-                    <span className="text-continuum-accent text-xs">✓</span>
-                  )}
-                </div>
-                <p className="text-xs text-continuum-muted mt-0.5">{bundle.desc}</p>
+                <span className="text-3xl block mb-2">{bundle.emoji}</span>
+                <h3 className={`text-base font-bold mb-1 ${
+                  selectedBundleId === bundle.id ? 'text-continuum-accent' : 'text-white'
+                }`}>
+                  {bundle.name}
+                </h3>
+                <p className="text-sm text-continuum-muted leading-snug">{bundle.desc}</p>
                 {bundle.tag && (
-                  <div className="mt-1.5">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-continuum-bg text-continuum-muted">
+                  <div className="mt-3">
+                    <span className="text-xs px-2 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
                       {bundle.tag}
                     </span>
                   </div>
@@ -495,38 +573,48 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
             ))}
           </div>
 
-          {/* Custom text override */}
-          <div className="mb-5">
-            <label className="text-xs text-continuum-muted block mb-1">
-              Or write your own (optional):
-            </label>
-            <textarea
-              value={customText}
-              onChange={e => setCustomText(currentCategory.key, e.target.value)}
-              placeholder={`Describe your character's ${currentCategory.label.toLowerCase()} in your own words...`}
-              rows={3}
-              className="w-full px-3 py-2 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none resize-none"
-            />
-          </div>
+          {/* Custom text — expanded for premium mode */}
+          {buildMode === 'premium' && (
+            <div className="mb-6 max-w-xl mx-auto">
+              <label className="text-xs text-continuum-muted block mb-1">
+                Write your own (optional):
+              </label>
+              <textarea
+                value={customText}
+                onChange={e => setCustomText(currentCategory.key, e.target.value)}
+                placeholder={`Describe your character's ${currentCategory.label.toLowerCase()} in your own words...`}
+                rows={4}
+                className="w-full px-3 py-2 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none resize-none"
+              />
+            </div>
+          )}
 
-          {/* Next / Skip */}
-          <div className="flex gap-3">
-            <button
-              onClick={nextCategory}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white transition"
-            >
-              Skip
-            </button>
-            <button
-              onClick={nextCategory}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition ${
-                selectedBundleId || customText
-                  ? 'bg-continuum-accent text-white hover:bg-continuum-accent/80'
-                  : 'bg-continuum-surface text-continuum-muted'
-              }`}
-            >
-              {currentCategoryIndex === totalCategories - 1 ? 'Review Build' : 'Next →'}
-            </button>
+          {/* Bottom navigation — Back / Skip / Next */}
+          <div className="border-t border-continuum-border pt-5 mt-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={prevCategory}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white hover:border-continuum-accent/30 transition"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={nextCategory}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white transition"
+              >
+                Skip
+              </button>
+              <button
+                onClick={nextCategory}
+                className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition ${
+                  selectedBundleId || customText
+                    ? 'bg-continuum-accent text-white hover:bg-continuum-accent/80'
+                    : 'bg-continuum-accent/50 text-white/70'
+                }`}
+              >
+                {currentCategoryIndex === totalCategories - 1 ? 'Review Build' : 'Next →'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

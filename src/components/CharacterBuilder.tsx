@@ -71,7 +71,7 @@ export default function CharacterBuilder() {
 
   // Derived
   const currentCategory = CATEGORIES[currentCategoryIndex]
-  const categoryBundles = BUNDLES.filter(b => b.category === currentCategory?.id)
+  const categoryBundles = currentCategory ? (BUNDLES[currentCategory.id] || []) : []
   const searchResults = searchQuery.length >= 2 ? fuzzySearch(searchQuery) : []
   const contentPillars = useMemo(() => {
     if (selections.niche && selections.personality) {

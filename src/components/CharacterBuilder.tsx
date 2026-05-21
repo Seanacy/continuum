@@ -419,6 +419,31 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                 })()}
 
                   <div className="space-y-2">
+                    {activeCharacterId === c.id ? (
+                      <div className="w-full py-2 rounded-lg text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30 text-center">
+                        Active AI
+                      </div>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          if (onActivateCharacter) {
+                            try {
+                              await fetch('/api/characters/activate', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ characterId: c.id })
+                              })
+                              onActivateCharacter(c.id)
+                            } catch (e) {
+                              console.error('Failed to activate character', e)
+                            }
+                          }
+                        }}
+                        className="w-full py-2 rounded-lg text-xs font-semibold bg-continuum-accent text-black hover:bg-continuum-accent/80 transition-all"
+                      >
+                        Use This AI
+                      </button>
+                    )}
                     <button
                       onClick={() => loadCharacter(c)}
                       className="w-full py-2 rounded-lg text-xs font-semibold bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/30 transition-all"

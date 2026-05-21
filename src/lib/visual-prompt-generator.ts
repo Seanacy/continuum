@@ -1,8 +1,9 @@
 // ============================================
 // VISUAL PROMPT GENERATOR
-// Produces 8 outputs:
+// Produces 9 outputs:
 //   - 2 Google Image search queries (face ref, body ref)
 //   - 6 Gemini generation prompts (head front/left/right, body front/left/right)
+//   - 1 AI agent context (end-to-end instructions for browser-based generation + upload)
 // ============================================
 
 import type { VisualTraits } from './visual-traits'
@@ -18,6 +19,8 @@ export interface GeneratedPrompts {
   geminiBodyFront: string
   geminiBodyLeft: string
   geminiBodyRight: string
+  // Full end-to-end AI agent instructions
+  agentContext: string
 }
 
 // Build a natural-language description from traits
@@ -43,6 +46,97 @@ function buildBodyDescription(traits: VisualTraits): string {
   if (traits.bodyType) parts.push(`${traits.bodyType.toLowerCase()} build`)
   if (traits.clothingStyle) parts.push(`wearing ${traits.clothingStyle.toLowerCase()} clothing`)
   return parts.join(', ') || 'average build'
+}
+
+// ============================================
+// AI AGENT CONTEXT GENERATOR
+// Produces step-by-step instructions for an AI agent
+// with browser control (e.g. Claude with Chrome MCP)
+// to generate all 6 profile images via Gemini and
+// upload them to Continuum's API.
+// ============================================
+
+interface PromptWithType {
+  imageType: string
+  prompt: string
+}
+
+function generateAgentContext(
+  characterName: string,
+  prompts: PromptWithType[]
+): string {
+  const promptList = prompts
+    .map((p, i) => `--- PROMPT ${i + 1} of ${prompts.length} (${IMAGE_TYPE_LABELS[p.imageType] || p.imageType}) ---\n${p.prompt}`)
+    .join('\n\n')
+
+  const imageTypeOrder = prompts.map((p, i) => `  ${i + 1}. ${p.imageType}`).join('\n')
+
+  return `=== CONTINUUM VISUAL CREATOR — AI AGENT INSTRUCTIONS ===
+
+You are generating 6 profile images for a character named "${characterName}" using Google Gemini's free image generation, then uploading each image to Continuum's API.
+
+== PHASE 1: GENERATE ALL 6 IMAGES IN GEMINI ==
+
+1. Open gemini.google.com in a browser tab.
+2. For each of the 6 prompts below, do this:
+   a. Paste the prompt text into the Gemini input box.
+   b. Click the BLUE ARROW (↑) send button in the bottom-right corner to submit.
+      IMPORTANT: Do NOT press Enter. Enter creates a newline — it does not submit.
+   c. Wait for Gemini to fully generate the image before sending the next prompt.
+3. Send all 6 prompts in this exact order. Do not skip any. Do not send the next prompt until the current image is fully generated.
+
+== PHASE 2: CREATE A SHARE LINK (after ALL 6 images are generated) ==
+
+IMPORTANT: Do not share until all 6 images are generated. Sharing early will create a link that is missing images.
+
+4. Click the three-dot menu (⋮) in the top-right corner of the Gemini conversation.
+5. Click "Share conversation" in the dropdown menu.
+6. A dialog will appear with a share URL like gemini.google.com/share/XXXX. Copy this URL.
+
+== PHASE 3: EXTRACT IMAGE URLs FROM THE SHARE PAGE ==
+
+7. Open the share URL in a new browser tab.
+8. Scroll from top to bottom of the entire share page. This triggers lazy-loading of all images. Scroll slowly enough that each image loads as you pass it.
+9. After reaching the bottom, read the tab's network requests filtered by "lh3.googleusercontent.com".
+10. From the network requests, identify the UNIQUE CDN URLs. There will be duplicates — ignore those. You should find exactly 7 unique URLs.
+11. The URLs will end with "?alr=yes". These are the URLs you need.
+12. Map the unique URLs to image types by their order of appearance. Skip the 1st unique URL (it's a reference portrait, not one of the 6 profile shots). Use URLs 2 through 7:
+${imageTypeOrder}
+
+== PHASE 4: UPLOAD EACH IMAGE TO CONTINUUM ==
+
+13. For each of the 6 image URLs (2nd through 7th unique URL), run this JavaScript on the Continuum app tab (the tab open to continuum-app-two.vercel.app):
+
+(async () => {
+  const imageUrl = 'PASTE_CDN_URL_HERE';
+  const imgRes = await fetch(imageUrl);
+  const blob = await imgRes.blob();
+  const file = new File([blob], '${characterName.toLowerCase().replace(/\s+/g, '_')}_IMAGE_TYPE.jpg', { type: blob.type || 'image/jpeg' });
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('characterId', 'CHARACTER_ID_HERE');
+  formData.append('imageType', 'IMAGE_TYPE_HERE');
+  const res = await fetch('/api/characters/visual-images', { method: 'POST', body: formData });
+  const data = await res.json();
+  return JSON.stringify({ status: res.status, data });
+})()
+
+Replace:
+- PASTE_CDN_URL_HERE → the CDN URL for this image (must include ?alr=yes)
+- CHARACTER_ID_HERE → the character's ID from the database
+- IMAGE_TYPE_HERE → one of: head_front, head_left, head_right, body_front, body_left, body_right
+
+14. Run this for all 6 images. The API should return status 200 for each. The final upload should show totalImages: 6.
+
+== VERIFICATION ==
+
+15. After all 6 uploads, confirm the API returned totalImages: 6 on the last upload. This means all profile images are stored.
+
+== THE 6 PROMPTS (send in this exact order) ==
+
+${promptList}
+
+=== END OF INSTRUCTIONS ===`
 }
 
 export function generatePrompts(
@@ -144,6 +238,20 @@ Rules:
 - Same clean white background with thin black grid lines
 - Photorealistic, same quality as the previous shots`
 
+  // ---- AI AGENT CONTEXT ----
+  // Full end-to-end instructions for an AI agent with browser control
+  const agentContext = generateAgentContext(
+    characterName,
+    [
+      { imageType: 'head_front', prompt: geminiHeadFront },
+      { imageType: 'head_left', prompt: geminiHeadLeft },
+      { imageType: 'head_right', prompt: geminiHeadRight },
+      { imageType: 'body_front', prompt: geminiBodyFront },
+      { imageType: 'body_left', prompt: geminiBodyLeft },
+      { imageType: 'body_right', prompt: geminiBodyRight },
+    ]
+  )
+
   return {
     googleFaceQuery,
     googleBodyQuery,
@@ -153,6 +261,7 @@ Rules:
     geminiBodyFront,
     geminiBodyLeft,
     geminiBodyRight,
+    agentContext,
   }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   BUNDLES,
   CATEGORIES,
@@ -60,7 +60,34 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
   const [editingNameId, setEditingNameId] = useState<string | null>(null)
   const [editingNameValue, setEditingNameValue] = useState('')
 
-  // Load all characters on mount
+    // Image upload handler
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null)
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  const handleImageUpload = useCallback(async (characterId: string, imageType: string, file: File) => {
+    setUploadingSlot(imageType)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('characterId', characterId)
+      formData.append('imageType', imageType)
+      const res = await fetch('/api/characters/visual-images', { method: 'POST', body: formData })
+      if (res.ok) {
+        // Refresh characters list
+        const refreshRes = await fetch('/api/characters/mine')
+        if (refreshRes.ok) {
+          const data = await refreshRes.json()
+          setAllCharacters(data?.characters || [])
+        }
+      }
+    } catch (e) {
+      console.error('Upload failed:', e)
+    } finally {
+      setUploadingSlot(null)
+    }
+  }, [])
+
+// Load all characters on mount
   useEffect(() => {
     fetch('/api/characters/mine')
       .then(r => r.ok ? r.json() : null)
@@ -332,49 +359,64 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                   </div>
 
                   {/* Profile Picture Gallery */}
-                  {c.characterImages?.length > 0 && (() => {
-                    const typeOrder = ['head_front', 'head_left', 'head_right', 'body_front', 'body_left', 'body_right'] as const
+                  {(() => {
+                    const typeOrder = ['head_front', 'head_right', 'head_left', 'body_front', 'body_right', 'body_left'] as const
                     const typeLabels: Record<string, string> = {
-                      head_front: 'Front', head_left: 'Left', head_right: 'Right',
-                      body_front: 'Front', body_left: 'Left', body_right: 'Right',
+                      head_front: 'Front Face Profile',
+                      head_right: 'Right Face Profile',
+                      head_left: 'Left Face Profile',
+                      body_front: 'Front Body Profile',
+                      body_right: 'Right Body Profile',
+                      body_left: 'Left Body Profile'
                     }
-                    const imageMap = new Map(c.characterImages.map((img: any) => [img.imageType, img.url]))
+                    const imageMap = new Map(c.characterImages?.map((img: any) => [img.imageType, img.imageUrl]) || [])
                     return (
-                      <div className="mb-4">
-                        <p className="text-xs text-continuum-muted mb-2">Profile Pictures</p>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          <div className="col-span-3 text-[10px] text-continuum-muted/60 uppercase tracking-wider">Head</div>
-                          {typeOrder.slice(0, 3).map(t => {
-                            const url = imageMap.get(t)
-                            return (
-                              <div key={t} className="flex flex-col items-center gap-0.5">
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        {typeOrder.map(t => {
+                          const url = imageMap.get(t)
+                          return (
+                            <div key={t} className="flex flex-col items-center gap-1">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                ref={el => { fileInputRefs.current[c.id + '_' + t] = el }}
+                                onChange={e => {
+                                  const file = e.target.files?.[0]
+                                  if (file) handleImageUpload(c.id, t, file)
+                                  e.target.value = ''
+                                }}
+                              />
+                              <div
+                                className="w-full aspect-square rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-continuum-accent/50 transition-all relative group"
+                                onClick={() => fileInputRefs.current[c.id + '_' + t]?.click()}
+                              >
                                 {url ? (
-                                  <img src={url as string} alt={t} className="w-full aspect-square rounded-md object-cover border border-continuum-border" />
+                                  <img src={url} alt={typeLabels[t]} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full aspect-square rounded-md bg-continuum-border/30 flex items-center justify-center text-continuum-muted/40 text-[10px]">—</div>
+                                  <div className="w-full h-full bg-continuum-glass/30 flex items-center justify-center">
+                                    <span className="text-continuum-muted/40 text-lg">+</span>
+                                  </div>
                                 )}
-                                <span className="text-[9px] text-continuum-muted/60">{typeLabels[t]}</span>
-                              </div>
-                            )
-                          })}
-                          <div className="col-span-3 text-[10px] text-continuum-muted/60 uppercase tracking-wider mt-1">Body</div>
-                          {typeOrder.slice(3).map(t => {
-                            const url = imageMap.get(t)
-                            return (
-                              <div key={t} className="flex flex-col items-center gap-0.5">
-                                {url ? (
-                                  <img src={url as string} alt={t} className="w-full aspect-square rounded-md object-cover border border-continuum-border" />
+                                {uploadingSlot === t ? (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  </div>
                                 ) : (
-                                  <div className="w-full aspect-square rounded-md bg-continuum-border/30 flex items-center justify-center text-continuum-muted/40 text-[10px]">—</div>
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all">
+                                    <span className="text-white/0 group-hover:text-white/80 text-xs font-medium transition-all">
+                                      {url ? 'Change' : 'Upload'}
+                                    </span>
+                                  </div>
                                 )}
-                                <span className="text-[9px] text-continuum-muted/60">{typeLabels[t]}</span>
                               </div>
-                            )
-                          })}
-                        </div>
+                              <span className="text-[9px] text-continuum-muted/60 text-center leading-tight">{typeLabels[t]}</span>
+                            </div>
+                          )
+                        })}
                       </div>
                     )
-                  })()}
+                  )()}
 
                   <div className="space-y-2">
                     <button

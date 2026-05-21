@@ -62,9 +62,12 @@ export async function startVideoGeneration(
     return { success: false, error: 'No video credits available. Purchase credits to generate videos.' }
   }
 
-  // 2. Verify character exists and belongs to user
+  // 2. Verify character exists and belongs to user, include profile images
   const character = await db.character.findFirst({
     where: { id: characterId, userId, isActive: true },
+    include: {
+      characterImages: true,  // pull all 6 profile pics from CharacterImage table
+    },
   })
   if (!character) {
     return { success: false, error: 'Character not found' }
@@ -99,7 +102,14 @@ export async function startVideoGeneration(
 async function runPipeline(
   jobId: string,
   userId: string,
-  character: { id: string; name: string; personality: unknown; imageUrls: unknown; voiceStyle: string | null },
+  character: {
+    id: string;
+    name: string;
+    personality: unknown;
+    imageUrls: unknown;
+    voiceStyle: string | null;
+    characterImages: Array<{ imageType: string; imageUrl: string }>;
+  },
   prompt?: string
 ): Promise<void> {
   let totalCost = 0
@@ -226,13 +236,47 @@ interface SceneResult {
   cost: number
 }
 
+// Pick the best reference image for a scene based on the visual prompt
+// Face close-ups → head_front, full body scenes → body_front, default → head_front
+function pickBestRefImage(
+  visualPrompt: string,
+  characterImages: Array<{ imageType: string; imageUrl: string }>
+): string | null {
+  if (!characterImages || characterImages.length === 0) return null
+
+  const prompt = visualPrompt.toLowerCase()
+  const imageMap = new Map(characterImages.map(img => [img.imageType, img.imageUrl]))
+
+  // Check if scene describes full body / standing / walking
+  const isBodyScene = /\b(full body|standing|walking|running|sitting|full.?length|head to (toe|feet))\b/.test(prompt)
+  // Check if scene describes face / close-up / headshot
+  const isFaceScene = /\b(close.?up|headshot|face|portrait|looking at camera|expression)\b/.test(prompt)
+  // Check for left/right angles
+  const isLeftAngle = /\b(left side|left profile|from the left|facing left)\b/.test(prompt)
+  const isRightAngle = /\b(right side|right profile|from the right|facing right)\b/.test(prompt)
+
+  // Smart selection: match scene type to best image
+  if (isBodyScene) {
+    if (isLeftAngle && imageMap.has('body_left')) return imageMap.get('body_left')
+    if (isRightAngle && imageMap.has('body_right')) return imageMap.get('body_right')
+    if (imageMap.has('body_front')) return imageMap.get('body_front')
+  }
+  if (isFaceScene) {
+    if (isLeftAngle && imageMap.has('head_left')) return imageMap.get('head_left')
+    if (isRightAngle && imageMap.has('head_right')) return imageMap.get('head_right')
+    if (imageMap.has('head_front')) return imageMap.get('head_front')
+  }
+
+  // Default fallback: head_front is the most recognizable reference
+  return imageMap.get('head_front') || characterImages[0].imageUrl
+}
+
 async function generateSceneVideo(
   scene: VideoScene,
-  character: { imageUrls: unknown }
+  character: { characterImages: Array<{ imageType: string; imageUrl: string }> }
 ): Promise<SceneResult> {
-  // Get first character image as reference (if available)
-  const images = character.imageUrls as Array<{ url: string }> | null
-  const refUrl = images && images.length > 0 ? images[0].url : null
+  // Smart pick: choose the best profile image for this scene's visual prompt
+  const refUrl = pickBestRefImage(scene.visualPrompt, character.characterImages)
 
   // If no API key, fall back to stub mode
   if (!HIGGSFIELD_API_KEY) {

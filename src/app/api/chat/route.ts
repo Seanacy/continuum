@@ -10,7 +10,7 @@ import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
 import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
-import { spendChatCredit } from '@/lib/credit-system'
+// Chat is free — no credit check needed
 import { logUsage } from '@/lib/usage-tracker'
 
 export const dynamic = 'force-dynamic'
@@ -36,20 +36,6 @@ export async function POST(req: NextRequest) {
 
   const { content, threadId, characterId, image, imageType, timezone, localTime } = parsed.data
   const partnerMode = body.partnerMode === true
-
-  // Credit check — spend one chat credit (free messages first, then purchased)
-  const creditSpend = await spendChatCredit(user.id)
-  if (!creditSpend.allowed) {
-    return NextResponse.json(
-      {
-        error: 'You\'re out of chat messages. Purchase video credits to get more — each video credit includes 50 chat messages.',
-        rateLimited: true,
-        remaining: 0,
-        needsCredits: true,
-      },
-      { status: 429 }
-    )
-  }
 
   try {
     // 1. Update energy state
@@ -357,7 +343,7 @@ export async function POST(req: NextRequest) {
       searchQuery: searchQueries[0] || null,
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
       reminderSet,
-      remaining: creditSpend.remaining,
+      // chat is free — no credit tracking needed
     })
   } catch (error) {
     console.error('Chat error:', error)

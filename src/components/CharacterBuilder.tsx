@@ -38,9 +38,11 @@ interface Customizations {
 // ============================================
 interface CharacterBuilderProps {
   onGoToChat?: () => void
+  activeCharacterId?: string
+  onActivateCharacter?: (characterId: string) => void
 }
 
-export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) {
+export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActivateCharacter }: CharacterBuilderProps) {
   const [step, setStep] = useState<Step>('list')
   const [buildMode, setBuildMode] = useState<BuildMode>('pick')
   const [selections, setSelections] = useState<Selections>({})
@@ -433,7 +435,7 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ characterId: c.id })
                               })
-                              onActivateCharacter(c.id)
+                              onActivateCharacter?.(c.id)
                             } catch (e) {
                               console.error('Failed to activate character', e)
                             }

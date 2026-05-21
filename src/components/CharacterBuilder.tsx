@@ -331,6 +331,51 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                     <span>Traits: <strong className="text-continuum-accent">{traitCount}/{totalCategories}</strong></span>
                   </div>
 
+                  {/* Profile Picture Gallery */}
+                  {c.characterImages?.length > 0 && (() => {
+                    const typeOrder = ['head_front', 'head_left', 'head_right', 'body_front', 'body_left', 'body_right'] as const
+                    const typeLabels: Record<string, string> = {
+                      head_front: 'Front', head_left: 'Left', head_right: 'Right',
+                      body_front: 'Front', body_left: 'Left', body_right: 'Right',
+                    }
+                    const imageMap = new Map(c.characterImages.map((img: any) => [img.imageType, img.url]))
+                    return (
+                      <div className="mb-4">
+                        <p className="text-xs text-continuum-muted mb-2">Profile Pictures</p>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          <div className="col-span-3 text-[10px] text-continuum-muted/60 uppercase tracking-wider">Head</div>
+                          {typeOrder.slice(0, 3).map(t => {
+                            const url = imageMap.get(t)
+                            return (
+                              <div key={t} className="flex flex-col items-center gap-0.5">
+                                {url ? (
+                                  <img src={url as string} alt={t} className="w-full aspect-square rounded-md object-cover border border-continuum-border" />
+                                ) : (
+                                  <div className="w-full aspect-square rounded-md bg-continuum-border/30 flex items-center justify-center text-continuum-muted/40 text-[10px]">—</div>
+                                )}
+                                <span className="text-[9px] text-continuum-muted/60">{typeLabels[t]}</span>
+                              </div>
+                            )
+                          })}
+                          <div className="col-span-3 text-[10px] text-continuum-muted/60 uppercase tracking-wider mt-1">Body</div>
+                          {typeOrder.slice(3).map(t => {
+                            const url = imageMap.get(t)
+                            return (
+                              <div key={t} className="flex flex-col items-center gap-0.5">
+                                {url ? (
+                                  <img src={url as string} alt={t} className="w-full aspect-square rounded-md object-cover border border-continuum-border" />
+                                ) : (
+                                  <div className="w-full aspect-square rounded-md bg-continuum-border/30 flex items-center justify-center text-continuum-muted/40 text-[10px]">—</div>
+                                )}
+                                <span className="text-[9px] text-continuum-muted/60">{typeLabels[t]}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   <div className="space-y-2">
                     <button
                       onClick={() => loadCharacter(c)}

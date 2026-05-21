@@ -39,10 +39,11 @@ model User {
   characters         Character[]
   videoJobs          VideoJob[]
 
-  // Credit system
-  creditBalance   Int    @default(0) @map("credit_balance")    // chat message credits
-  videoCredits    Int    @default(0) @map("video_credits")     // video generation credits
-  freeMessages    Int    @default(10) @map("free_messages")    // free starter messages remaining
+  // Wallet system — dollar balance stored in cents ($5.00 = 500)
+  walletBalance   Int    @default(0) @map("wallet_balance")    // balance in cents
+  creditBalance   Int    @default(0) @map("credit_balance")    // DEPRECATED — kept for migration safety
+  videoCredits    Int    @default(0) @map("video_credits")     // DEPRECATED — kept for migration safety
+  freeMessages    Int    @default(0) @map("free_messages")     // DEPRECATED — default 0, no freebies
   personiCharId   String? @map("personi_char_id")              // linked Personi character ID
   mission         String? @map("mission")                     // user's WHY — why they created the AI, what they need it to do
 
@@ -231,12 +232,17 @@ model CreditTransaction {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // "purchase", "spend_video", "spend_chat", "bonus", "refund"
-  amount    Int      // positive = added, negative = spent
-  resource  String   // "video_credit", "chat_credit"
-  balanceAfter Int   @map("balance_after")
+  type      String   // "deposit", "video_charge", "refund", "adjustment"
+  amountCents Int    @map("amount_cents")  // positive = added, negative = charged (in cents)
+  balanceAfterCents Int @map("balance_after_cents") // wallet balance after this transaction (cents)
+  description String @default("")  // human-readable, e.g. "Video generation — 3 scenes"
   metadata  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at")
+
+  // Keep old columns for migration safety — Prisma won't break existing data
+  amount    Int      @default(0) // DEPRECATED
+  resource  String   @default("wallet") // DEPRECATED
+  balanceAfter Int   @default(0) @map("balance_after") // DEPRECATED
 
   @@index([userId, createdAt])
   @@index([type, createdAt])

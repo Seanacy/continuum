@@ -1,24 +1,22 @@
-// Credit System
-// Handles all credit operations — purchasing, spending, checking balances
-// Video credits and chat credits are separate buckets
+// Wallet System
+// Dollar-based wallet — balance stored in cents ($5.00 = 500 cents)
+// Users deposit real money (via Stripe), spend it on video generation
+// Chat is free (costs us ~$0.0002/msg on Haiku — negligible)
 //
 // Pricing:
-// - 1 video credit = $2.50 (user pays) / ~$1.00 (our cost) / ~$1.50 profit (60% margin)
-// - Each video credit purchase also grants 50 chat messages
-// - New users get 10 free chat messages (costs us $0.002 — basically free)
-// - Chat is locked once free messages + credit messages run out
+// - Video generation: $2.50 per video (250 cents)
+//   Cost breakdown:
+//   - Higgsfield scene generation (Kling 3.0, 3 scenes): ~$0.87
+//   - Shotstack video stitching (~$0.20/min, ~15s avg): ~$0.05
+//   - ElevenLabs TTS narration: ~$0.04
+//   - LLM script generation (Haiku): ~$0.03
+//   - Total cost to us: ~$1.00
+//   - Profit per video: ~$1.50 (60% margin)
 //
-// Cost breakdown per video:
-// - Higgsfield scene generation (Kling 3.0, 3 scenes): ~$0.87
-// - Shotstack video stitching (~$0.20/min, ~15s avg): ~$0.05
-// - ElevenLabs TTS narration: ~$0.04
-// - LLM script generation (Haiku): ~$0.03
-// - Bundled chat messages (50 x $0.0002 Haiku): ~$0.01
-// - Total: ~$1.00
+// - Chat messages: FREE (no charge to user)
 //
-// Stripe is NOT connected yet. Credits are added manually or via
-// a placeholder purchase endpoint. When Stripe is ready, the webhook
-// just calls addVideoCredits() on successful payment.
+// No free credits. Wallet starts at $0.00.
+// Stripe webhook calls addFunds() on successful payment.
 
 import { db } from './db'
 
@@ -26,196 +24,191 @@ import { db } from './db'
 // CONSTANTS
 // ============================================
 export const PRICING = {
-  VIDEO_CREDIT_PRICE: 2.50,       // what user pays per video
-  VIDEO_COST_TO_US: 1.00,         // our actual cost per video (Higgsfield + Shotstack + TTS + LLM + chat)
-  CHAT_MESSAGES_PER_VIDEO: 50,    // chat messages bundled per video purchase
-  FREE_STARTER_MESSAGES: 10,      // free messages on signup (costs us ~$0.002 total)
-  CHAT_COST_PER_MESSAGE: 0.0002,  // our cost per chat message (Haiku model)
+  VIDEO_PRICE_CENTS: 250,          // $2.50 per video
+  VIDEO_COST_CENTS: 100,           // ~$1.00 cost to us
+  CHAT_PRICE_CENTS: 0,             // chat is free
+  MIN_DEPOSIT_CENTS: 500,          // $5.00 minimum deposit
+  MAX_DEPOSIT_CENTS: 50000,        // $500.00 maximum deposit
 } as const
 
 // ============================================
-// CHECK BALANCE — can the user chat or generate?
+// HELPERS — format cents as dollars
 // ============================================
-export interface CreditBalance {
-  chatCredits: number
-  videoCredits: number
-  freeMessages: number
-  canChat: boolean
-  canGenerateVideo: boolean
-  chatRemaining: number  // total messages available (free + credits)
+export function centsToDollars(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`
 }
 
-export async function getCreditBalance(userId: string): Promise<CreditBalance> {
+// ============================================
+// GET WALLET BALANCE
+// ============================================
+export interface WalletBalance {
+  balanceCents: number       // raw balance in cents
+  balanceFormatted: string   // "$12.50"
+  canGenerateVideo: boolean  // enough for at least 1 video
+  videosAvailable: number    // how many videos they can afford
+}
+
+export async function getWalletBalance(userId: string): Promise<WalletBalance> {
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: {
-      creditBalance: true,
-      videoCredits: true,
-      freeMessages: true,
-    },
+    select: { walletBalance: true },
   })
 
   if (!user) throw new Error('User not found')
 
-  const chatRemaining = user.freeMessages + user.creditBalance
+  const balanceCents = user.walletBalance
   return {
-    chatCredits: user.creditBalance,
-    videoCredits: user.videoCredits,
-    freeMessages: user.freeMessages,
-    canChat: chatRemaining > 0,
-    canGenerateVideo: user.videoCredits > 0,
-    chatRemaining,
+    balanceCents,
+    balanceFormatted: centsToDollars(balanceCents),
+    canGenerateVideo: balanceCents >= PRICING.VIDEO_PRICE_CENTS,
+    videosAvailable: Math.floor(balanceCents / PRICING.VIDEO_PRICE_CENTS),
   }
 }
 
 // ============================================
-// ADD CREDITS — called when user purchases
+// ADD FUNDS — called when user deposits money (Stripe webhook)
 // ============================================
-export async function addVideoCredits(
+export async function addFunds(
   userId: string,
-  quantity: number,
+  amountCents: number,
   metadata: Record<string, unknown> = {}
-): Promise<CreditBalance> {
-  const chatCreditsToAdd = quantity * PRICING.CHAT_MESSAGES_PER_VIDEO
+): Promise<WalletBalance> {
+  if (amountCents <= 0) throw new Error('Amount must be positive')
 
   const user = await db.user.update({
     where: { id: userId },
-    data: {
-      videoCredits: { increment: quantity },
-      creditBalance: { increment: chatCreditsToAdd },
-    },
-    select: {
-      creditBalance: true,
-      videoCredits: true,
-      freeMessages: true,
-    },
+    data: { walletBalance: { increment: amountCents } },
+    select: { walletBalance: true },
   })
 
-  // Log the video credit purchase
   await db.creditTransaction.create({
     data: {
       userId,
-      type: 'purchase',
-      amount: quantity,
-      resource: 'video_credit',
-      balanceAfter: user.videoCredits,
+      type: 'deposit',
+      amountCents,
+      balanceAfterCents: user.walletBalance,
+      description: `Deposited ${centsToDollars(amountCents)}`,
       metadata: {
         ...metadata,
-        chatCreditsAdded: chatCreditsToAdd,
-        pricePerCredit: PRICING.VIDEO_CREDIT_PRICE,
-        totalCharged: quantity * PRICING.VIDEO_CREDIT_PRICE,
+        amountFormatted: centsToDollars(amountCents),
       },
     },
   })
 
-  // Log the bundled chat credits
-  await db.creditTransaction.create({
-    data: {
-      userId,
-      type: 'purchase',
-      amount: chatCreditsToAdd,
-      resource: 'chat_credit',
-      balanceAfter: user.creditBalance,
-      metadata: { source: 'video_purchase', videoCredits: quantity },
-    },
-  })
-
-  return getCreditBalance(userId)
+  return getWalletBalance(userId)
 }
 
 // ============================================
-// SPEND CHAT CREDIT — called per chat message
+// CHARGE FOR VIDEO — deduct video price from wallet
 // ============================================
-export interface SpendResult {
-  allowed: boolean
-  remaining: number
-  source: 'free' | 'credits' | 'none'
-}
-
-export async function spendChatCredit(userId: string): Promise<SpendResult> {
+export async function chargeForVideo(
+  userId: string,
+  metadata: Record<string, unknown> = {}
+): Promise<{ allowed: boolean; remaining: number; remainingFormatted: string }> {
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: {
-      creditBalance: true,
-      freeMessages: true,
-    },
+    select: { walletBalance: true },
   })
 
-  if (!user) return { allowed: false, remaining: 0, source: 'none' }
-
-  // Use free messages first
-  if (user.freeMessages > 0) {
-    const updated = await db.user.update({
-      where: { id: userId },
-      data: { freeMessages: { decrement: 1 } },
-      select: { freeMessages: true, creditBalance: true },
-    })
+  if (!user || user.walletBalance < PRICING.VIDEO_PRICE_CENTS) {
     return {
-      allowed: true,
-      remaining: updated.freeMessages + updated.creditBalance,
-      source: 'free',
+      allowed: false,
+      remaining: user?.walletBalance || 0,
+      remainingFormatted: centsToDollars(user?.walletBalance || 0),
     }
-  }
-
-  // Then use purchased credits
-  if (user.creditBalance > 0) {
-    const updated = await db.user.update({
-      where: { id: userId },
-      data: { creditBalance: { decrement: 1 } },
-      select: { freeMessages: true, creditBalance: true },
-    })
-
-    await db.creditTransaction.create({
-      data: {
-        userId,
-        type: 'spend_chat',
-        amount: -1,
-        resource: 'chat_credit',
-        balanceAfter: updated.creditBalance,
-      },
-    })
-
-    return {
-      allowed: true,
-      remaining: updated.freeMessages + updated.creditBalance,
-      source: 'credits',
-    }
-  }
-
-  // No credits left
-  return { allowed: false, remaining: 0, source: 'none' }
-}
-
-// ============================================
-// SPEND VIDEO CREDIT — called when generating a video
-// ============================================
-export async function spendVideoCredit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { videoCredits: true },
-  })
-
-  if (!user || user.videoCredits <= 0) {
-    return { allowed: false, remaining: user?.videoCredits || 0 }
   }
 
   const updated = await db.user.update({
     where: { id: userId },
-    data: { videoCredits: { decrement: 1 } },
-    select: { videoCredits: true },
+    data: { walletBalance: { decrement: PRICING.VIDEO_PRICE_CENTS } },
+    select: { walletBalance: true },
   })
 
   await db.creditTransaction.create({
     data: {
       userId,
-      type: 'spend_video',
-      amount: -1,
-      resource: 'video_credit',
-      balanceAfter: updated.videoCredits,
+      type: 'video_charge',
+      amountCents: -PRICING.VIDEO_PRICE_CENTS,
+      balanceAfterCents: updated.walletBalance,
+      description: `Video generation — ${centsToDollars(PRICING.VIDEO_PRICE_CENTS)}`,
+      metadata,
     },
   })
 
-  return { allowed: true, remaining: updated.videoCredits }
+  return {
+    allowed: true,
+    remaining: updated.walletBalance,
+    remainingFormatted: centsToDollars(updated.walletBalance),
+  }
+}
+
+// ============================================
+// CHARGE CUSTOM AMOUNT — for future features with different prices
+// ============================================
+export async function chargeAmount(
+  userId: string,
+  amountCents: number,
+  description: string,
+  metadata: Record<string, unknown> = {}
+): Promise<{ allowed: boolean; remaining: number }> {
+  if (amountCents <= 0) throw new Error('Charge amount must be positive')
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { walletBalance: true },
+  })
+
+  if (!user || user.walletBalance < amountCents) {
+    return { allowed: false, remaining: user?.walletBalance || 0 }
+  }
+
+  const updated = await db.user.update({
+    where: { id: userId },
+    data: { walletBalance: { decrement: amountCents } },
+    select: { walletBalance: true },
+  })
+
+  await db.creditTransaction.create({
+    data: {
+      userId,
+      type: 'charge',
+      amountCents: -amountCents,
+      balanceAfterCents: updated.walletBalance,
+      description,
+      metadata,
+    },
+  })
+
+  return { allowed: true, remaining: updated.walletBalance }
+}
+
+// ============================================
+// REFUND — add money back to wallet
+// ============================================
+export async function refund(
+  userId: string,
+  amountCents: number,
+  reason: string = 'Refund'
+): Promise<WalletBalance> {
+  if (amountCents <= 0) throw new Error('Refund amount must be positive')
+
+  const user = await db.user.update({
+    where: { id: userId },
+    data: { walletBalance: { increment: amountCents } },
+    select: { walletBalance: true },
+  })
+
+  await db.creditTransaction.create({
+    data: {
+      userId,
+      type: 'refund',
+      amountCents,
+      balanceAfterCents: user.walletBalance,
+      description: `${reason} — ${centsToDollars(amountCents)}`,
+    },
+  })
+
+  return getWalletBalance(userId)
 }
 
 // ============================================
@@ -227,22 +220,30 @@ export async function getTransactionHistory(
 ): Promise<Array<{
   id: string
   type: string
-  amount: number
-  resource: string
-  balanceAfter: number
+  amountCents: number
+  amountFormatted: string
+  balanceAfterCents: number
+  balanceAfterFormatted: string
+  description: string
   createdAt: Date
 }>> {
-  return db.creditTransaction.findMany({
+  const transactions = await db.creditTransaction.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
     take: limit,
     select: {
       id: true,
       type: true,
-      amount: true,
-      resource: true,
-      balanceAfter: true,
+      amountCents: true,
+      balanceAfterCents: true,
+      description: true,
       createdAt: true,
     },
   })
+
+  return transactions.map(t => ({
+    ...t,
+    amountFormatted: centsToDollars(Math.abs(t.amountCents)),
+    balanceAfterFormatted: centsToDollars(t.balanceAfterCents),
+  }))
 }

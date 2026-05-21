@@ -257,14 +257,14 @@ function pickBestRefImage(
 
   // Smart selection: match scene type to best image
   if (isBodyScene) {
-    if (isLeftAngle && imageMap.has('body_left')) return imageMap.get('body_left')
-    if (isRightAngle && imageMap.has('body_right')) return imageMap.get('body_right')
-    if (imageMap.has('body_front')) return imageMap.get('body_front')
+    if (isLeftAngle && imageMap.has('body_left')) return imageMap.get('body_left')!
+    if (isRightAngle && imageMap.has('body_right')) return imageMap.get('body_right')!
+    if (imageMap.has('body_front')) return imageMap.get('body_front')!
   }
   if (isFaceScene) {
-    if (isLeftAngle && imageMap.has('head_left')) return imageMap.get('head_left')
-    if (isRightAngle && imageMap.has('head_right')) return imageMap.get('head_right')
-    if (imageMap.has('head_front')) return imageMap.get('head_front')
+    if (isLeftAngle && imageMap.has('head_left')) return imageMap.get('head_left')!
+    if (isRightAngle && imageMap.has('head_right')) return imageMap.get('head_right')!
+    if (imageMap.has('head_front')) return imageMap.get('head_front')!
   }
 
   // Default fallback: head_front is the most recognizable reference

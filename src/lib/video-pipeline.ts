@@ -22,7 +22,7 @@
 import { db } from './db'
 import { callLLM } from './llm'
 import { buildUnifiedContext } from './continuity-orchestrator'
-import { spendVideoCredit } from './credit-system'
+import { chargeForVideo } from './credit-system'
 import type { VideoScript, VideoScene } from './script-engine'
 
 // ============================================
@@ -57,7 +57,7 @@ export async function startVideoGeneration(
 ): Promise<{ success: boolean; jobId?: string; error?: string }> {
 
   // 1. Check and spend video credit
-  const creditResult = await spendVideoCredit(userId)
+  const creditResult = await chargeForVideo(userId)
   if (!creditResult.allowed) {
     return { success: false, error: 'No video credits available. Purchase credits to generate videos.' }
   }

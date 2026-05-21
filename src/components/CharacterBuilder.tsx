@@ -12,7 +12,7 @@ import {
   type Bundle,
   type Category,
   type Template,
-} from '@/lib/bundles
+} from '@/lib/bundles'
 import VisualCreator from './VisualCreator'
 import ContentFactory from './ContentFactory'
 import RemindersPanel from './RemindersPanel'

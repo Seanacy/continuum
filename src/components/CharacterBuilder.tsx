@@ -392,7 +392,7 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                                 onClick={() => fileInputRefs.current[c.id + '_' + t]?.click()}
                               >
                                 {url ? (
-                                  <img src={url} alt={String(typeLabels[t])} className="w-full h-full object-cover" />
+                                  <img src={url} alt={typeLabels[t] as string} className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full bg-continuum-glass/30 flex items-center justify-center">
                                     <span className="text-continuum-muted/40 text-lg">+</span>

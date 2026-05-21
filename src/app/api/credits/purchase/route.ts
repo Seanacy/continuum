@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import { addVideoCredits, PRICING } from '@/lib/credit-system'
+import { addFunds, PRICING, centsToDollars } from '@/lib/credit-system'
 
 export const dynamic = 'force-dynamic'
 
-// POST — purchase video credits
+// POST — deposit funds into wallet
 // When Stripe is connected, this will be called by the Stripe webhook
-// after a successful payment. For now, it's a placeholder that can be
-// called directly for testing. In production, remove direct access
-// and only allow the webhook to add credits.
+// after a successful payment. For now, it's a placeholder.
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
   if (!user) {
@@ -16,33 +14,36 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const quantity = body.quantity || 1
+  const amountCents = body.amountCents || 0
 
-  if (quantity < 1 || quantity > 100) {
+  if (amountCents < PRICING.MIN_DEPOSIT_CENTS) {
     return NextResponse.json(
-      { error: 'Quantity must be between 1 and 100' },
+      { error: `Minimum deposit is ${centsToDollars(PRICING.MIN_DEPOSIT_CENTS)}` },
       { status: 400 }
     )
   }
 
-  // TODO: When Stripe is connected, this endpoint will:
-  // 1. Create a Stripe checkout session for (quantity * PRICING.VIDEO_CREDIT_PRICE)
+  if (amountCents > PRICING.MAX_DEPOSIT_CENTS) {
+    return NextResponse.json(
+      { error: `Maximum deposit is ${centsToDollars(PRICING.MAX_DEPOSIT_CENTS)}` },
+      { status: 400 }
+    )
+  }
+
+  // TODO: When Stripe is connected:
+  // 1. Create a Stripe checkout session for amountCents
   // 2. Return the checkout URL
-  // 3. On successful payment, Stripe webhook calls addVideoCredits()
+  // 3. On successful payment, Stripe webhook calls addFunds()
   //
-  // For now, credits are added directly (no real payment)
-  const balance = await addVideoCredits(user.id, quantity, {
-    source: 'direct_purchase',
-    note: 'Stripe not connected — credits added directly',
+  // For now, funds are added directly (no real payment)
+  const balance = await addFunds(user.id, amountCents, {
+    source: 'direct_deposit',
+    note: 'Stripe not connected — funds added directly',
   })
 
   return NextResponse.json({
     success: true,
-    purchased: {
-      videoCredits: quantity,
-      chatMessages: quantity * PRICING.CHAT_MESSAGES_PER_VIDEO,
-      totalPrice: quantity * PRICING.VIDEO_CREDIT_PRICE,
-    },
+    deposited: centsToDollars(amountCents),
     balance,
   })
 }

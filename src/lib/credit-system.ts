@@ -71,7 +71,7 @@ export async function getWalletBalance(userId: string): Promise<WalletBalance> {
 export async function addFunds(
   userId: string,
   amountCents: number,
-  metadata: Record<string, unknown> = {}
+  metadata: Record<string, any> = {}
 ): Promise<WalletBalance> {
   if (amountCents <= 0) throw new Error('Amount must be positive')
 
@@ -103,7 +103,7 @@ export async function addFunds(
 // ============================================
 export async function chargeForVideo(
   userId: string,
-  metadata: Record<string, unknown> = {}
+  metadata: Record<string, any> = {}
 ): Promise<{ allowed: boolean; remaining: number; remainingFormatted: string }> {
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -149,7 +149,7 @@ export async function chargeAmount(
   userId: string,
   amountCents: number,
   description: string,
-  metadata: Record<string, unknown> = {}
+  metadata: Record<string, any> = {}
 ): Promise<{ allowed: boolean; remaining: number }> {
   if (amountCents <= 0) throw new Error('Charge amount must be positive')
 

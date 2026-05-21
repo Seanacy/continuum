@@ -12,7 +12,7 @@ import {
   type Bundle,
   type Category,
   type Template,
-} from '@/lib/bundles'
+} from '@/lib/bundles
 import VisualCreator from './VisualCreator'
 import ContentFactory from './ContentFactory'
 import RemindersPanel from './RemindersPanel'
@@ -416,7 +416,7 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                         })}
                       </div>
                     )
-                  )()}
+                })()}
 
                   <div className="space-y-2">
                     <button
@@ -564,7 +564,7 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
               <span className="text-sm text-continuum-accent font-medium mb-2">~45 min</span>
               <h3 className="text-lg font-bold text-white mb-3 leading-tight">Premium<br />Character</h3>
               <p className="text-sm text-continuum-muted mb-5">
-                Full control. Every step opens the editor so you can write backstory, catchphrases, and fine details.
+                Full control. Every step opens the editor so you canwrite backstory, catchphrases, and fine details.
               </p>
               <div className="text-left w-full space-y-2 mb-5">
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">

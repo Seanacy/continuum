@@ -278,7 +278,6 @@ model Character {
 
   visualTraits    Json     @default("{}") @map("visual_traits") // face/body trait selections for image generation
 
-  isActive        Boolean  @default(true) @map("is_active")
   lastSyncedAt    DateTime? @map("last_synced_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")

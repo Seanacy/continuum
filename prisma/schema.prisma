@@ -264,6 +264,7 @@ model Character {
   interests       Json     @default("[]")        // character's interests and passions
   imageUrls       Json     @default("[]") @map("image_urls") // 3-4 profile pic URLs
   voiceStyle      String?  @map("voice_style")   // TTS voice preference
+  isActive        Boolean  @default(false) @map("is_active") // currently active persona for chat
 
   // --- Personi bundle selections & customizations ---
   selections      Json     @default("{}")         // bundle picks per category e.g. { identity: "the-creator", backstory: "rags-to-riches" }

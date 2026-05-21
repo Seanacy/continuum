@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser()
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -15,18 +14,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'characterId is required' }, { status: 400 })
     }
 
-    // Verify the character belongs to this user
+    // Verify character belongs to user
     const character = await db.character.findFirst({
-      where: { id: characterId, userId: session.user.id }
+      where: { id: characterId, userId: user.id }
     })
-
     if (!character) {
       return NextResponse.json({ error: 'Character not found' }, { status: 404 })
     }
 
-    // Deactivate all characters for this user
+    // Deactivate all user's characters
     await db.character.updateMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       data: { isActive: false }
     })
 

@@ -367,7 +367,7 @@ export default function CharacterBuilder({ onGoToChat }: CharacterBuilderProps) 
                       head_left: 'Left Face Profile',
                       body_front: 'Front Body Profile',
                       body_right: 'Right Body Profile',
- alt={String(typeLabels[t])} className="w-full                     body_left: 'Left Body Profile'
+           body_left: 'Left Body Profile'
                     }
                     const imageMap = new Map(c.characterImages?.map((img: any) => [img.imageType, img.imageUrl]) || [])
                     return (

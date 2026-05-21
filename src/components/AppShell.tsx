@@ -103,7 +103,7 @@ export default function AppShell({
           onClick={() => onViewChange('threads')}
         />
         <NavButton
-          label="Create"
+          label="My AI"
           active={activeView === 'create'}
           onClick={() => onViewChange('create')}
         />

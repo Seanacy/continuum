@@ -23,12 +23,17 @@ export default function HomePage() {
   const { characters, reload: reloadCharacters } = useCharacters()
   const [activeCharacterId, setActiveCharacterId] = useState<string | undefined>(undefined)
 
-  // Auto-select first character when characters load
+  // Auto-select active character (prefer isActive, fallback to first)
   useEffect(() => {
     if (characters.length > 0 && !activeCharacterId) {
-      setActiveCharacterId(characters[0].id)
+      const active = characters.find((c: any) => c.isActive)
+      setActiveCharacterId(active ? active.id : characters[0].id)
     }
   }, [characters, activeCharacterId])
+
+  // Compute the active character's name for the header
+  const activeCharacter = characters.find((c: any) => c.id === activeCharacterId)
+  const activeCharacterName = activeCharacter?.name || user?.aiName || 'Your AI'
 
   // Start interaction tracking session
   useEffect(() => {
@@ -66,7 +71,7 @@ export default function HomePage() {
   if (showOnboarding) {
     return (
       <OnboardingFlow
-        aiName={user.aiName || 'Your AI'}
+        aiName={activeCharacterName}
         onComplete={() => setShowOnboarding(false)}
       />
     )
@@ -89,7 +94,7 @@ export default function HomePage() {
 
   return (
     <AppShell
-      aiName={user.aiName || 'Your AI'}
+      aiName={activeCharacterName}
       activeView={activeView}
       onViewChange={handleViewChange}
       partnerMode={partnerMode}

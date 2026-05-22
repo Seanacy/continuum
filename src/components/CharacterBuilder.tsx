@@ -715,7 +715,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
     const selectedBundleId = selections[currentCategory.key]
     const customText = customizations[`${currentCategory.key}_custom`] || ''
     const displayBundles = searchQuery.length >= 2
-      ? searchResults.filter(r => r.category === currentCategory.key)
+      ? fuzzySearch(searchQuery, currentCategory.key)
       : categoryBundles
 
     return (

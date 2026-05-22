@@ -1152,7 +1152,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               }),
             })
             if (res.ok) {
-              setEditingCharacter(prev => prev ? { ...prev, talkingProfile: profile } : null)
+              setExistingCharacter(prev => prev ? { ...prev, talkingProfile: profile } : null)
             }
           }}
           onBack={() => setStep('reminders')}

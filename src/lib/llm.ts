@@ -242,6 +242,28 @@ export const GENERATE_CONTENT_TOOL: LLMTool = {
   },
 }
 
+// Image generation tool — AI can generate images for the user
+export const IMAGE_GENERATION_TOOL: LLMTool = {
+  name: 'generate_image',
+  description:
+    'Generate an image for the user using AI. Use this when the user asks you to create, generate, make, or draw an image, picture, photo, illustration, or graphic. Examples: "make me a picture of...", "generate an image of...", "create a logo for...", "draw a sunset". Always write a detailed, descriptive prompt that will produce a great image.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      prompt: {
+        type: 'string',
+        description: 'A detailed description of the image to generate. Be specific about style, colors, composition, lighting, and subject. The more detail, the better the result.',
+      },
+      image_size: {
+        type: 'string',
+        enum: ['square_hd', 'landscape_4_3', 'landscape_16_9', 'portrait_4_3', 'portrait_16_9'],
+        description: 'The aspect ratio. Use landscape for scenes/banners, portrait for people/phones, square for social media posts. Default: landscape_4_3',
+      },
+    },
+    required: ['prompt'],
+  },
+}
+
 // Open character builder — signals the UI to navigate to the character builder
 export const OPEN_CHARACTER_BUILDER_TOOL: LLMTool = {
   name: 'open_character_builder',

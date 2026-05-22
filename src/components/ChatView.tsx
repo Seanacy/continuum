@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChat, CharacterSummary } from '@/lib/hooks'
 
 // ============================================
-// Voice Output — Text-to-Speech
+// Voice Output â Text-to-Speech
 // ============================================
 function useSpeech() {
   const [speaking, setSpeaking] = useState(false)
@@ -52,7 +52,7 @@ function useSpeech() {
 }
 
 // ============================================
-// Voice Input — Speech-to-Text
+// Voice Input â Speech-to-Text
 // ============================================
 function useVoiceInput(onResult: (text: string) => void) {
   const [listening, setListening] = useState(false)
@@ -398,7 +398,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold text-continuum-accent uppercase tracking-wider">
                         {msg.generatedContent.contentType.replace(/_/g, ' ')}
-                        {msg.generatedContent.platform && ` · ${msg.generatedContent.platform}`}
+                        {msg.generatedContent.platform && ` Â· ${msg.generatedContent.platform}`}
                       </span>
                       <button
                         type="button"
@@ -421,6 +421,40 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                     <span className="block mt-2 text-[10px] text-continuum-muted">Charged ${(msg.generatedContent.priceCents / 100).toFixed(2)}</span>
                   </div>
                 )}
+                {msg.role === 'assistant' && msg.generatedImage && (
+                  <div className="mb-3 rounded-xl overflow-hidden border border-continuum-border">
+                    <img
+                      src={msg.generatedImage.url}
+                      alt={msg.generatedImage.prompt}
+                      className="w-full max-h-80 object-cover"
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement
+                        img.style.display = 'none'
+                        const fallback = img.nextElementSibling as HTMLElement
+                        if (fallback) fallback.style.display = 'flex'
+                      }}
+                    />
+                    <div className="hidden items-center justify-center gap-2 p-4 bg-continuum-surface text-continuum-muted text-sm">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                      Couldn&#39;t load image
+                    </div>
+                    <div className="px-3 py-2 bg-continuum-surface flex items-center justify-between">
+                      <span className="text-[10px] text-continuum-muted">AI Generated Â· Charged $0.10</span>
+                      <a
+                        href={msg.generatedImage.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-continuum-accent hover:underline"
+                      >
+                        Open full size
+                      </a>
+                    </div>
+                  </div>
+                )}
                 {msg.role === 'assistant' && msg.openCharacterBuilder && (
                   <button
                     type="button"
@@ -435,7 +469,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                 )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>
-                    <span className="text-xs opacity-60 block mb-1">📷 Image sent</span>
+                    <span className="text-xs opacity-60 block mb-1">ð· Image sent</span>
                     <span>{msg.content.replace('[Sent an image] ', '')}</span>
                   </>
                 ) : (
@@ -595,7 +629,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition"
                 >
-                  <span className="text-base">🖼️</span>
+                  <span className="text-base">ð¼ï¸</span>
                   <span>Upload Photo</span>
                 </button>
                 <button
@@ -603,7 +637,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { setShowCamera(true); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
                 >
-                  <span className="text-base">📸</span>
+                  <span className="text-base">ð¸</span>
                   <span>Take Photo</span>
                 </button>
                 <button
@@ -611,7 +645,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { fileUploadRef.current?.click(); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
                 >
-                  <span className="text-base">📄</span>
+                  <span className="text-base">ð</span>
                   <span>Upload File</span>
                 </button>
               </div>

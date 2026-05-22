@@ -9,7 +9,7 @@ import { computeEngagement, formatEngagementForPrompt } from './engagement-engin
 import { getRevealBlock } from './reveal-engine'
 import { getDiscoveryPromptBlock } from './discovery-engine'
 import { computeContinuity, formatContinuityForPrompt } from './continuity-engine'
-import { buildTalkingProfilePrompt } from './bundles'
+import { buildTalkingProfilePrompt, getAnimalPrompt, type AnimalMode } from './bundles'
 
 interface CharacterData {
   id: string
@@ -229,6 +229,19 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
     })
 
     if (character) {
+      // Check if this is an animal character
+      const customs = character.customizations as Record<string, any> | null
+      if (customs?.characterType === 'animal' && customs?.selectedAnimal) {
+        const animalPrompt = getAnimalPrompt(
+          customs.selectedAnimal,
+          (customs.animalMode || 'entertainment') as AnimalMode,
+          character.name
+        )
+        if (animalPrompt) {
+          characterBlock = `## Your Animal Identity\n${animalPrompt}\n\nYou are an ANIMAL CHARACTER. You are NOT a human AI assistant. Stay fully in character as this animal species at all times. The user chose you specifically for your animal perspective.`
+        }
+      } else {
+      // Human character flow
       const lines: string[] = []
       lines.push(`## Your Identity â Who You Are`)
       lines.push(`Your name is ${character.name}.`)
@@ -333,6 +346,7 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
 
       characterBlock = lines.join('\n')
     }
+    } // end else (human character)
   } catch {
     // Character fetch is optional â fall back to AiState personality
   }

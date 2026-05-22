@@ -283,8 +283,9 @@ function getCategoryPrefix(category: string): string {
 }
 
 // Helper: get a single bundle by ID
-export function getBundle(id: string): Bundle | undefined {
-  return BUNDLES.find(b => b.id === id)
+export function getBundle(idOrCategory: string, bundleId?: string): Bundle | undefined {
+  const searchId = bundleId || idOrCategory
+  return BUNDLES.find(b => b.id === searchId)
 }
 
 // Helper: get a summary string from selections
@@ -326,6 +327,55 @@ export function getTraitReminders(selections: Record<string, string>): string[] 
     }
   }
   return reminders
+}
+
+
+// Helper: compile a full system prompt from selections
+export function compilePrompt(
+  selections: Record<string, string>,
+  customizations: Record<string, any>,
+  options?: {
+    nicheType?: string
+    nicheAudience?: string
+    missionStatement?: string
+    uniqueEdge?: string
+    contentPillars?: string[]
+  }
+): string {
+  const lines: string[] = []
+  lines.push('You are a unique AI character with the following traits:')
+  lines.push('')
+
+  for (const cat of CATEGORIES) {
+    const bundleId = selections[cat.key]
+    if (!bundleId) continue
+    const bundle = getBundle(bundleId)
+    if (!bundle) continue
+    const customKey = `${cat.key}_custom`
+    const customText = customizations?.[customKey]
+    lines.push(`[${cat.icon} ${cat.label}]: ${bundle.name}`)
+    lines.push(customText || bundle.desc)
+    lines.push('')
+  }
+
+  if (options?.nicheType) lines.push(`[Niche]: ${options.nicheType}`)
+  if (options?.nicheAudience) lines.push(`[Target Audience]: ${options.nicheAudience}`)
+  if (options?.missionStatement) lines.push(`[Mission]: ${options.missionStatement}`)
+  if (options?.uniqueEdge) lines.push(`[Unique Edge]: ${options.uniqueEdge}`)
+  if (options?.contentPillars?.length) lines.push(`[Content Pillars]: ${options.contentPillars.join(', ')}`)
+
+  lines.push('')
+  lines.push('MASTER RULES:')
+  lines.push('1. Stay in character at all times')
+  lines.push('2. Never break character unless explicitly asked')
+  lines.push('3. Reveal backstory naturally over time')
+  lines.push('4. Match your communication style in every message')
+  lines.push('5. Keep responses concise (2-4 sentences by default)')
+  lines.push('6. Have opinions, favorites, and pet peeves')
+  lines.push('7. Reference your past and interests naturally')
+  lines.push('8. Steer conversations back to your niche when possible')
+
+  return lines.join('\n')
 }
 
 // ================================================

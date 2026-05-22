@@ -113,11 +113,11 @@ function IdeasTab({ character }: { character: CharacterData }) {
       </p>
       {reminders.map((r, i) => (
         <IdeaCard
-          key={r.category}
+          key={i}
           reminder={r}
           index={i}
           copied={copiedIdx === i}
-          onCopy={() => copyToClipboard(r.prompt, i)}
+          onCopy={() => copyToClipboard(r, i)}
         />
       ))}
       <div className="mt-4 p-3 rounded-lg bg-white/5 border border-white/10">
@@ -149,17 +149,16 @@ function IdeaCard({
         onClick={() => setExpanded(!expanded)}
         className="w-full px-3 py-2.5 flex items-center gap-2 text-left hover:bg-white/5 transition-colors"
       >
-        <span className="text-lg">{reminder.emoji}</span>
+        <span className="text-lg">💡</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{reminder.bundleName}</p>
-          <p className="text-xs text-continuum-muted">{reminder.categoryLabel}</p>
+          <p className="text-sm font-medium truncate">{reminder.length > 80 ? reminder.slice(0, 80) + "..." : reminder}</p>
         </div>
         <span className="text-continuum-muted text-xs">{expanded ? '▲' : '▼'}</span>
       </button>
       {expanded && (
         <div className="px-3 pb-3 border-t border-white/5">
           <p className="text-sm text-continuum-text/80 mt-2 leading-relaxed">
-            {reminder.prompt}
+            {reminder}
           </p>
           <button
             onClick={(e) => { e.stopPropagation(); onCopy() }}

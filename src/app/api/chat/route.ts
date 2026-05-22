@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, GENERATE_CONTENT_TOOL, OPEN_CHARACTER_BUILDER_TOOL, ToolResultMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, GENERATE_CONTENT_TOOL, IMAGE_GENERATION_TOOL, OPEN_CHARACTER_BUILDER_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
@@ -11,6 +11,7 @@ import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
 import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
 import { chargeAmount } from '@/lib/credit-system'
+import { generateImage } from '@/lib/image-engine'
 import { logUsage } from '@/lib/usage-tracker'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +20,7 @@ const CONTEXT_WINDOW = 20
 const EXTRACTION_INTERVAL = 10
 const MAX_TOOL_ROUNDS = 3 // max times Emily can search per message
 
-// Content generation pricing (in cents) — placeholder prices
+// Content generation pricing (in cents) â placeholder prices
 const CONTENT_PRICES: Record<string, number> = {
   social_post: 25,        // $0.25
   tweet: 25,              // $0.25
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     // 1. Update energy state
     await updateUserEnergy(user.id, content)
 
-    // 2. Save user message (text only — images aren't stored in DB)
+    // 2. Save user message (text only â images aren't stored in DB)
     const messageContent = image ? `[Sent an image] ${content}` : content
     await db.message.create({
       data: {
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
       take: CONTEXT_WINDOW,
     })
 
-    // Build history — all past messages as plain text
+    // Build history â all past messages as plain text
     const history: (LLMMessage | ToolResultMessage)[] = recentMessages
       .reverse()
       .slice(0, -1) // exclude the message we just saved (we'll add it with the image)
@@ -138,9 +139,11 @@ export async function POST(req: NextRequest) {
     let reminderSet: { content: string; dueAt: string } | null = null
     let generatedContent: { contentType: string; platform?: string; topic: string; content: string; hashtags?: string[]; priceCents: number } | null = null
     let openCharacterBuilder: { suggestion?: string } | null = null
+    let generatedImage: { url: string; prompt: string; width?: number; height?: number; priceCents: number } | null = null
     const tools = [
       SET_REMINDER_TOOL,
       GENERATE_CONTENT_TOOL,
+      IMAGE_GENERATION_TOOL,
       OPEN_CHARACTER_BUILDER_TOOL,
       ...(process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []),
     ]
@@ -171,7 +174,7 @@ export async function POST(req: NextRequest) {
               const imageResults = await searchImages(query)
               if (imageResults.images.length > 0) {
                 imageUrls.push(...imageResults.images.slice(0, 3))
-                toolResultText = `Found ${imageResults.images.length} images. The images will be displayed to the user automatically. Here are the URLs:\n${imageResults.images.slice(0, 3).map((url, i) => `[${i + 1}] ${url}`).join('\n')}\n\nDescribe what the user asked about briefly. Do NOT include the URLs in your response — the images are shown automatically.`
+                toolResultText = `Found ${imageResults.images.length} images. The images will be displayed to the user automatically. Here are the URLs:\n${imageResults.images.slice(0, 3).map((url, i) => `[${i + 1}] ${url}`).join('\n')}\n\nDescribe what the user asked about briefly. Do NOT include the URLs in your response â the images are shown automatically.`
               } else {
                 toolResultText = 'No images found for this search.'
               }
@@ -186,7 +189,7 @@ export async function POST(req: NextRequest) {
             }
           } catch (err) {
             console.error('[Search] Tavily error:', err)
-            toolResultText = 'Search failed — unable to reach the search service right now.'
+            toolResultText = 'Search failed â unable to reach the search service right now.'
           }
         }
 
@@ -213,11 +216,11 @@ export async function POST(req: NextRequest) {
               minute: '2-digit',
               hour12: true,
             })
-            toolResultText = `Reminder set successfully. ID: ${reminder.id}. It will fire at ${dueTimeStr}. You can confirm this to the user naturally — don't repeat the exact time robotically, just acknowledge it conversationally.`
+            toolResultText = `Reminder set successfully. ID: ${reminder.id}. It will fire at ${dueTimeStr}. You can confirm this to the user naturally â don't repeat the exact time robotically, just acknowledge it conversationally.`
             reminderSet = { content: reminderContent, dueAt: dueAt.toISOString() }
           } catch (err) {
             console.error('[Reminder] DB error:', err)
-            toolResultText = 'Failed to save the reminder — something went wrong on my end.'
+            toolResultText = 'Failed to save the reminder â something went wrong on my end.'
           }
         }
 
@@ -231,7 +234,7 @@ export async function POST(req: NextRequest) {
           const hashtags = input.hashtags as string[] | undefined
           const priceCents = CONTENT_PRICES[contentType] || 25
 
-          console.log(`[Content] Generating ${contentType} about "${topic}" — charging ${priceCents} cents`)
+          console.log(`[Content] Generating ${contentType} about "${topic}" â charging ${priceCents} cents`)
 
           // Charge the user's wallet
           const charge = await chargeAmount(
@@ -250,9 +253,33 @@ export async function POST(req: NextRequest) {
               hashtags,
               priceCents,
             }
-            toolResultText = `Content generated successfully. The user has been charged ${(priceCents / 100).toFixed(2)}. Remaining balance: ${(charge.remaining / 100).toFixed(2)}. The content will be displayed to the user in a styled card automatically. Give a brief, natural confirmation — don't repeat the full content back.`
+            toolResultText = `Content generated successfully. The user has been charged ${(priceCents / 100).toFixed(2)}. Remaining balance: ${(charge.remaining / 100).toFixed(2)}. The content will be displayed to the user in a styled card automatically. Give a brief, natural confirmation â don't repeat the full content back.`
           } else {
             toolResultText = `The user doesn't have enough funds to generate this content. They need ${(priceCents / 100).toFixed(2)} but only have ${(charge.remaining / 100).toFixed(2)}. Let them know they need to add funds to their wallet.`
+          }
+        }
+
+        // --- IMAGE GENERATION TOOL ---
+        else if (toolName === 'generate_image') {
+          const prompt = response.toolUse.input.prompt as string
+          const imageSize = response.toolUse.input.image_size as string | undefined
+          console.log(`[ImageGen] Generating image: "${prompt.substring(0, 60)}..."`)
+
+          const result = await generateImage(user.id, prompt, {
+            imageSize: imageSize || 'landscape_4_3',
+          })
+
+          if (result.success && result.imageUrl) {
+            generatedImage = {
+              url: result.imageUrl,
+              prompt: result.prompt || prompt,
+              width: result.width,
+              height: result.height,
+              priceCents: 10,
+            }
+            toolResultText = `Image generated successfully! The image will be displayed to the user automatically. Charged $0.10. Describe what you created briefly and naturally â don't include the URL, the image shows up as a card.`
+          } else {
+            toolResultText = result.error || 'Image generation failed.'
           }
         }
 
@@ -260,7 +287,7 @@ export async function POST(req: NextRequest) {
         else if (toolName === 'open_character_builder') {
           const suggestion = response.toolUse.input.suggestion as string | undefined
           openCharacterBuilder = { suggestion }
-          toolResultText = 'The character builder will open for the user. A button will appear in the chat for them to click. Confirm this naturally — tell them you\'re opening the character builder and they can customize their new AI there.'
+          toolResultText = 'The character builder will open for the user. A button will appear in the chat for them to click. Confirm this naturally â tell them you\'re opening the character builder and they can customize their new AI there.'
         }
 
         // --- UNKNOWN TOOL (shouldn't happen) ---
@@ -294,11 +321,11 @@ export async function POST(req: NextRequest) {
         }
         history.push(toolResult)
 
-        // Continue the loop — Claude will now process the results
+        // Continue the loop â Claude will now process the results
         continue
       }
 
-      // No tool use — Claude gave a final text response
+      // No tool use â Claude gave a final text response
       finalContent = response.content
       break
     }
@@ -398,6 +425,7 @@ export async function POST(req: NextRequest) {
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
       reminderSet,
       generatedContent,
+      generatedImage,
       openCharacterBuilder,
     })
   } catch (error) {
@@ -409,7 +437,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET — retrieve chat history
+// GET â retrieve chat history
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser()
   if (!user) {

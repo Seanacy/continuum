@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { getTraitReminders, type TraitReminder } from '@/lib/bundles'
+import { getTraitReminders } from '@/lib/bundles'
 
 // ─── Types ───
 type Tab = 'ideas' | 'inspiration' | 'schedule' | 'drive' | 'generated'
@@ -136,7 +136,7 @@ function IdeaCard({
   copied,
   onCopy,
 }: {
-  reminder: TraitReminder
+  reminder: string
   index: number
   copied: boolean
   onCopy: () => void

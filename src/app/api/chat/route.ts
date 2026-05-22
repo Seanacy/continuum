@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, ToolResultMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, GENERATE_CONTENT_TOOL, OPEN_CHARACTER_BUILDER_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
@@ -10,7 +10,7 @@ import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
 import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
-// Chat is free — no credit check needed
+import { chargeAmount } from '@/lib/credit-system'
 import { logUsage } from '@/lib/usage-tracker'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +18,17 @@ export const dynamic = 'force-dynamic'
 const CONTEXT_WINDOW = 20
 const EXTRACTION_INTERVAL = 10
 const MAX_TOOL_ROUNDS = 3 // max times Emily can search per message
+
+// Content generation pricing (in cents) — placeholder prices
+const CONTENT_PRICES: Record<string, number> = {
+  social_post: 25,        // $0.25
+  tweet: 25,              // $0.25
+  instagram_caption: 25,  // $0.25
+  linkedin_post: 25,      // $0.25
+  blog_post: 50,          // $0.50
+  article: 50,            // $0.50
+  newsletter: 50,         // $0.50
+}
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
@@ -120,14 +131,17 @@ export async function POST(req: NextRequest) {
     })
 
     // 5. Call LLM with tool use loop
-    // Emily can search the web, read results, and respond — up to MAX_TOOL_ROUNDS searches
     let totalTokens = 0
     let finalContent = ''
     const searchQueries: string[] = []
     const imageUrls: string[] = []
     let reminderSet: { content: string; dueAt: string } | null = null
+    let generatedContent: { contentType: string; platform?: string; topic: string; content: string; hashtags?: string[]; priceCents: number } | null = null
+    let openCharacterBuilder: { suggestion?: string } | null = null
     const tools = [
       SET_REMINDER_TOOL,
+      GENERATE_CONTENT_TOOL,
+      OPEN_CHARACTER_BUILDER_TOOL,
       ...(process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []),
     ]
 
@@ -181,7 +195,7 @@ export async function POST(req: NextRequest) {
           const reminderContent = response.toolUse.input.content as string
           const dueInMinutes = response.toolUse.input.due_in_minutes as number
           const dueAt = new Date(Date.now() + dueInMinutes * 60 * 1000)
-          console.log(`[Reminder] Emily is setting reminder: "${reminderContent}" due in ${dueInMinutes}m`)
+          console.log(`[Reminder] Setting reminder: "${reminderContent}" due in ${dueInMinutes}m`)
 
           try {
             const reminder = await db.reminder.create({
@@ -191,7 +205,6 @@ export async function POST(req: NextRequest) {
                 dueAt,
               },
             })
-            // Format the due time nicely for Emily's confirmation
             const dueTimeStr = dueAt.toLocaleString('en-US', {
               weekday: 'short',
               month: 'short',
@@ -206,6 +219,48 @@ export async function POST(req: NextRequest) {
             console.error('[Reminder] DB error:', err)
             toolResultText = 'Failed to save the reminder — something went wrong on my end.'
           }
+        }
+
+        // --- GENERATE CONTENT TOOL ---
+        else if (toolName === 'generate_content') {
+          const input = response.toolUse.input as Record<string, any>
+          const contentType = input.content_type as string
+          const topic = input.topic as string
+          const genContent = input.generated_content as string
+          const platform = input.platform as string | undefined
+          const hashtags = input.hashtags as string[] | undefined
+          const priceCents = CONTENT_PRICES[contentType] || 25
+
+          console.log(`[Content] Generating ${contentType} about "${topic}" — charging ${priceCents} cents`)
+
+          // Charge the user's wallet
+          const charge = await chargeAmount(
+            user.id,
+            priceCents,
+            `Content generation: ${contentType}`,
+            { contentType, topic, platform }
+          )
+
+          if (charge.allowed) {
+            generatedContent = {
+              contentType,
+              platform,
+              topic,
+              content: genContent,
+              hashtags,
+              priceCents,
+            }
+            toolResultText = `Content generated successfully. The user has been charged ${(priceCents / 100).toFixed(2)}. Remaining balance: ${(charge.remaining / 100).toFixed(2)}. The content will be displayed to the user in a styled card automatically. Give a brief, natural confirmation — don't repeat the full content back.`
+          } else {
+            toolResultText = `The user doesn't have enough funds to generate this content. They need ${(priceCents / 100).toFixed(2)} but only have ${(charge.remaining / 100).toFixed(2)}. Let them know they need to add funds to their wallet.`
+          }
+        }
+
+        // --- OPEN CHARACTER BUILDER TOOL ---
+        else if (toolName === 'open_character_builder') {
+          const suggestion = response.toolUse.input.suggestion as string | undefined
+          openCharacterBuilder = { suggestion }
+          toolResultText = 'The character builder will open for the user. A button will appear in the chat for them to click. Confirm this naturally — tell them you\'re opening the character builder and they can customize their new AI there.'
         }
 
         // --- UNKNOWN TOOL (shouldn't happen) ---
@@ -278,7 +333,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Log for rate limiting and analytics
     await logUsage(user.id, image ? 'vision' : 'chat', totalTokens, {
       threadId,
       searchCount: searchQueries.length,
@@ -320,11 +374,11 @@ export async function POST(req: NextRequest) {
     // 11. Detect capability reveals in the response (fire-and-forget)
     detectAndMarkReveals(user.id, finalContent).catch(console.error)
 
-    // 12. Discovery system — check if Emily asked a question, check if user answered one
+    // 12. Discovery system
     detectDiscoveryInResponse(user.id, finalContent).catch(console.error)
     checkForDiscoveryAnswer(user.id, content).catch(console.error)
 
-    // 12. Update thread summary
+    // 13. Update thread summary
     if (threadId) {
       updateThreadSummary(threadId).catch(console.error)
     }
@@ -343,7 +397,8 @@ export async function POST(req: NextRequest) {
       searchQuery: searchQueries[0] || null,
       imageUrls: imageUrls.length > 0 ? imageUrls : null,
       reminderSet,
-      // chat is free — no credit tracking needed
+      generatedContent,
+      openCharacterBuilder,
     })
   } catch (error) {
     console.error('Chat error:', error)

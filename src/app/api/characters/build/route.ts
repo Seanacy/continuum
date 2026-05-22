@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-// POST — create or update a character with bundle selections
+// POST â create or update a character with bundle selections
 export async function POST(req: NextRequest) {
   try {
   const user = await getCurrentUser()
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     uniqueEdge,
     contentPillars,
     visualTraits,
+    talkingProfile,
   } = body
 
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -51,13 +52,14 @@ export async function POST(req: NextRequest) {
     uniqueEdge: uniqueEdge || null,
     contentPillars: JSON.parse(JSON.stringify(contentPillars || [])),
     visualTraits: JSON.parse(JSON.stringify(visualTraits || {})),
+    talkingProfile: JSON.parse(JSON.stringify(talkingProfile || {})),
     isActive: true,
   }
 
   let character
 
   if (characterId) {
-    // Update existing — verify ownership
+    // Update existing â verify ownership
     const existing = await db.character.findFirst({
       where: { id: characterId, userId: user.id },
     })
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
       data,
     })
   } else {
-    // Create new — enforce 5-character limit
+    // Create new â enforce 5-character limit
     const activeCount = await db.character.count({
       where: { userId: user.id, isActive: true },
     })

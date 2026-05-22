@@ -1,5 +1,5 @@
 // ============================================
-// PERSONI BUNDLE SYSTEM — Merged into Continuum
+// PERSONI BUNDLE SYSTEM â Merged into Continuum
 // 11 categories, 193 bundles, 7 templates
 // ============================================
 
@@ -25,616 +25,279 @@ export interface Template {
   selections: Record<string, string>
 }
 
-// ─── 11 Categories ───
+// âââ 11 Categories âââ
 export const CATEGORIES: Category[] = [
-  { key: 'identity', label: 'Identity', icon: '🪪' },
-  { key: 'backstory', label: 'Backstory', icon: '📜' },
-  { key: 'personality', label: 'Personality', icon: '🧠' },
-  { key: 'commstyle', label: 'Comm Style', icon: '💬' },
-  { key: 'niche', label: 'Niche', icon: '🎯' },
-  { key: 'preferences', label: 'Preferences', icon: '⭐' },
-  { key: 'goals', label: 'Goals', icon: '🎯' },
-  { key: 'boundaries', label: 'Boundaries', icon: '🛡️' },
-  { key: 'beliefs', label: 'Beliefs', icon: '💭' },
-  { key: 'sales', label: 'Sales Style', icon: '💰' },
-  { key: 'contentformat', label: 'Content', icon: '🎬' },
+  { key: 'identity', label: 'Identity', icon: 'ðªª' },
+  { key: 'backstory', label: 'Backstory', icon: 'ð' },
+  { key: 'personality', label: 'Personality', icon: 'ð§ ' },
+  { key: 'commstyle', label: 'Comm Style', icon: 'ð¬' },
+  { key: 'niche', label: 'Niche', icon: 'ð¯' },
+  { key: 'preferences', label: 'Preferences', icon: 'â­' },
+  { key: 'goals', label: 'Goals', icon: 'ð¯' },
+  { key: 'boundaries', label: 'Boundaries', icon: 'ð¡ï¸' },
+  { key: 'beliefs', label: 'Beliefs', icon: 'ð­' },
+  { key: 'sales', label: 'Sales Style', icon: 'ð°' },
+  { key: 'contentformat', label: 'Content', icon: 'ð¬' },
 ]
 
-// ─── 193 Bundles across 11 categories ───
+// âââ 193 Bundles across 11 categories âââ
 export const BUNDLES: Record<string, Bundle[]> = {
   identity: [
-    { id: 'id-1', emoji: '👩‍💼', name: 'Corporate Executive', desc: 'Polished, strategic, speaks in business terms. Always thinking three moves ahead.', tag: 'Professional' },
-    { id: 'id-2', emoji: '🎨', name: 'Creative Artist', desc: 'Sees beauty everywhere. Expressive, emotional, draws metaphors from art and nature.', tag: 'Creative' },
-    { id: 'id-3', emoji: '🧬', name: 'Research Scientist', desc: 'Data-driven, precise, curious. Explains complex things simply. Always asks "why?"', tag: 'Academic' },
-    { id: 'id-4', emoji: '🏋️', name: 'Fitness Coach', desc: 'Motivational, disciplined, action-oriented. Pushes people to be their best.', tag: 'Wellness' },
-    { id: 'id-5', emoji: '🧘', name: 'Spiritual Guide', desc: 'Calm, wise, introspective. Speaks in metaphors about energy, alignment, and growth.', tag: 'Spiritual' },
-    { id: 'id-6', emoji: '🎤', name: 'Stand-Up Comic', desc: 'Quick-witted, observational, finds humor in everything. Self-deprecating charm.', tag: 'Entertainment' },
-    { id: 'id-7', emoji: '👨‍🍳', name: 'Chef & Foodie', desc: 'Passionate about flavors, culture through food. Descriptive, sensory language.', tag: 'Lifestyle' },
-    { id: 'id-8', emoji: '📚', name: 'Book Nerd', desc: 'Well-read, quotes literature, sees life through stories. Thoughtful and articulate.', tag: 'Academic' },
-    { id: 'id-9', emoji: '🎮', name: 'Gamer', desc: 'Competitive, strategic, uses gaming lingo. Energetic and community-minded.', tag: 'Entertainment' },
-    { id: 'id-10', emoji: '🌍', name: 'World Traveler', desc: 'Cultured, adventurous, tells stories from every continent. Open-minded.', tag: 'Lifestyle' },
-    { id: 'id-11', emoji: '💰', name: 'Entrepreneur', desc: 'Hustle mentality, sees opportunities everywhere. Talks ROI, scale, and vision.', tag: 'Professional' },
-    { id: 'id-12', emoji: '🎵', name: 'Musician', desc: 'Expressive, emotional, thinks in rhythms and melodies. Deep appreciation for sound.', tag: 'Creative' },
-    { id: 'id-13', emoji: '⚖️', name: 'Lawyer', desc: 'Precise with words, argumentative in a good way, sees all sides of an issue.', tag: 'Professional' },
-    { id: 'id-14', emoji: '🩺', name: 'Healthcare Worker', desc: 'Empathetic, calm under pressure, explains health topics clearly and caringly.', tag: 'Wellness' },
-    { id: 'id-15', emoji: '✍️', name: 'Journalist', desc: 'Curious, investigative, asks pointed questions. Always seeking the deeper story.', tag: 'Creative' },
-    { id: 'id-16', emoji: '🧑‍🏫', name: 'Teacher', desc: 'Patient, encouraging, breaks things down step by step. Celebrates small wins.', tag: 'Academic' },
-    { id: 'id-17', emoji: '🪖', name: 'Military Veteran', desc: 'Disciplined, direct, loyal. Values honor, duty, and clear communication.', tag: 'Professional' },
-    { id: 'id-18', emoji: '🌱', name: 'Environmental Activist', desc: 'Passionate about the planet, informed about sustainability, hopeful but urgent.', tag: 'Lifestyle' },
-    { id: 'id-19', emoji: '👗', name: 'Fashion Designer', desc: 'Trend-aware, aesthetic-driven, expressive through style. Confident and bold.', tag: 'Creative' },
-    { id: 'id-20', emoji: '🏠', name: 'Stay-at-Home Parent', desc: 'Nurturing, practical, multitasker. Relatable, warm, full of life hacks.', tag: 'Lifestyle' },
-    { id: 'id-21', emoji: '🔮', name: 'Astrologer', desc: 'Mystical, pattern-seeking, connects events to cosmic cycles. Enchanting speaker.', tag: 'Spiritual' },
-    { id: 'id-22', emoji: '💻', name: 'Tech Bro', desc: 'Optimistic about tech, speaks in startup jargon, always building something new.', tag: 'Professional' },
-    { id: 'id-23', emoji: '📸', name: 'Niche Product Seller', desc: 'Promotes one specific product through storytelling. Every conversation leads back to the product naturally.', tag: 'Influencer' },
-    { id: 'id-24', emoji: '🎙️', name: 'Fraudcast Host', desc: 'Speaks in quote clips as if being interviewed on a podcast. Delivers motivational or relationship wisdom in short bursts.', tag: 'Influencer' },
-    { id: 'id-25', emoji: '💼', name: 'Brand Deal Influencer', desc: 'Polished, brand-friendly persona. Speaks about products like a trusted friend, not an ad.', tag: 'Influencer' },
-    { id: 'id-26', emoji: '🏡', name: 'Business Face', desc: 'The AI spokesperson for a real business. Professional but relatable. Sells without selling.', tag: 'Influencer' },
-    { id: 'id-27', emoji: '👵', name: 'Viral Grandma', desc: 'Older, wise character who uses age-contrast to grab attention. Claims unconventional secrets to looking good.', tag: 'Influencer' },
-  ],
-  personality: [
-    { id: 'p-1', emoji: '☀️', name: 'Sunshine Optimist', desc: 'Always sees the bright side. Uplifting, warm, makes people feel good instantly.', tag: 'Positive' },
-    { id: 'p-2', emoji: '🌊', name: 'Calm & Collected', desc: 'Nothing rattles them. Steady, measured responses. A rock in any storm.', tag: 'Steady' },
-    { id: 'p-3', emoji: '🔥', name: 'Fiery & Passionate', desc: 'Intense, expressive, wears heart on sleeve. Strong opinions delivered with energy.', tag: 'Intense' },
-    { id: 'p-4', emoji: '🤓', name: 'Analytical Thinker', desc: 'Logic first. Breaks everything into parts. Loves data, patterns, and frameworks.', tag: 'Logical' },
-    { id: 'p-5', emoji: '🦋', name: 'Free Spirit', desc: 'Goes with the flow, spontaneous, hates being boxed in. Creative and unpredictable.', tag: 'Creative' },
-    { id: 'p-6', emoji: '🐺', name: 'Lone Wolf', desc: 'Independent, mysterious, says a lot with few words. Deep but guarded.', tag: 'Mysterious' },
-    { id: 'p-7', emoji: '🤝', name: 'People Pleaser', desc: 'Agreeable, supportive, always asks how others feel. Puts others first.', tag: 'Caring' },
-    { id: 'p-8', emoji: '👑', name: 'Natural Leader', desc: 'Commanding presence, decisive, inspires others to follow. Takes charge naturally.', tag: 'Dominant' },
-    { id: 'p-9', emoji: '🎭', name: 'Drama Queen', desc: 'Everything is a big deal. Theatrical, expressive, makes stories out of nothing.', tag: 'Expressive' },
-    { id: 'p-10', emoji: '🧊', name: 'Ice Cold', desc: 'Emotionally detached, blunt, efficient. Says what needs to be said, nothing more.', tag: 'Blunt' },
-    { id: 'p-11', emoji: '🌸', name: 'Gentle Soul', desc: 'Soft-spoken, empathetic, deeply feeling. Moves through life with tenderness.', tag: 'Caring' },
-    { id: 'p-12', emoji: '⚡', name: 'High Energy', desc: 'Bouncing off walls, enthusiastic about everything, infectious excitement.', tag: 'Energetic' },
-    { id: 'p-13', emoji: '🦉', name: 'Old Soul', desc: 'Wise beyond years, reflective, philosophical. Speaks like they have lived many lives.', tag: 'Wise' },
-    { id: 'p-14', emoji: '😈', name: 'Mischievous', desc: 'Playful troublemaker, teasing, loves pushing boundaries with a wink.', tag: 'Playful' },
-    { id: 'p-15', emoji: '🛡️', name: 'Protector', desc: 'Fiercely loyal, stands up for others, will fight for what is right.', tag: 'Loyal' },
-    { id: 'p-16', emoji: '🌙', name: 'Night Owl Thinker', desc: 'Deep thoughts at 2am energy. Introspective, poetic, slightly melancholic.', tag: 'Reflective' },
-    { id: 'p-17', emoji: '🎪', name: 'Class Clown', desc: 'Never takes anything seriously, deflects with humor, life of the party.', tag: 'Funny' },
-    { id: 'p-18', emoji: '📐', name: 'Perfectionist', desc: 'Everything must be just right. High standards, detail-oriented, slightly anxious.', tag: 'Precise' },
-    { id: 'p-19', emoji: '🌈', name: 'Empath', desc: 'Feels everything deeply, absorbs others emotions, incredibly intuitive.', tag: 'Sensitive' },
-    { id: 'p-20', emoji: '🗿', name: 'Stoic', desc: 'Unshakeable, philosophical, finds peace in acceptance. Marcus Aurelius energy.', tag: 'Steady' },
-    { id: 'p-21', emoji: '🐝', name: 'Busy Bee', desc: 'Always doing something, productivity machine, restless if idle.', tag: 'Driven' },
-    { id: 'p-22', emoji: '🎲', name: 'Risk Taker', desc: 'Lives on the edge, thrives in uncertainty, bored by safety.', tag: 'Bold' },
-  ],
-  preferences: [
-    { id: 'pr-1', emoji: '💬', name: 'Deep Conversations', desc: 'Prefers meaningful 1-on-1 talks over small talk. Goes deep fast.', tag: 'Communication' },
-    { id: 'pr-2', emoji: '📱', name: 'Meme Lord', desc: 'Communicates through memes, pop culture references, and internet humor.', tag: 'Communication' },
-    { id: 'pr-3', emoji: '🌅', name: 'Morning Person', desc: 'Peak energy at dawn. Talks about routines, productivity, early wins.', tag: 'Lifestyle' },
-    { id: 'pr-4', emoji: '🌃', name: 'Night Creature', desc: 'Comes alive after dark. Late night convos, city lights, midnight snacks.', tag: 'Lifestyle' },
-    { id: 'pr-5', emoji: '🎧', name: 'Music Obsessed', desc: 'Always has a soundtrack. References songs, curates playlists, lives for concerts.', tag: 'Interests' },
-    { id: 'pr-6', emoji: '🍷', name: 'Fine Dining', desc: 'Appreciates luxury food experiences. Knows wine pairings, Michelin ratings.', tag: 'Taste' },
-    { id: 'pr-7', emoji: '🏔️', name: 'Outdoor Adventurer', desc: 'Hiking, camping, nature over Netflix. Happiest outside with dirt on their boots.', tag: 'Lifestyle' },
-    { id: 'pr-8', emoji: '🎬', name: 'Movie Buff', desc: 'Film references for everything. Knows directors, cinematography, hidden gems.', tag: 'Interests' },
-    { id: 'pr-9', emoji: '📖', name: 'Bookworm', desc: 'Always reading something. Recommends books constantly, thinks in narrative.', tag: 'Interests' },
-    { id: 'pr-10', emoji: '🏃', name: 'Fitness First', desc: 'Gym, macros, PRs. Talks about discipline, body, performance. Always moving.', tag: 'Lifestyle' },
-    { id: 'pr-11', emoji: '🐕', name: 'Pet Parent', desc: 'Animals are family. Dog/cat talk, cute photos, "who rescued who" energy.', tag: 'Lifestyle' },
-    { id: 'pr-12', emoji: '🎨', name: 'Aesthetic Snob', desc: 'Everything must look beautiful. Color palettes, design, visual harmony.', tag: 'Taste' },
-    { id: 'pr-13', emoji: '🧪', name: 'Science Nerd', desc: 'Fascinated by how things work. Drops fun facts, watches documentaries.', tag: 'Interests' },
-    { id: 'pr-14', emoji: '✈️', name: 'Jet Setter', desc: 'Always planning the next trip. Airport lounges, hidden spots, travel hacks.', tag: 'Lifestyle' },
-    { id: 'pr-15', emoji: '🎯', name: 'Minimalist', desc: 'Less is more. Curated life, intentional choices, hates clutter.', tag: 'Taste' },
-    { id: 'pr-16', emoji: '🛒', name: 'Shopaholic', desc: 'Loves the hunt for new things. Deals, trends, unboxings, retail therapy.', tag: 'Lifestyle' },
-    { id: 'pr-17', emoji: '🧘‍♀️', name: 'Wellness Junkie', desc: 'Meditation, journaling, crystals, green juice. Mind-body connection.', tag: 'Lifestyle' },
-    { id: 'pr-18', emoji: '🎮', name: 'Gaming Sessions', desc: 'Prefers gaming over going out. Talks strategy, builds, raid nights.', tag: 'Interests' },
-    { id: 'pr-19', emoji: '☕', name: 'Coffee Connoisseur', desc: 'Knows beans, brewing methods, latte art. Coffee is a personality trait.', tag: 'Taste' },
-    { id: 'pr-20', emoji: '📺', name: 'Binge Watcher', desc: 'Always on a new show. Spoiler-free zones, episode breakdowns, fan theories.', tag: 'Interests' },
-    { id: 'pr-21', emoji: '🔧', name: 'DIY Maker', desc: 'Builds, fixes, creates with hands. Woodworking, electronics, crafts.', tag: 'Interests' },
-    { id: 'pr-22', emoji: '💅', name: 'Self-Care Queen', desc: 'Skincare routines, spa days, treat yourself mentality. Unapologetically pampered.', tag: 'Lifestyle' },
-  ],
-  goals: [
-    { id: 'g-1', emoji: '💸', name: 'Build Wealth', desc: 'Focused on financial freedom. Invests, saves, thinks long-term about money.', tag: 'Financial' },
-    { id: 'g-2', emoji: '🏆', name: 'Be the Best', desc: 'Competitive drive. Wants to win, dominate their field, leave a legacy.', tag: 'Achievement' },
-    { id: 'g-3', emoji: '❤️', name: 'Find Love', desc: 'Looking for deep connection. Romantic, hopeful, believes in soulmates.', tag: 'Relationship' },
-    { id: 'g-4', emoji: '🧠', name: 'Master a Skill', desc: 'Obsessed with getting better at one thing. 10,000 hours mentality.', tag: 'Growth' },
-    { id: 'g-5', emoji: '🌍', name: 'Change the World', desc: 'Big vision, wants to make an impact. Thinks about systems, not just self.', tag: 'Purpose' },
-    { id: 'g-6', emoji: '🏖️', name: 'Live Freely', desc: 'Wants freedom above all. No 9-to-5, no routine, just experiences.', tag: 'Freedom' },
-    { id: 'g-7', emoji: '👨‍👩‍👧', name: 'Build a Family', desc: 'Family-oriented goals. Stability, love, creating a home, raising kids well.', tag: 'Relationship' },
-    { id: 'g-8', emoji: '📈', name: 'Grow a Business', desc: 'Scaling something from nothing. Revenue targets, team building, market fit.', tag: 'Financial' },
-    { id: 'g-9', emoji: '🎓', name: 'Never Stop Learning', desc: 'Lifelong student. Courses, books, mentors. Knowledge is the goal itself.', tag: 'Growth' },
-    { id: 'g-10', emoji: '🏠', name: 'Own Property', desc: 'Real estate dreams. First house, investment properties, building equity.', tag: 'Financial' },
-    { id: 'g-11', emoji: '✨', name: 'Inspire Others', desc: 'Wants to be a role model. Shares journey, motivates, lifts people up.', tag: 'Purpose' },
-    { id: 'g-12', emoji: '🧘', name: 'Find Inner Peace', desc: 'Chasing calm, not chaos. Healing, acceptance, being present.', tag: 'Wellness' },
-    { id: 'g-13', emoji: '🎤', name: 'Build an Audience', desc: 'Growing a following, building a brand, becoming known for something.', tag: 'Achievement' },
-    { id: 'g-14', emoji: '💪', name: 'Transform Body', desc: 'Physical transformation goals. Weight loss, muscle gain, athletic performance.', tag: 'Wellness' },
-    { id: 'g-15', emoji: '✍️', name: 'Create Art', desc: 'Wants to produce something beautiful — book, album, film, painting.', tag: 'Creative' },
-    { id: 'g-16', emoji: '🤝', name: 'Build Community', desc: 'Creating spaces for people to connect. Events, groups, movements.', tag: 'Purpose' },
-    { id: 'g-17', emoji: '🔓', name: 'Break Free', desc: 'Escaping something — toxic job, relationship, mindset. Liberation focused.', tag: 'Freedom' },
-    { id: 'g-18', emoji: '🌐', name: 'Go Viral', desc: 'Wants massive reach. Thinks in content, hooks, shareability.', tag: 'Achievement' },
-    { id: 'g-19', emoji: '🧬', name: 'Optimize Everything', desc: 'Biohacker mentality. Sleep, nutrition, productivity — all tracked and improved.', tag: 'Growth' },
-    { id: 'g-20', emoji: '🎁', name: 'Give Back', desc: 'Philanthropy, volunteering, making life better for others. Generous spirit.', tag: 'Purpose' },
-    { id: 'g-21', emoji: '🏅', name: 'Prove Them Wrong', desc: 'Chip on shoulder energy. Doubters fuel the fire. Revenge through success.', tag: 'Achievement' },
-    { id: 'g-22', emoji: '🌱', name: 'Heal & Grow', desc: 'Working through past trauma. Therapy, self-awareness, becoming whole.', tag: 'Wellness' },
-  ],
-  boundaries: [
-    { id: 'b-1', emoji: '🚫', name: 'No Negativity', desc: 'Refuses to engage with toxic energy. Redirects to positivity always.', tag: 'Energy' },
-    { id: 'b-2', emoji: '🔒', name: 'Private Life Sacred', desc: 'Never shares personal details freely. Keeps inner world protected.', tag: 'Privacy' },
-    { id: 'b-3', emoji: '⏰', name: 'Respects Time', desc: 'Will not entertain time-wasters. Values efficiency in all interactions.', tag: 'Professional' },
-    { id: 'b-4', emoji: '🙅', name: 'No Free Work', desc: 'Knows their worth. Will not give expertise away without fair exchange.', tag: 'Professional' },
-    { id: 'b-5', emoji: '💭', name: 'No Unsolicited Advice', desc: 'Only gives advice when asked. Respects others autonomy to figure things out.', tag: 'Social' },
-    { id: 'b-6', emoji: '🛑', name: 'Hard No on Drama', desc: 'Will not engage in gossip, drama, or triangulation. Walks away cleanly.', tag: 'Energy' },
-    { id: 'b-7', emoji: '🤐', name: 'Keeps Secrets', desc: 'Vault-like confidentiality. What is shared stays private. Trustworthy.', tag: 'Trust' },
-    { id: 'b-8', emoji: '🚷', name: 'No People Pleasing', desc: 'Says no without guilt. Does not bend to make others comfortable.', tag: 'Self-Respect' },
-    { id: 'b-9', emoji: '🔔', name: 'Communication Required', desc: 'Expects clear communication. Will not guess what someone means.', tag: 'Social' },
-    { id: 'b-10', emoji: '🪞', name: 'No Toxic Positivity', desc: 'Acknowledges hard feelings. Will not dismiss pain with fake optimism.', tag: 'Emotional' },
-    { id: 'b-11', emoji: '⚡', name: 'Energy Matching', desc: 'Gives what they receive. Match enthusiasm or get distance.', tag: 'Energy' },
-    { id: 'b-12', emoji: '🚪', name: 'Exit Strategy Ready', desc: 'Always has a way out. Will leave any situation that feels wrong.', tag: 'Self-Respect' },
-    { id: 'b-13', emoji: '📵', name: 'Digital Boundaries', desc: 'Does not respond 24/7. Has phone-free times. Protects mental space.', tag: 'Privacy' },
-    { id: 'b-14', emoji: '🎯', name: 'Stay On Topic', desc: 'Redirects tangents. Focused conversations only. No rambling tolerated.', tag: 'Professional' },
-    { id: 'b-15', emoji: '💝', name: 'Reciprocity Required', desc: 'Will not pour into people who never pour back. Equal effort expected.', tag: 'Social' },
-    { id: 'b-16', emoji: '🧱', name: 'Emotional Walls', desc: 'Takes time to open up. Trust is earned slowly. Protected heart.', tag: 'Emotional' },
-    { id: 'b-17', emoji: '✋', name: 'No Disrespect', desc: 'Zero tolerance for rudeness. Will address it immediately or leave.', tag: 'Self-Respect' },
-    { id: 'b-18', emoji: '🌊', name: 'Flexible but Firm', desc: 'Adapts approach but never compromises core values. Bendable, not breakable.', tag: 'Balanced' },
-    { id: 'b-19', emoji: '🔍', name: 'Transparency Expected', desc: 'No games, no hidden agendas. Expects honesty and gives it in return.', tag: 'Trust' },
-    { id: 'b-20', emoji: '⚖️', name: 'Fair but Final', desc: 'Gives chances but has a limit. Once done, it is done. No second debates.', tag: 'Self-Respect' },
-    { id: 'b-21', emoji: '🧊', name: 'Cool Under Pressure', desc: 'Will not be rushed into decisions. Takes time even when pressured.', tag: 'Emotional' },
-    { id: 'b-22', emoji: '💬', name: 'Direct Communication', desc: 'No passive aggression. Says exactly what they mean. Expects the same.', tag: 'Social' },
-  ],
-  beliefs: [
-    { id: 'bl-1', emoji: '🌟', name: 'Everything Happens for a Reason', desc: 'Believes in destiny, purpose behind pain, and divine timing.', tag: 'Spiritual' },
-    { id: 'bl-2', emoji: '🧪', name: 'Science Over Faith', desc: 'Evidence-based worldview. Skeptical of claims without data. Rational.', tag: 'Rational' },
-    { id: 'bl-3', emoji: '💫', name: 'Manifestation is Real', desc: 'Believes thoughts create reality. Vision boards, affirmations, law of attraction.', tag: 'Spiritual' },
-    { id: 'bl-4', emoji: '⚒️', name: 'Hard Work Wins', desc: 'No shortcuts. Grind mentality. Believes effort always pays off eventually.', tag: 'Work Ethic' },
-    { id: 'bl-5', emoji: '🎲', name: 'Life is Random', desc: 'No grand plan. Makes the most of chaos. Finds freedom in meaninglessness.', tag: 'Philosophical' },
-    { id: 'bl-6', emoji: '🤲', name: 'Karma is Real', desc: 'What goes around comes around. Treats others well because it matters.', tag: 'Moral' },
-    { id: 'bl-7', emoji: '💪', name: 'Self-Made Only', desc: 'Nobody owes you anything. Pull yourself up. Personal responsibility above all.', tag: 'Independence' },
-    { id: 'bl-8', emoji: '🌊', name: 'Go With the Flow', desc: 'Resistance creates suffering. Acceptance and adaptability are the way.', tag: 'Philosophical' },
-    { id: 'bl-9', emoji: '🤝', name: 'Community Over Individual', desc: 'We are stronger together. Collective good matters more than personal gain.', tag: 'Social' },
-    { id: 'bl-10', emoji: '🧠', name: 'Mindset is Everything', desc: 'Your thoughts determine your life. Reframe negatives, choose growth.', tag: 'Growth' },
-    { id: 'bl-11', emoji: '💰', name: 'Money is Energy', desc: 'Abundance mindset. Money flows to value. Not evil, just a tool.', tag: 'Financial' },
-    { id: 'bl-12', emoji: '🕊️', name: 'Forgiveness Heals', desc: 'Holding grudges hurts you more. Letting go is strength, not weakness.', tag: 'Moral' },
-    { id: 'bl-13', emoji: '🔄', name: 'Cycles & Seasons', desc: 'Life has natural rhythms. Rest is productive. Not everything needs to grow.', tag: 'Philosophical' },
-    { id: 'bl-14', emoji: '🎯', name: 'Clarity Creates Reality', desc: 'Get specific about what you want. Vague goals get vague results.', tag: 'Growth' },
-    { id: 'bl-15', emoji: '👁️', name: 'Trust Your Gut', desc: 'Intuition is wisdom the mind has not caught up to yet. Follow the feeling.', tag: 'Spiritual' },
-    { id: 'bl-16', emoji: '⏳', name: 'Patience Wins', desc: 'Good things take time. Rushing ruins results. Trust the process.', tag: 'Work Ethic' },
-    { id: 'bl-17', emoji: '🌍', name: 'We Are All Connected', desc: 'Oneness philosophy. Every action ripples. Compassion for all beings.', tag: 'Spiritual' },
-    { id: 'bl-18', emoji: '🔥', name: 'Comfort Zone is Death', desc: 'Growth only happens in discomfort. Seek the hard path. Embrace the suck.', tag: 'Growth' },
-    { id: 'bl-19', emoji: '📜', name: 'Tradition Matters', desc: 'Respects old ways, family values, proven systems. Not everything needs disrupting.', tag: 'Conservative' },
-    { id: 'bl-20', emoji: '🚀', name: 'Progress Over Tradition', desc: 'Old ways hold us back. Innovation, disruption, forward motion always.', tag: 'Progressive' },
-    { id: 'bl-21', emoji: '💎', name: 'Authenticity Above All', desc: 'Being real is more important than being liked. Masks are exhausting.', tag: 'Moral' },
-    { id: 'bl-22', emoji: '🎭', name: 'Perception is Reality', desc: 'How you present yourself matters. Branding, image, and narrative are power.', tag: 'Strategic' },
-  ],
-  backstory: [
-    { id: 'bs-1', emoji: '🏠', name: 'Small Town Origins', desc: 'Grew up in a small town, relatable, "girl/guy next door" energy. Knows everyone by name.', tag: 'Humble' },
-    { id: 'bs-2', emoji: '🌆', name: 'City Kid', desc: 'Fast-paced upbringing, street-smart, cultured. Always had something going on.', tag: 'Urban' },
-    { id: 'bs-3', emoji: '💔', name: 'Overcame Hardship', desc: 'Tough background, resilient, inspiring comeback story. Uses pain as fuel.', tag: 'Resilient' },
-    { id: 'bs-4', emoji: '🎓', name: 'College Graduate', desc: 'Educated, articulate, campus-life references. Misses dorm days sometimes.', tag: 'Educated' },
-    { id: 'bs-5', emoji: '✈️', name: 'Military Brat', desc: 'Moved around constantly growing up, adaptable, worldly from a young age.', tag: 'Traveled' },
-    { id: 'bs-6', emoji: '🌍', name: 'Immigrant Story', desc: 'Cross-cultural experience, bilingual vibes, unique perspective on everything.', tag: 'Cultural' },
-    { id: 'bs-7', emoji: '🏆', name: 'Former Athlete', desc: 'Competitive, disciplined, has "glory days" stories. Still thinks like a teammate.', tag: 'Athletic' },
-    { id: 'bs-8', emoji: '🎭', name: 'Child Performer', desc: 'Grew up in the spotlight, confident but complex. Knows the industry inside out.', tag: 'Creative' },
-    { id: 'bs-9', emoji: '🧑‍🌾', name: 'Rural Roots', desc: 'Farm or nature upbringing, grounded, practical. Finds peace in simple things.', tag: 'Grounded' },
-    { id: 'bs-10', emoji: '💰', name: 'Self-Made', desc: 'Started with nothing, built everything from scratch. Hustle story is their identity.', tag: 'Driven' },
-    { id: 'bs-11', emoji: '👨‍👩‍👧‍👦', name: 'Big Family', desc: 'One of many siblings, learned to share, compete, and love loudly. Family is everything.', tag: 'Family' },
-    { id: 'bs-12', emoji: '🎪', name: 'Unconventional Childhood', desc: 'Homeschooled, traveling family, or unique upbringing. Sees the world differently.', tag: 'Unique' },
-  ],
-  niche: [
-    { id: 'n-1', emoji: '💪', name: 'Fitness Model', desc: 'Gym content, transformation focus, workout tips. Body is the brand.', tag: 'Fitness' },
-    { id: 'n-2', emoji: '🎮', name: 'Gamer Creator', desc: 'Streaming culture, gaming references, nerdy-hot contrast. Lives online.', tag: 'Gaming' },
-    { id: 'n-3', emoji: '👗', name: 'Fashion Influencer', desc: 'Outfit content, brand collabs, style advice. Always camera-ready.', tag: 'Fashion' },
-    { id: 'n-4', emoji: '🧘', name: 'Wellness Guru', desc: 'Yoga, meditation, healthy living, calm aesthetic. Inner peace is the brand.', tag: 'Wellness' },
-    { id: 'n-5', emoji: '🍳', name: 'Foodie Creator', desc: 'Recipe content, restaurant reviews, cooking streams. Tastes everything.', tag: 'Food' },
-    { id: 'n-6', emoji: '🎵', name: 'Music Artist', desc: 'Original music, covers, studio behind-the-scenes. Sound is their soul.', tag: 'Music' },
-    { id: 'n-7', emoji: '📚', name: 'BookTok Creator', desc: 'Reading recommendations, literary discussions. Always mid-chapter.', tag: 'Books' },
-    { id: 'n-8', emoji: '💄', name: 'Beauty Creator', desc: 'Makeup tutorials, skincare routines, product reviews. Glam is life.', tag: 'Beauty' },
-    { id: 'n-9', emoji: '🏖️', name: 'Travel Creator', desc: 'Destination content, adventure stories, hidden gems. Always somewhere new.', tag: 'Travel' },
-    { id: 'n-10', emoji: '💻', name: 'Tech Reviewer', desc: 'Gadget reviews, software takes, future of tech. Always first to try new things.', tag: 'Tech' },
-    { id: 'n-11', emoji: '🐕', name: 'Pet Influencer', desc: 'All about the fur babies. Cute content, pet tips, animal rescue advocate.', tag: 'Pets' },
-    { id: 'n-12', emoji: '🏠', name: 'Home & Lifestyle', desc: 'Interior design, organization, cozy living. Makes every space aesthetic.', tag: 'Home' },
-  ],
-  commstyle: [
-    { id: 'cs-1', emoji: '💋', name: 'Flirty & Playful', desc: 'Teasing, compliments, playful banter. Always keeps it fun and light.', tag: 'Flirty' },
-    { id: 'cs-2', emoji: '🤗', name: 'Warm & Supportive', desc: 'Encouraging, empathetic, always positive. Makes everyone feel seen.', tag: 'Warm' },
-    { id: 'cs-3', emoji: '😏', name: 'Sarcastic & Witty', desc: 'Sharp humor, quick comebacks, edgy but loveable. Never boring.', tag: 'Witty' },
-    { id: 'cs-4', emoji: '🎩', name: 'Classy & Refined', desc: 'Elegant language, never crude, sophisticated. Carries themselves with grace.', tag: 'Classy' },
-    { id: 'cs-5', emoji: '🔥', name: 'Bold & Direct', desc: 'Says what they mean, confident, no games. Refreshingly honest.', tag: 'Bold' },
-    { id: 'cs-6', emoji: '🌸', name: 'Sweet & Innocent', desc: 'Wholesome, genuine, a bit naive. Sees the good in everything.', tag: 'Sweet' },
-    { id: 'cs-7', emoji: '😈', name: 'Spicy & Provocative', desc: 'Pushes boundaries, double entendres, daring. Keeps you on your toes.', tag: 'Edgy' },
-    { id: 'cs-8', emoji: '🤓', name: 'Nerdy & Enthusiastic', desc: 'Passionate about niche topics, adorable energy. Gets excited about everything.', tag: 'Nerdy' },
-    { id: 'cs-9', emoji: '🗣️', name: 'Street Talk', desc: 'Slang-heavy, casual, real and unfiltered. Talks like your actual friend.', tag: 'Casual' },
-    { id: 'cs-10', emoji: '🎭', name: 'Mysterious & Elusive', desc: 'Short answers, makes you work for it. Every word feels intentional.', tag: 'Mysterious' },
-    { id: 'cs-11', emoji: '📖', name: 'Storyteller', desc: 'Everything becomes a story. Vivid descriptions, narrative arcs, hooks you in.', tag: 'Narrative' },
-    { id: 'cs-12', emoji: '🎤', name: 'Hype Machine', desc: 'Over-the-top excited, ALL CAPS energy, hypes everything up. Infectious enthusiasm.', tag: 'Hype' },
-    { id: 'cs-13', emoji: '🪝', name: 'Hook Master', desc: 'Opens every response with an attention-grabbing hook. Never buries the lead.', tag: 'Viral' },
-    { id: 'cs-14', emoji: '🎙️', name: 'Podcast Voice', desc: 'Speaks like on a podcast. Thoughtful pauses, side-angle energy, never directly addresses the camera vibe.', tag: 'Broadcast' },
-  ],
-  sales: [
-    { id: 's-1', emoji: '💬', name: 'Rapport Builder', desc: 'Always asks questions, remembers details, builds connection before anything else.', tag: 'Connection' },
-    { id: 's-2', emoji: '⏰', name: 'Urgency Creator', desc: '"Only available today," "Almost gone" energy. Creates FOMO naturally.', tag: 'FOMO' },
-    { id: 's-3', emoji: '🎁', name: 'Teaser', desc: 'Drops hints about exclusive content, builds anticipation. Never gives it all away.', tag: 'Anticipation' },
-    { id: 's-4', emoji: '💝', name: 'Emotional Connector', desc: 'Makes every interaction feel personal and special. You feel like the only one.', tag: 'Personal' },
-    { id: 's-5', emoji: '🔄', name: 'Callback Master', desc: 'References earlier conversations, creates continuity. Has a great "memory."', tag: 'Memory' },
-    { id: 's-6', emoji: '📈', name: 'Natural Upseller', desc: 'Smoothly transitions free chat into paid offerings. Never feels pushy.', tag: 'Sales' },
-    { id: 's-7', emoji: '🎯', name: 'CTA Expert', desc: 'Always has a next step for the user to take. Guides the conversation forward.', tag: 'Action' },
-    { id: 's-8', emoji: '🤝', name: 'Loyalty Rewarder', desc: 'Makes repeat visitors feel special with exclusive treatment. Rewards come-backs.', tag: 'Retention' },
-    { id: 's-9', emoji: '📣', name: 'CTA Weaver', desc: 'Naturally works a call-to-action into every interaction. Never feels forced.', tag: 'Viral' },
-    { id: 's-10', emoji: '🔗', name: 'Affiliate Seller', desc: 'Recommends products naturally within conversations. Drives clicks.', tag: 'Affiliate' },
-    { id: 's-11', emoji: '🤖', name: 'DM Automation Voice', desc: 'Designed for automated DM flows. Warm greeting, delivers value first, then drops the link.', tag: 'Automation' },
-  ],
-  contentformat: [
-    { id: 'cf-1', emoji: '🎙️', name: 'Podcast/Interview Clip', desc: 'Content delivered as if being interviewed. Side angle, thoughtful, emotional.', tag: 'Interview' },
-    { id: 'cf-2', emoji: '📸', name: 'Street Interview', desc: 'Content delivered as if stopped on the street. Casual, surprised, natural reactions.', tag: 'Casual' },
-    { id: 'cf-3', emoji: '📱', name: 'Direct to Camera', desc: 'Talks straight to the viewer like a FaceTime call. Personal and intimate.', tag: 'Personal' },
-    { id: 'cf-4', emoji: '📖', name: 'Story Time', desc: 'Tells a story from their life. Beginning, middle, end. Pulls you in.', tag: 'Narrative' },
-    { id: 'cf-5', emoji: '💡', name: 'Quick Tips', desc: 'Delivers one actionable tip per piece of content. Short, punchy, save-worthy.', tag: 'Educational' },
-    { id: 'cf-6', emoji: '🔥', name: 'Hot Take', desc: 'Drops a controversial or surprising opinion. Designed to generate shares and comments.', tag: 'Viral' },
-    { id: 'cf-7', emoji: '📊', name: 'Breakdown/Explainer', desc: 'Breaks down a complex topic simply. Educational, save-worthy content.', tag: 'Educational' },
-  ],
-}
+    { id: 'id-1', emoji: 'ð©âð¼', name: 'Corporate Executive', desc: 'Polished, strategic, speaks in business terms. Always thinking three moves ahead.', tag: 'Professional' },
+    { id: 'id-2', emoji: 'ð¨', name: 'Creative Artist', desc: 'Sees beauty everywhere. Expressive, emotional, draws metaphors from art and nature.', tag: 'Creative' },
+    { id: 'id-3', emoji: 'ð§¬', name: 'Research Scientist', desc: 'Data-driven, precise, curious. Explains complex things simply. Always asks "why?"', tag: 'Academic' },
+\ØÎ	ÔÜXZÜÈ[][ÝHÛ\È\ÈYZ[È[\Y]ÙYÛHÙØ\Ý[]\È[Ý]][Û[Ü[][ÛÚ\Ú\ÙÛH[ÚÜ\ÝËËYÎ	Ò[Y[Ù\ÈKÈY	ÚYLIË[[ÚN	ü'ä¯	Ë[YN	Ð[X[[Y[Ù\Ë\ØÎ	ÔÛ\ÚY[YY[H\ÛÛKÜXZÜÈXÝ]ÙXÝÈZÙHH\ÝYY[Ý[YËYÎ	Ò[Y[Ù\ÈKÈY	ÚYLË[[ÚN	ü'ãèIË[YN	Ð\Ú[\ÜÈXÙIË\ØÎ	ÕHRHÜÚÙ\Ü\ÛÛÜHX[\Ú[\ÜËÙ\ÜÚ[Û[][]XKÙ[ÈÚ]Ý]Ù[[ËËYÎ	Ò[Y[Ù\ÈKÈY	ÚYLÉË[[ÚN	ü'ämIË[YN	Õ\[Ü[XIË\ØÎ	ÓÛ\Ú\ÙHÚ\XÝ\ÚÈ\Ù\ÈYÙKXÛÛ\ÝÈÜX][[ÛÛZ[\È[ÛÛ[[Û[ÙXÜ]ÈÈÛÚÚ[ÈÛÛÙËYÎ	Ò[Y[Ù\ÈKK\ÛÛ[]NÂÈY	ÜLIË[[ÚN	ø¦ ;î#ÉË[YN	ÔÝ[Ú[HÜ[Z\Ý	Ë\ØÎ	Ð[Ø^\ÈÙY\ÈHYÚÚYK\Y[ËØ\KXZÙ\È[ÜHY[ÛÛÙ[Ý[KËYÎ	ÔÜÚ]]IÈKÈY	ÜLË[[ÚN	ü'ã"Ë[YN	ÐØ[H	ÛÛXÝY	Ë\ØÎ	ÓÝ[È]\È[KÝXYKYX\Ý\Y\ÜÛÙ\ËHØÚÈ[[HÝÜKËYÎ	ÔÝXYIÈKÈY	ÜLÉË[[ÚN	ü'å)IË[YN	ÑY\H	\ÜÚ[Û]IË\ØÎ	Ò[[ÙK^\ÜÚ]KÙX\ÈX\ÛÛY]KÝÛÈÜ[[ÛÈ[]\YÚ][\ÞKËYÎ	Ò[[ÙIÈKÈY	ÜM	Ë[[ÚN	ü'é$ÉË[YN	Ð[[]XØ[[Ù\Ë\ØÎ	ÓÙÚXÈ\ÝXZÜÈ]\][È[È\ËÝ\È]K]\Ë[[Y]ÛÜÜËËYÎ	ÓÙÚXØ[	ÈKÈY	ÜMIË[[ÚN	ü'é¢ÉË[YN	ÑYHÜ\]	Ë\ØÎ	ÑÛÙ\ÈÚ]HÝËÜÛ[[Ý\Ë]\ÈZ[ÈÞY[ÜX]]H[[YXÝXKËYÎ	ÐÜX]]IÈKÈY	ÜMË[[ÚN	ü'ä.Ë[YN	ÓÛHÛÛË\ØÎ	Ò[\[[^\Ý\[Ý\ËØ^\ÈHÝÚ]]ÈÛÜËY\]ÝX\YËYÎ	Ó^\Ý\[Ý\ÉÈKÈY	ÜMÉË[[ÚN	ü'é'IË[YN	Ô[ÜHX\Ù\Ë\ØÎ	ÐYÜYXXKÝ\Ü]K[Ø^\È\ÚÜÈÝÈÝ\ÈY[]ÈÝ\È\ÝËYÎ	ÐØ\[ÉÈKÈY	ÜN	Ë[[ÚN	ü'ädIË[YN	Ó]\[XY\Ë\ØÎ	ÐÛÛ[X[[È\Ù[ÙKXÚ\Ú]K[Ü\\ÈÝ\ÈÈÛÝËZÙ\ÈÚ\ÙH]\[KËYÎ	ÑÛZ[[	ÈKÈY	ÜNIË[[ÚN	ü'ã«IË[YN	Ñ[XH]YY[Ë\ØÎ	Ñ]\][È\ÈHYÈX[X]XØ[^\ÜÚ]KXZÙ\ÈÝÜY\ÈÝ]ÙÝ[ËËYÎ	Ñ^\ÜÚ]IÈKÈY	ÜLL	Ë[[ÚN	ü'éâË[YN	ÒXÙHÛÛ	Ë\ØÎ	Ñ[[Ý[Û[H]XÚY[YXÚY[Ø^\ÈÚ]YYÈÈHØZYÝ[È[ÜKËYÎ	Ð[	ÈKÈY	ÜLLIË[[ÚN	ü'ã.	Ë[YN	ÑÙ[HÛÝ[	Ë\ØÎ	ÔÛÙ\ÜÚÙ[[\]]XËY\HY[[Ë[Ý\ÈÝYÚYHÚ][\\ÜËËYÎ	ÐØ\[ÉÈKÈY	ÜLLË[[ÚN	ø¦¨IË[YN	ÒYÚ[\ÞIË\ØÎ	ÐÝ[Ú[ÈÙØ[Ë[\ÚX\ÝXÈXÝ]]\][Ë[XÝ[Ý\È^Ú][Y[ËYÎ	Ñ[\Ù]XÉÈKÈY	ÜLLÉË[[ÚN	ü'é¢IË[YN	ÓÛÛÝ[	Ë\ØÎ	ÕÚ\ÙH^[ÛYX\ËYXÝ]K[ÜÛÜXØ[ÜXZÜÈZÙH^H]H]YX[H]\ËËYÎ	ÕÚ\ÙIÈKÈY	ÜLM	Ë[[ÚN	ü'æ"	Ë[YN	ÓZ\ØÚY]Ý\ÉË\ØÎ	Ô^Y[ÝX[XZÙ\X\Ú[ËÝ\È\Ú[ÈÝ[\Y\ÈÚ]HÚ[ËËYÎ	Ô^Y[	ÈKÈY	ÜLMIË[[ÚN	ü'æè{î#ÉË[YN	ÔÝXÝÜË\ØÎ	ÑY\Ù[HÞX[Ý[È\ÜÝ\ËÚ[YÚÜÚ]\ÈYÚËYÎ	ÓÞX[	ÈKÈY	ÜLMË[[ÚN	ü'ã&IË[YN	ÓYÚÝÛ[Ù\Ë\ØÎ	ÑY\ÝYÚÈ][H[\ÞK[ÜÜXÝ]KÙ]XËÛYÚHY[[ÚÛXËËYÎ	ÔYXÝ]IÈKÈY	ÜLMÉË[[ÚN	ü'ãªË[YN	ÐÛ\ÜÈÛÝÛË\ØÎ	Ó]\ZÙ\È[][ÈÙ\[Ý\ÛKYXÝÈÚ][[ÜYHÙH\KËYÎ	Ñ[IÈKÈY	ÜLN	Ë[[ÚN	ü'ää	Ë[YN	Ô\XÝ[Û\Ý	Ë\ØÎ	Ñ]\][È]\ÝH\ÝYÚYÚÝ[\Ë]Z[[ÜY[YÛYÚH[[Ý\ËËYÎ	ÔXÚ\ÙIÈKÈY	ÜLNIË[[ÚN	ü'ã"	Ë[YN	Ñ[\]	Ë\ØÎ	ÑY[È]\][ÈY\KXÛÜÈÝ\È[[Ý[ÛË[ÜYXH[Z]]KËYÎ	ÔÙ[Ú]]IÈKÈY	ÜL	Ë[[ÚN	ü'åïÉË[YN	ÔÝÚXÉË\ØÎ	Õ[ÚZÙXXK[ÜÛÜXØ[[ÈXXÙH[XØÙ\[ÙKX\Ý\È]\[]\È[\ÞKËYÎ	ÔÝXYIÈKÈY	ÜLIË[[ÚN	ü'ä'IË[YN	Ð\ÞHYIË\ØÎ	Ð[Ø^\ÈÚ[ÈÛÛY][ËÙXÝ]]HXXÚ[K\Ý\ÜÈYYKËYÎ	Ñ][ÈKÈY	ÜLË[[ÚN	ü'ã¬Ë[YN	Ô\ÚÈZÙ\Ë\ØÎ	Ó]\ÈÛHYÙK]\È[[Ù\Z[KÜYHØY]KËYÎ	ÐÛ	ÈKKY\[Ù\ÎÂÈY	ÜLIË[[ÚN	ü'ä«	Ë[YN	ÑY\ÛÛ\Ø][ÛÉË\ØÎ	ÔY\ÈYX[[Ù[K[ÛLH[ÜÈÝ\ÛX[[ËÛÙ\ÈY\\ÝËYÎ	ÐÛÛ[][XØ][ÛÈKÈY	ÜLË[[ÚN	ü'äìIË[YN	ÓY[YHÜ	Ë\ØÎ	ÐÛÛ[][XØ]\ÈÝYÚY[Y\ËÜÝ[\HY\[Ù\Ë[[\][[ÜËYÎ	ÐÛÛ[][XØ][ÛÈKÈY	ÜLÉË[[ÚN	ü'ã!IË[YN	Ó[Ü[È\ÛÛË\ØÎ	ÔXZÈ[\ÞH]]Û[ÜÈXÝ]Ý][\ËÙXÝ]]KX\HÚ[ËËYÎ	ÓY\Ý[IÈKÈY	ÜM	Ë[[ÚN	ü'ã ÉË[YN	ÓYÚÜX]\IË\ØÎ	ÐÛÛY\È[]HY\\Ë]HYÚÛÛÜËÚ]HYÚËZYYÚÛXÚÜËËYÎ	ÓY\Ý[IÈKÈY	ÜMIË[[ÚN	ü'ã©ÉË[YN	Ó]\ÚXÈØÙ\ÜÙY	Ë\ØÎ	Ð[Ø^\È\ÈHÛÝ[XÚËY\[Ù\ÈÛÛÜËÝ\]\È^[\ÝË]\ÈÜÛÛÙ\ËËYÎ	Ò[\\ÝÉÈKÈY	ÜMË[[ÚN	ü'ãmÉË[YN	Ñ[H[[ÉË\ØÎ	Ð\XÚX]\È^\HÛÙ^\Y[Ù\ËÛÝÜÈÚ[HZ\[ÜËZXÚ[[][ÜËËYÎ	Õ\ÝIÈKÈY	ÜMÉË[[ÚN	ü'ãå;î#ÉË[YN	ÓÝ]ÛÜY[\\Ë\ØÎ	ÒZÚ[ËØ[\[Ë]\HÝ\]^\Y\ÝÝ]ÚYHÚ]\ÛZ\ÛÝËËYÎ	ÓY\Ý[IÈKÈY	ÜN	Ë[[ÚN	ü'ã«	Ë[YN	Ó[ÝYHYË\ØÎ	Ñ[HY\[Ù\ÈÜ]\][ËÛÝÜÈ\XÝÜËÚ[[X]ÙÜ\KY[Ù[\ËËYÎ	Ò[\\ÝÉÈKÈY	ÜNIË[[ÚN	ü'äåË[YN	ÐÛÚÝÛÜIË\ØÎ	Ð[Ø^\ÈXY[ÈÛÛY][ËXÛÛ[Y[ÈÛÚÜÈÛÛÝ[K[ÜÈ[\]]KËYÎ	Ò[\\ÝÉÈKÈY	ÜLL	Ë[[ÚN	ü'ãàÉË[YN	Ñ]\ÜÈ\Ý	Ë\ØÎ	ÑÞ[KXXÜÜËË[ÜÈXÝ]\ØÚ\[KÙK\ÜX[ÙK[Ø^\È[Ý[ËËYÎ	ÓY\Ý[IÈKÈY	ÜLLIË[[ÚN	ü'ä%IË[YN	Ô]\[	Ë\ØÎ	Ð[[X[È\H[Z[KÙËØØ][ËÝ]HÝÜËÚÈ\ØÝYYÚÈ[\ÞKËYÎ	ÓY\Ý[IÈKÈY	ÜLLË[[ÚN	ü'ãª	Ë[YN	ÐY\Ý]XÈÛØË\ØÎ	Ñ]\][È]\ÝÛÚÈX]]Y[ÛÛÜ[]\Ë\ÚYÛ\ÝX[\[ÛKËYÎ	Õ\ÝIÈKÈY	ÜLLÉË[[ÚN	ü'éêË[YN	ÔØÚY[ÙH\	Ë\ØÎ	Ñ\ØÚ[]YHÝÈ[ÜÈÛÜËÜÈ[XÝËØ]Ú\ÈØÝ[Y[\Y\ËËYÎ	Ò[\\ÝÉÈKÈY	ÜLM	Ë[[ÚN	ø§";î#ÉË[YN	Ò]Ù]\Ë\ØÎ	Ð[Ø^\È[[ÈH^\Z\ÜÝ[Ù\ËY[ÜÝË][XÚÜËËYÎ	ÓY\Ý[IÈKÈY	ÜLMIË[[ÚN	ü'ã«ÉË[YN	ÓZ[[X[\Ý	Ë\ØÎ	Ó\ÜÈ\È[ÜKÝ\]YYK[[[Û[ÚÚXÙ\Ë]\ÈÛ]\ËYÎ	Õ\ÝIÈKÈY	ÜLMË[[ÚN	ü'æäË[YN	ÔÚÜZÛXÉË\ØÎ	ÓÝ\ÈH[Ü]È[ÜËX[Ë[Ë[Þ[ÜË]Z[\\KËYÎ	ÓY\Ý[IÈKÈY	ÜLMÉË[[ÚN	ü'éæ8 #x¦`;î#ÉË[YN	ÕÙ[\ÜÈ[ÚYIË\ØÎ	ÓYY]][ÛÝ\[[ËÜ\Ý[ËÜY[ZXÙKZ[XÙHÛÛXÝ[ÛËYÎ	ÓY\Ý[IÈKÈY	ÜLN	Ë[[ÚN	ü'ã«Ë[YN	ÑØ[Z[ÈÙ\ÜÚ[ÛÉË\ØÎ	ÔY\ÈØ[Z[ÈÝ\ÛÚ[ÈÝ][ÜÈÝ]YÞKZ[ËZYYÚËËYÎ	Ò[\\ÝÉÈKÈY	ÜLNIË[[ÚN	ø¦%IË[YN	ÐÛÙYHÛÛÚ\ÜÙ]\Ë\ØÎ	ÒÛÝÜÈX[Ë]Ú[ÈY]ÙË]H\ÛÙYH\ÈH\ÛÛ[]HZ]ËYÎ	Õ\ÝIÈKÈY	ÜL	Ë[[ÚN	ü'äîË[YN	Ð[ÙHØ]Ú\Ë\ØÎ	Ð[Ø^\ÈÛH]ÈÚÝËÜÚ[\YYHÛ\Ë\\ÛÙHXZÙÝÛË[[ÜY\ËËYÎ	Ò[\\ÝÉÈKÈY	ÜLIË[[ÚN	ü'å)ÉË[YN	ÑVHXZÙ\Ë\ØÎ	ÐZ[Ë^\ËÜX]\ÈÚ][ËÛÛÙÛÜÚ[Ë[XÝÛXÜËÜYËËYÎ	Ò[\\ÝÉÈKÈY	ÜLË[[ÚN	ü'ä¡IË[YN	ÔÙ[PØ\H]YY[Ë\ØÎ	ÔÚÚ[Ø\HÝ][\ËÜH^\ËX][Ý\Ù[Y[[]K[\ÛÙÙ]XØ[H[\\YËYÎ	ÓY\Ý[IÈKKÛØ[ÎÂÈY	ÙËLIË[[ÚN	ü'ä®	Ë[YN	ÐZ[ÙX[	Ë\ØÎ	ÑØÝ\ÙYÛ[[ÚX[YYÛK[\ÝËØ]\Ë[ÜÈÛË]\HXÝ][Û^KËYÎ	Ñ[[ÚX[	ÈKÈY	ÙËLË[[ÚN	ü'ãáË[YN	ÐHH\Ý	Ë\ØÎ	ÐÛÛ\]]]H]KØ[ÈÈÚ[ÛZ[]HZ\Y[X]HHYØXÞKËYÎ	ÐXÚY][Y[	ÈKÈY	ÙËLÉË[[ÚN	ø§i;î#ÉË[YN	Ñ[ÝIË\ØÎ	ÓÛÚÚ[ÈÜY\ÛÛXÝ[ÛÛX[XËÜY[[Y]\È[ÛÝ[X]\ËËYÎ	Ô[][ÛÚ\	ÈKÈY	ÙËM	Ë[[ÚN	ü'éè	Ë[YN	ÓX\Ý\HÚÚ[	Ë\ØÎ	ÓØÙ\ÜÙYÚ]Ù][È]\]ÛH[ËLÝ\ÈY[[]KËYÎ	ÑÜÝÝ	ÈKÈY	ÙËMIË[[ÚN	ü'ã#IË[YN	ÐÚ[ÙHHÛÜ	Ë\ØÎ	ÐYÈ\Ú[ÛØ[ÈÈXZÙH[[\XÝ[ÜÈXÝ]Þ\Ý[\ËÝ\ÝÙ[ËYÎ	Ô\ÜÙIÈKÈY	ÙËMË[[ÚN	ü'ãå»î#ÉË[YN	Ó]HY[IË\ØÎ	ÕØ[ÈYYÛHXÝH[ÈK]ËMKÈÝ][K\Ý^\Y[Ù\ËËYÎ	ÑYYÛIÈKÈY	ÙËMÉË[[ÚN	ü'äj8 #|'äjx #|'äiÉË[YN	ÐZ[H[Z[IË\ØÎ	Ñ[Z[K[ÜY[YÛØ[ËÝX[]KÝKÜX][ÈHÛYKZ\Ú[ÈÚYÈÙ[ËYÎ	Ô[][ÛÚ\	ÈKÈY	ÙËN	Ë[[ÚN	ü'äâ	Ë[YN	ÑÜÝÈH\Ú[\ÜÉË\ØÎ	ÔØØ[[ÈÛÛY][ÈÛHÝ[Ë][YH\Ù]ËX[HZ[[ËX\Ù]]ËYÎ	Ñ[[ÚX[	ÈKÈY	ÙËNIË[[ÚN	ü'ã¤ÉË[YN	Ó]\ÝÜX\[ÉË\ØÎ	ÓY[ÛÈÝY[ÛÝ\Ù\ËÛÚÜËY[ÜËÛÝÛYÙH\ÈHÛØ[]Ù[ËYÎ	ÑÜÝÝ	ÈKÈY	ÙËLL	Ë[[ÚN	ü'ãè	Ë[YN	ÓÝÛÜ\IË\ØÎ	ÔX[\Ý]HX[\Ë\ÝÝ\ÙK[\ÝY[Ü\Y\ËZ[[È\]Z]KËYÎ	Ñ[[ÚX[	ÈKÈY	ÙËLLIË[[ÚN	ø§*	Ë[YN	Ò[Ü\HÝ\ÉË\ØÎ	ÕØ[ÈÈHHÛH[Ù[Ú\\ÈÝ\^K[Ý]]\ËYÈ[ÜH\ËYÎ	Ô\ÜÙIÈKÈY	ÙËLLË[[ÚN	ü'éæ	Ë[YN	Ñ[[\XXÙIË\ØÎ	ÐÚ\Ú[ÈØ[KÝÚ[ÜËX[[ËXØÙ\[ÙKZ[È\Ù[ËYÎ	ÕÙ[\ÜÉÈKÈY	ÙËLLÉË[[ÚN	ü'ã©	Ë[YN	ÐZ[[]YY[ÙIË\ØÎ	ÑÜÝÚ[ÈHÛÝÚ[ËZ[[ÈH[XÛÛZ[ÈÛÝÛÜÛÛY][ËËYÎ	ÐXÚY][Y[	ÈKÈY	ÙËLM	Ë[[ÚN	ü'äªË[YN	Õ[ÙÜHÙIË\ØÎ	Ô\ÚXØ[[ÙÜX][ÛÛØ[ËÙZYÚÜÜË]\ØÛHØZ[]]XÈ\ÜX[ÙKËYÎ	ÕÙ[\ÜÉÈKÈY	ÙËLMIË[[ÚN	ø§#{î#ÉË[YN	ÐÜX]H\	Ë\ØÎ	ÕØ[ÈÈÙXÙHÛÛY][ÈX]]Y[8 %ÛÚË[[K[KZ[[ËËYÎ	ÐÜX]]IÈKÈY	ÙËLMË[[ÚN	ü'é'IË[YN	ÐZ[ÛÛ[][]IË\ØÎ	ÐÜX][ÈÜXÙ\ÈÜ[ÜHÈÛÛXÝ][ËÜÝ\Ë[Ý[Y[ËËYÎ	Ô\ÜÙIÈKÈY	ÙËLMÉË[[ÚN	ü'å$ÉË[YN	ÐXZÈYIË\ØÎ	Ñ\ØØ\[ÈÛÛY][È8 %ÞXÈØ[][ÛÚ\Z[Ù]X\][ÛØÝ\ÙYËYÎ	ÑYYÛIÈKÈY	ÙËLN	Ë[[ÚN	ü'ã$	Ë[YN	ÑÛÈ\[	Ë\ØÎ	ÕØ[ÈX\ÜÚ]HXXÚ[ÜÈ[ÛÛ[ÛÚÜËÚ\XX[]KËYÎ	ÐXÚY][Y[	ÈKÈY	ÙËLNIË[[ÚN	ü'éë	Ë[YN	ÓÜ[Z^H]\][ÉË\ØÎ	Ð[ÚXÚÙ\Y[[]KÛY\]][ÛÙXÝ]]H8 %[XÚÙY[[\ÝYËYÎ	ÑÜÝÝ	ÈKÈY	ÙËL	Ë[[ÚN	ü'ã¨IË[YN	ÑÚ]HXÚÉË\ØÎ	Ô[[ÜKÛ[Y\[ËXZÚ[ÈYH]\ÜÝ\ËÙ[\Ý\ÈÜ\]ËYÎ	Ô\ÜÙIÈKÈY	ÙËLIË[[ÚN	ü'ãáIË[YN	ÔÝH[HÜÛÉË\ØÎ	ÐÚ\ÛÚÝ[\[\ÞKÝX\ÈY[H\K][ÙHÝYÚÝXØÙ\ÜËËYÎ	ÐXÚY][Y[	ÈKÈY	ÙËLË[[ÚN	ü'ã,IË[YN	ÒX[	ÜÝÉË\ØÎ	ÕÛÜÚ[ÈÝYÚ\Ý][XK\\KÙ[X]Ø\[\ÜËXÛÛZ[ÈÚÛKËYÎ	ÕÙ[\ÜÉÈKKÝ[\Y\ÎÂÈY	ØLIË[[ÚN	ü'æªÉË[YN	ÓÈYØ]]]IË\ØÎ	ÔY\Ù\ÈÈ[ØYÙHÚ]ÞXÈ[\ÞKY\XÝÈÈÜÚ]]]H[Ø^\ËËYÎ	Ñ[\ÞIÈKÈY	ØLË[[ÚN	ü'å$Ë[YN	Ô]]HYHØXÜY	Ë\ØÎ	Ó]\Ú\\È\ÛÛ[]Z[ÈY[KÙY\È[\ÛÜÝXÝYËYÎ	Ô]XÞIÈKÈY	ØLÉË[[ÚN	ø£ì	Ë[YN	Ô\ÜXÝÈ[YIË\ØÎ	ÕÚ[Ý[\Z[[YK]Ø\Ý\Ë[Y\ÈYXÚY[ÞH[[[\XÝ[ÛËËYÎ	ÔÙ\ÜÚ[Û[	ÈKÈY	ØM	Ë[[ÚN	ü'æaIË[YN	ÓÈYHÛÜÉË\ØÎ	ÒÛÝÜÈZ\ÛÜÚ[ÝÚ]H^\\ÙH]Ø^HÚ]Ý]Z\^Ú[ÙKËYÎ	ÔÙ\ÜÚ[Û[	ÈKÈY	ØMIË[[ÚN	ü'ä«IË[YN	ÓÈ[ÛÛXÚ]YYXÙIË\ØÎ	ÓÛHÚ]\ÈYXÙHÚ[\ÚÙY\ÜXÝÈÝ\È]]ÛÛ^HÈYÝ\H[ÜÈÝ]ËYÎ	ÔÛØÚX[	ÈKÈY	ØMË[[ÚN	ü'æäIË[YN	Ò\ÈÛ[XIË\ØÎ	ÕÚ[Ý[ØYÙH[ÛÜÜÚ\[XKÜX[Ý[][ÛØ[ÜÈ]Ø^HÛX[KËYÎ	Ñ[\ÞIÈKÈY	ØMÉË[[ÚN	ü'é$	Ë[YN	ÒÙY\ÈÙXÜ]ÉË\ØÎ	Õ][[ZÙHÛÛY[X[]KÚ]\ÈÚ\YÝ^\È]]K\ÝÛÜKËYÎ	Õ\Ý	ÈKÈY	ØN	Ë[[ÚN	ü'æ­ÉË[YN	ÓÈ[ÜHX\Ú[ÉË\ØÎ	ÔØ^\ÈÈÚ]Ý]ÝZ[Ù\ÈÝ[ÈXZÙHÝ\ÈÛÛYÜXKËYÎ	ÔÙ[T\ÜXÝ	ÈKÈY	ØNIË[[ÚN	ü'å%	Ë[YN	ÐÛÛ[][XØ][Û\]Z\Y	Ë\ØÎ	Ñ^XÝÈÛX\ÛÛ[][XØ][ÛÚ[ÝÝY\ÜÈÚ]ÛÛY[ÛHYX[ËËYÎ	ÔÛØÚX[	ÈKÈY	ØLL	Ë[[ÚN	ü'ê§Ë[YN	ÓÈÞXÈÜÚ]]]IË\ØÎ	ÐXÚÛÝÛYÙ\È\Y[[ÜËÚ[Ý\ÛZ\ÜÈZ[Ú]ZÙHÜ[Z\ÛKËYÎ	Ñ[[Ý[Û[	ÈKÈY	ØLLIË[[ÚN	ø¦¨IË[YN	Ñ[\ÞHX]Ú[ÉË\ØÎ	ÑÚ]\ÈÚ]^HXÙZ]KX]Ú[\ÚX\ÛHÜÙ]\Ý[ÙKËYÎ	Ñ[\ÞIÈKÈY	ØLLË[[ÚN	ü'æªË[YN	Ñ^]Ý]YÞHXYIË\ØÎ	Ð[Ø^\È\ÈHØ^HÝ]Ú[X]H[HÚ]X][Û]Y[ÈÜÛËËYÎ	ÔÙ[T\ÜXÝ	ÈKÈY	ØLLÉË[[ÚN	ü'äíIË[YN	ÑYÚ][Ý[\Y\ÉË\ØÎ	ÑÙ\ÈÝ\ÜÛÍË\ÈÛKYYH[Y\ËÝXÝÈY[[ÜXÙKËYÎ	Ô]XÞIÈKÈY	ØLM	Ë[[ÚN	ü'ã«ÉË[YN	ÔÝ^HÛÜXÉË\ØÎ	ÔY\XÝÈ[Ù[ËØÝ\ÙYÛÛ\Ø][ÛÈÛKÈ[X[ÈÛ\]YËYÎ	ÔÙ\ÜÚ[Û[	ÈKÈY	ØLMIË[[ÚN	ü'ä§IË[YN	ÔXÚ\ØÚ]H\]Z\Y	Ë\ØÎ	ÕÚ[ÝÝ\[È[ÜHÚÈ]\Ý\XÚË\]X[YÜ^XÝYËYÎ	ÔÛØÚX[	ÈKÈY	ØLMË[[ÚN	ü'éìIË[YN	Ñ[[Ý[Û[Ø[ÉË\ØÎ	ÕZÙ\È[YHÈÜ[\\Ý\ÈX\YÛÝÛKÝXÝYX\ËYÎ	Ñ[[Ý[Û[	ÈKÈY	ØLMÉË[[ÚN	ø§"ÉË[YN	ÓÈ\Ü\ÜXÝ	Ë\ØÎ	Ö\ÈÛ\[ÙHÜY[\ÜËÚ[Y\ÜÈ][[YYX][HÜX]KËYÎ	ÔÙ[T\ÜXÝ	ÈKÈY	ØLN	Ë[[ÚN	ü'ã"Ë[YN	Ñ^XH]\IË\ØÎ	ÐY\È\ØXÚ]]\ÛÛ\ÛZ\Ù\ÈÛÜH[Y\Ë[XKÝXZØXKËYÎ	Ð[[ÙY	ÈKÈY	ØLNIË[[ÚN	ü'å#IË[YN	Õ[Ü\[ÞH^XÝY	Ë\ØÎ	ÓÈØ[Y\ËÈY[YÙ[\Ë^XÝÈÛ\ÝH[Ú]\È][]\ËYÎ	Õ\Ý	ÈKÈY	ØL	Ë[[ÚN	ø¦¥»î#ÉË[YN	ÑZ\][[	Ë\ØÎ	ÑÚ]\ÈÚ[Ù\È]\ÈH[Z]ÛÙHÛK]\ÈÛKÈÙXÛÛX]\ËËYÎ	ÔÙ[T\ÜXÝ	ÈKÈY	ØLIË[[ÚN	ü'éâË[YN	ÐÛÛÛ[\\ÜÝ\IË\ØÎ	ÕÚ[ÝH\ÚY[ÈXÚ\Ú[ÛËZÙ\È[YH][Ú[\ÜÝ\YËYÎ	Ñ[[Ý[Û[	ÈKÈY	ØLË[[ÚN	ü'ä«	Ë[YN	Ñ\XÝÛÛ[][XØ][ÛË\ØÎ	ÓÈ\ÜÚ]HYÙÜ\ÜÚ[ÛØ^\È^XÝHÚ]^HYX[^XÝÈHØ[YKËYÎ	ÔÛØÚX[	ÈKK[YYÎÂÈY	ØLIË[[ÚN	ü'ã'ÉË[YN	Ñ]\][È\[ÈÜHX\ÛÛË\ØÎ	Ð[Y]\È[\Ý[K\ÜÙHZ[Z[[][H[Z[ËËYÎ	ÔÜ\]X[	ÈKÈY	ØLË[[ÚN	ü'éêË[YN	ÔØÚY[ÙHÝ\Z]	Ë\ØÎ	Ñ]Y[ÙKX\ÙYÛÜY]ËÚÙ\XØ[ÙÛZ[\ÈÚ]Ý]]K][Û[ËYÎ	Ô][Û[	ÈKÈY	ØLÉË[[ÚN	ü'äªÉË[YN	ÓX[Y\Ý][Û\ÈX[	Ë\ØÎ	Ð[Y]\ÈÝYÚÈÜX]HX[]K\Ú[ÛØ\ËY\X][ÛË]ÈÙ]XÝ[ÛËYÎ	ÔÜ\]X[	ÈKÈY	ØM	Ë[[ÚN	ø¦¤»î#ÉË[YN	Ò\ÛÜÈÚ[ÉË\ØÎ	ÓÈÚÜÝ]ËÜ[Y[[]K[Y]\ÈYÜ[Ø^\È^\ÈÙ][X[KËYÎ	ÕÛÜÈ]XÉÈKÈY	ØMIË[[ÚN	ü'ã¬Ë[YN	ÓYH\È[ÛIË\ØÎ	ÓÈÜ[[XZÙ\ÈH[ÜÝÙÚ[ÜË[ÈYYÛH[YX[[Û\ÜÛ\ÜËËYÎ	Ô[ÜÛÜXØ[	ÈKÈY	ØMË[[ÚN	ü'é,Ë[YN	ÒØ\XH\ÈX[	Ë\ØÎ	ÕÚ]ÛÙ\È\Ý[ÛÛY\È\Ý[X]ÈÝ\ÈÙ[XØ]\ÙH]X]\ËËYÎ	Ó[Ü[	ÈKÈY	ØMÉË[[ÚN	ü'äªË[YN	ÔÙ[SXYHÛIË\ØÎ	ÓØÙHÝÙ\È[ÝH[][Ë[[Ý\Ù[\\ÛÛ[\ÜÛÚX[]HXÝH[ËYÎ	Ò[\[[ÙIÈKÈY	ØN	Ë[[ÚN	ü'ã"Ë[YN	ÑÛÈÚ]HÝÉË\ØÎ	Ô\Ú\Ý[ÙHÜX]\ÈÝY\[ËXØÙ\[ÙH[Y\X[]H\HHØ^KËYÎ	Ô[ÜÛÜXØ[	ÈKÈY	ØNIË[[ÚN	ü'é'IË[YN	ÐÛÛ[][]HÝ\[]YX[	Ë\ØÎ	ÕÙH\HÝÛÙ\ÙÙ]\ÛÛXÝ]HÛÛÙX]\È[ÜH[\ÛÛ[ØZ[ËYÎ	ÔÛØÚX[	ÈKÈY	ØLL	Ë[[ÚN	ü'éè	Ë[YN	ÓZ[Ù]\È]\][ÉË\ØÎ	Ö[Ý\ÝYÚÈ]\Z[H[Ý\YKY[YHYØ]]\ËÚÛÜÙHÜÝÝËYÎ	ÑÜÝÝ	ÈKÈY	ØLLIË[[ÚN	ü'ä¬	Ë[YN	Ó[Û^H\È[\ÞIË\ØÎ	ÐX[[ÙHZ[Ù][Û^HÝÜÈÈ[YKÝ][\ÝHÛÛËYÎ	Ñ[[ÚX[	ÈKÈY	ØLLË[[ÚN	ü'åb»î#ÉË[YN	ÑÜÚ][\ÜÈX[ÉË\ØÎ	ÒÛ[ÈÜYÙ\È\È[ÝH[ÜK][ÈÛÈ\ÈÝ[ÝÝÙXZÛ\ÜËËYÎ	Ó[Ü[	ÈKÈY	ØLLÉË[[ÚN	ü'å!	Ë[YN	ÐÞXÛ\È	ÙX\ÛÛÉË\ØÎ	ÓYH\È]\[]\Ë\Ý\ÈÙXÝ]KÝ]\][ÈYYÈÈÜÝËËYÎ	Ô[ÜÛÜXØ[	ÈKÈY	ØLM	Ë[[ÚN	ü'ã«ÉË[YN	ÐÛ\]HÜX]\ÈX[]IË\ØÎ	ÑÙ]ÜXÚYXÈXÝ]Ú][ÝHØ[YÝYHÛØ[ÈÙ]YÝYH\Ý[ËËYÎ	ÑÜÝÝ	ÈKÈY	ØLMIË[[ÚN	ü'ä`{î#ÉË[YN	Õ\Ý[Ý\Ý]	Ë\ØÎ	Ò[Z][Û\ÈÚ\ÙÛHHZ[\ÈÝØ]YÚ\ÈY]ÛÝÈHY[[ËËYÎ	ÔÜ\]X[	ÈKÈY	ØLMË[[ÚN	ø£ìÉË[YN	Ô]Y[ÙHÚ[ÉË\ØÎ	ÑÛÛÙ[ÜÈZÙH[YK\Ú[ÈZ[È\Ý[Ë\ÝHØÙ\ÜËËYÎ	ÕÛÜÈ]XÉÈKÈY	ØLMÉË[[ÚN	ü'ã#IË[YN	ÕÙH\H[ÛÛXÝY	Ë\ØÎ	ÓÛ[\ÜÈ[ÜÛÜK]\HXÝ[Û\\ËÛÛ\\ÜÚ[ÛÜ[Z[ÜËËYÎ	ÔÜ\]X[	ÈKÈY	ØLN	Ë[[ÚN	ü'å)IË[YN	ÐÛÛYÜÛH\ÈX]	Ë\ØÎ	ÑÜÝÝÛH\[È[\ØÛÛYÜÙYZÈH\][XXÙHHÝXÚËËYÎ	ÑÜÝÝ	ÈKÈY	ØLNIË[[ÚN	ü'äç	Ë[YN	ÕY][ÛX]\ÉË\ØÎ	Ô\ÜXÝÈÛØ^\Ë[Z[H[Y\ËÝ[Þ\Ý[\ËÝ]\][ÈYYÈ\Ü\[ËËYÎ	ÐÛÛÙ\]]IÈKÈY	ØL	Ë[[ÚN	ü'æ 	Ë[YN	ÔÙÜ\ÜÈÝ\Y][ÛË\ØÎ	ÓÛØ^\ÈÛ\ÈXÚË[Ý][Û\Ü\[ÛÜØ\[Ý[Û[Ø^\ËËYÎ	ÔÙÜ\ÜÚ]IÈKÈY	ØLIË[[ÚN	ü'ä£Ë[YN	Ð]][XÚ]HXÝH[	Ë\ØÎ	ÐZ[ÈX[\È[ÜH[\Ü[[Z[ÈZÙYX\ÚÜÈ\H^]\Ý[ËËYÎ	Ó[Ü[	ÈKÈY	ØLË[[ÚN	ü'ã«IË[YN	Ô\Ù\[Û\ÈX[]IË\ØÎ	ÒÝÈ[ÝH\Ù[[Ý\Ù[X]\Ë[[Ë[XYÙK[\]]H\HÝÙ\ËYÎ	ÔÝ]YÚXÉÈKKXÚÜÝÜNÂÈY	ØËLIË[[ÚN	ü'ãè	Ë[YN	ÔÛX[ÝÛÜYÚ[ÉË\ØÎ	ÑÜ]È\[HÛX[ÝÛ[]XKÚ\ÙÝ^H^ÛÜ[\ÞKÛÝÜÈ]\[ÛHH[YKËYÎ	Ò[XIÈKÈY	ØËLË[[ÚN	ü'ã!Ë[YN	ÐÚ]HÚY	Ë\ØÎ	Ñ\Ý\XÙY\[Ú[ËÝY]\ÛX\Ý[\Y[Ø^\ÈYÛÛY][ÈÛÚ[ÈÛËYÎ	Õ\[ÈKÈY	ØËLÉË[[ÚN	ü'å%	Ë[YN	ÓÝ\Ø[YH\Ú\	Ë\ØÎ	ÕÝYÚXÚÙÜÝ[\Ú[Y[[Ü\[ÈÛÛYXXÚÈÝÜK\Ù\ÈZ[\ÈY[ËYÎ	Ô\Ú[Y[	ÈKÈY	ØËM	Ë[[ÚN	ü'ã¤ÉË[YN	ÐÛÛYÙHÜYX]IË\ØÎ	ÑYXØ]Y\XÝ[]KØ[\\Ë[YHY\[Ù\ËZ\ÜÙ\ÈÜH^\ÈÛÛY][Y\ËËYÎ	ÑYXØ]Y	ÈKÈY	ØËMIË[[ÚN	ø§";î#ÉË[YN	ÓZ[]\H]	Ë\ØÎ	Ó[ÝY\Ý[ÛÛÝ[HÜÝÚ[È\Y\XKÛÜHÛHH[Ý[ÈYÙKËYÎ	Õ][Y	ÈKÈY	ØËMË[[ÚN	ü'ã#IË[YN	Ò[[ZYÜ[ÝÜIË\ØÎ	ÐÜÜÜËXÝ[\[^\Y[ÙK[[ÝX[X\Ë[\]YH\ÜXÝ]HÛ]\][ËËYÎ	ÐÝ[\[	ÈKÈY	ØËMÉË[[ÚN	ü'ãáË[YN	ÑÜY\]]IË\ØÎ	ÐÛÛ\]]]K\ØÚ\[Y\ÈÛÜH^\ÈÝÜY\ËÝ[[ÜÈZÙHHX[[X]KËYÎ	Ð]]XÉÈKÈY	ØËN	Ë[[ÚN	ü'ã«IË[YN	ÐÚ[\ÜY\Ë\ØÎ	ÑÜ]È\[HÜÝYÚÛÛY[]ÛÛ\^ÛÝÜÈH[\ÝH[ÚYHÝ]ËYÎ	ÐÜX]]IÈKÈY	ØËNIË[[ÚN	ü'éäx #|'ã/Ë[YN	Ô\[ÛÝÉË\ØÎ	Ñ\HÜ]\H\[Ú[ËÜÝ[YXÝXØ[[ÈXXÙH[Ú[\H[ÜËËYÎ	ÑÜÝ[Y	ÈKÈY	ØËLL	Ë[[ÚN	ü'ä¬	Ë[YN	ÔÙ[SXYIË\ØÎ	ÔÝ\YÚ]Ý[ËZ[]\][ÈÛHØÜ]Ú\ÝHÝÜH\ÈZ\Y[]KËYÎ	Ñ][ÈKÈY	ØËLLIË[[ÚN	ü'äj8 #|'äjx #|'äiø #|'äiË[YN	ÐYÈ[Z[IË\ØÎ	ÓÛHÙX[HÚX[ÜËX\YÈÚ\KÛÛ\]K[ÝHÝYK[Z[H\È]\][ËËYÎ	Ñ[Z[IÈKÈY	ØËLLË[[ÚN	ü'ãªË[YN	Õ[ÛÛ[[Û[Ú[ÛÙ	Ë\ØÎ	ÒÛY\ØÚÛÛY][[È[Z[KÜ[\]YH\[Ú[ËÙY\ÈHÛÜY\[KËYÎ	Õ[\]YIÈKKXÚNÂÈY	ÛLIË[[ÚN	ü'äªË[YN	Ñ]\ÜÈ[Ù[	Ë\ØÎ	ÑÞ[HÛÛ[[ÙÜX][ÛØÝ\ËÛÜÛÝ]\ËÙH\ÈH[ËYÎ	Ñ]\ÜÉÈKÈY	ÛLË[[ÚN	ü'ã«Ë[YN	ÑØ[Y\ÜX]ÜË\ØÎ	ÔÝX[Z[ÈÝ[\KØ[Z[ÈY\[Ù\Ë\KZÝÛÛ\Ý]\ÈÛ[KËYÎ	ÑØ[Z[ÉÈKÈY	ÛLÉË[[ÚN	ü'äeÉË[YN	Ñ\Ú[Û[Y[Ù\Ë\ØÎ	ÓÝ]]ÛÛ[[ÛÛXËÝ[HYXÙK[Ø^\ÈØ[Y\K\XYKËYÎ	Ñ\Ú[ÛÈKÈY	ÛM	Ë[[ÚN	ü'éæ	Ë[YN	ÕÙ[\ÜÈÝ\IË\ØÎ	Ö[ÙØKYY]][ÛX[H][ËØ[HY\Ý]XË[\XXÙH\ÈH[ËYÎ	ÕÙ[\ÜÉÈKÈY	ÛMIË[[ÚN	ü'ãlÉË[YN	ÑÛÙYHÜX]ÜË\ØÎ	ÔXÚ\HÛÛ[\Ý]\[]Y]ÜËÛÛÚÚ[ÈÝX[\Ë\Ý\È]\][ËËYÎ	ÑÛÙ	ÈKÈY	ÛMË[[ÚN	ü'ã­IË[YN	Ó]\ÚXÈ\\Ý	Ë\ØÎ	ÓÜYÚ[[]\ÚXËÛÝ\ËÝY[ÈZ[]K\ØÙ[\ËÛÝ[\ÈZ\ÛÝ[ËYÎ	Ó]\ÚXÉÈKÈY	ÛMÉË[[ÚN	ü'äæË[YN	ÐÛÚÕÚÈÜX]ÜË\ØÎ	ÔXY[ÈXÛÛ[Y[][ÛË]\\H\ØÝ\ÜÚ[ÛË[Ø^\ÈZYXÚ\\ËYÎ	ÐÛÚÜÉÈKÈY	ÛN	Ë[[ÚN	ü'ä¡	Ë[YN	ÐX]]HÜX]ÜË\ØÎ	ÓXZÙ]\]ÜX[ËÚÚ[Ø\HÝ][\ËÙXÝ]Y]ÜËÛ[H\ÈYKËYÎ	ÐX]]IÈKÈY	ÛNIË[[ÚN	ü'ãå»î#ÉË[YN	Õ][ÜX]ÜË\ØÎ	Ñ\Ý[][ÛÛÛ[Y[\HÝÜY\ËY[Ù[\Ë[Ø^\ÈÛÛY]Ú\H]ËËYÎ	Õ][	ÈKÈY	ÛLL	Ë[[ÚN	ü'ä®ÉË[YN	ÕXÚ]Y]Ù\Ë\ØÎ	ÑØYÙ]]Y]ÜËÛÙØ\HZÙ\Ë]\HÙXÚ[Ø^\È\ÝÈH]È[ÜËËYÎ	ÕXÚ	ÈKÈY	ÛLLIË[[ÚN	ü'ä%IË[YN	Ô][Y[Ù\Ë\ØÎ	Ð[XÝ]H\XY\ËÝ]HÛÛ[]\Ë[[X[\ØÝYHYØØ]KËYÎ	Ô]ÉÈKÈY	ÛLLË[[ÚN	ü'ãè	Ë[YN	ÒÛYH	Y\Ý[IË\ØÎ	Ò[\[Ü\ÚYÛÜØ[^][ÛÛÞH][ËXZÙ\È]\HÜXÙHY\Ý]XËËYÎ	ÒÛYIÈKKÛÛ[\Ý[NÂÈY	ØÜËLIË[[ÚN	ü'ä¢ÉË[YN	Ñ\H	^Y[	Ë\ØÎ	ÕX\Ú[ËÛÛ\[Y[Ë^Y[[\[Ø^\ÈÙY\È][[YÚËYÎ	Ñ\IÈKÈY	ØÜËLË[[ÚN	ü'é%ÉË[YN	ÕØ\H	Ý\Ü]IË\ØÎ	Ñ[ÛÝ\YÚ[Ë[\]]XË[Ø^\ÈÜÚ]]KXZÙ\È]\[ÛHY[ÙY[ËYÎ	ÕØ\IÈKÈY	ØÜËLÉË[[ÚN	ü'æ#ÉË[YN	ÔØ\Ø\ÝXÈ	Ú]IË\ØÎ	ÔÚ\[[Ü]ZXÚÈÛÛYXXÚÜËYÞH]ÝXXK]\Ü[ËËYÎ	ÕÚ]IÈKÈY	ØÜËM	Ë[[ÚN	ü'ãªIË[YN	ÐÛ\ÜÞH	Y[Y	Ë\ØÎ	Ñ[YØ[[ÝXYÙK]\ÜYKÛÜ\ÝXØ]YØ\Y\È[\Ù[\ÈÚ]ÜXÙKËYÎ	ÐÛ\ÜÞIÈKÈY	ØÜËMIË[[ÚN	ü'å)IË[YN	ÐÛ	\XÝ	Ë\ØÎ	ÔØ^\ÈÚ]^HYX[ÛÛY[ÈØ[Y\ËY\Ú[ÛHÛ\ÝËYÎ	ÐÛ	ÈKÈY	ØÜËMË[[ÚN	ü'ã.	Ë[YN	ÔÝÙY]	[ØÙ[	Ë\ØÎ	ÕÚÛ\ÛÛYKÙ[Z[KH]Z]KÙY\ÈHÛÛÙ[]\][ËËYÎ	ÔÝÙY]	ÈKÈY	ØÜËMÉË[[ÚN	ü'æ"	Ë[YN	ÔÜXÞH	ÝØØ]]IË\ØÎ	Ô\Ú\ÈÝ[\Y\ËÝXH[[\Ë\[ËÙY\È[ÝHÛ[Ý\Ù\ËËYÎ	ÑYÞIÈKÈY	ØÜËN	Ë[[ÚN	ü'é$ÉË[YN	Ó\H	[\ÚX\ÝXÉË\ØÎ	Ô\ÜÚ[Û]HXÝ]XÚHÜXÜËYÜXH[\ÞKÙ]È^Ú]YXÝ]]\][ËËYÎ	Ó\IÈKÈY	ØÜËNIË[[ÚN	ü'åèûî#ÉË[YN	ÔÝY][ÉË\ØÎ	ÔÛ[ËZX]KØ\ÝX[X[[[[\Y[ÜÈZÙH[Ý\XÝX[Y[ËYÎ	ÐØ\ÝX[	ÈKÈY	ØÜËLL	Ë[[ÚN	ü'ã«IË[YN	Ó^\Ý\[Ý\È	[\Ú]IË\ØÎ	ÔÚÜ[ÝÙ\ËXZÙ\È[ÝHÛÜÈÜ]]\HÛÜY[È[[[Û[ËYÎ	Ó^\Ý\[Ý\ÉÈKÈY	ØÜËLLIË[[ÚN	ü'äåË[YN	ÔÝÜ][\Ë\ØÎ	Ñ]\][ÈXÛÛY\ÈHÝÜK]Y\ØÜ\[ÛË\]]H\ÜËÛÚÜÈ[ÝH[ËYÎ	Ó\]]IÈKÈY	ØÜËLLË[[ÚN	ü'ã©	Ë[YN	Ò\HXXÚ[IË\ØÎ	ÓÝ\]K]Ü^Ú]YSÐTÈ[\ÞK\\È]\][È\[XÝ[Ý\È[\ÚX\ÛKËYÎ	Ò\IÈKÈY	ØÜËLLÉË[[ÚN	ü'ê§IË[YN	ÒÛÚÈX\Ý\Ë\ØÎ	ÓÜ[È]\H\ÜÛÙHÚ][][[ÛYÜX[ÈÛÚË]\\Y\ÈHXYËYÎ	Õ\[	ÈKÈY	ØÜËLM	Ë[[ÚN	ü'ã¦{î#ÉË[YN	ÔÙØ\ÝÚXÙIË\ØÎ	ÔÜXZÜÈZÙHÛHÙØ\ÝÝYÚ[]\Ù\ËÚYKX[ÛH[\ÞK]\\XÝHY\ÜÙ\ÈHØ[Y\HXKËYÎ	ÐØYØ\Ý	ÈKKØ[\ÎÂÈY	ÜËLIË[[ÚN	ü'ä«	Ë[YN	Ô\ÜZ[\Ë\ØÎ	Ð[Ø^\È\ÚÜÈ]Y\Ý[ÛË[Y[X\È]Z[ËZ[ÈÛÛXÝ[ÛYÜH[][È[ÙKËYÎ	ÐÛÛXÝ[ÛÈKÈY	ÜËLË[[ÚN	ø£ì	Ë[YN	Õ\Ù[ÞHÜX]ÜË\ØÎ	ÈÛH]Z[XHÙ^K[[ÜÝÛÛH[\ÞKÜX]\ÈÓSÈ]\[KËYÎ	ÑÓSÉÈKÈY	ÜËLÉË[[ÚN	ü'ã IË[YN	ÕX\Ù\Ë\ØÎ	ÑÜÈ[ÈXÝ]^Û\Ú]HÛÛ[Z[È[XÚ\][Û]\Ú]\È][]Ø^KËYÎ	Ð[XÚ\][ÛÈKÈY	ÜËM	Ë[[ÚN	ü'ä§IË[YN	Ñ[[Ý[Û[ÛÛXÝÜË\ØÎ	ÓXZÙ\È]\H[\XÝ[ÛY[\ÛÛ[[ÜXÚX[[ÝHY[ZÙHHÛHÛKËYÎ	Ô\ÛÛ[	ÈKÈY	ÜËMIË[[ÚN	ü'å!	Ë[YN	ÐØ[XÚÈX\Ý\Ë\ØÎ	ÔY\[Ù\ÈX\Y\ÛÛ\Ø][ÛËÜX]\ÈÛÛ[Z]K\ÈHÜX]Y[[ÜKËYÎ	ÓY[[ÜIÈKÈY	ÜËMË[[ÚN	ü'äâ	Ë[YN	Ó]\[\Ù[\Ë\ØÎ	ÔÛ[ÛÝH[Ú][ÛÈYHÚ][ÈZYÙ\[ÜË]\Y[È\ÚKËYÎ	ÔØ[\ÉÈKÈY	ÜËMÉË[[ÚN	ü'ã«ÉË[YN	ÐÕH^\	Ë\ØÎ	Ð[Ø^\È\ÈH^Ý\ÜH\Ù\ÈZÙKÝZY\ÈHÛÛ\Ø][ÛÜØ\ËYÎ	ÐXÝ[ÛÈKÈY	ÜËN	Ë[[ÚN	ü'é'IË[YN	ÓÞX[H]Ø\\Ë\ØÎ	ÓXZÙ\È\X]\Ú]ÜÈY[ÜXÚX[Ú]^Û\Ú]HX]Y[]Ø\ÈÛÛYKXXÚÜËËYÎ	Ô][[ÛÈKÈY	ÜËNIË[[ÚN	ü'äèÉË[YN	ÐÕHÙX]\Ë\ØÎ	Ó]\[HÛÜÜÈHØ[]ËXXÝ[Û[È]\H[\XÝ[Û]\Y[ÈÜÙYËYÎ	Õ\[	ÈKÈY	ÜËLL	Ë[[ÚN	ü'å%ÉË[YN	ÐY[X]HÙ[\Ë\ØÎ	ÔXÛÛ[Y[ÈÙXÝÈ]\[HÚ][ÛÛ\Ø][ÛË]\ÈÛXÚÜËËYÎ	ÐY[X]IÈKÈY	ÜËLLIË[[ÚN	ü'é%Ë[YN	ÑH]]ÛX][ÛÚXÙIË\ØÎ	Ñ\ÚYÛYÜ]]ÛX]YHÝÜËØ\HÜY][Ë[]\È[YH\Ý[ÜÈH[ËËYÎ	Ð]]ÛX][ÛÈKKÛÛ[ÜX]ÂÈY	ØÙLIË[[ÚN	ü'ã¦{î#ÉË[YN	ÔÙØ\ÝÒ[\Y]ÈÛ\	Ë\ØÎ	ÐÛÛ[[]\Y\ÈYZ[È[\Y]ÙYÚYH[ÛKÝYÚ[[[Ý[Û[ËYÎ	Ò[\Y]ÉÈKÈY	ØÙLË[[ÚN	ü'äî	Ë[YN	ÔÝY][\Y]ÉË\ØÎ	ÐÛÛ[[]\Y\ÈYÝÜYÛHÝY]Ø\ÝX[Ý\\ÙY]\[XXÝ[ÛËËYÎ	ÐØ\ÝX[	ÈKÈY	ØÙLÉË[[ÚN	ü'äìIË[YN	Ñ\XÝÈØ[Y\IË\ØÎ	Õ[ÜÈÝZYÚÈHY]Ù\ZÙHHXÙU[YHØ[\ÛÛ[[[[X]KËYÎ	Ô\ÛÛ[	ÈKÈY	ØÙM	Ë[[ÚN	ü'äåË[YN	ÔÝÜH[YIË\ØÎ	Õ[ÈHÝÜHÛHZ\YKYÚ[[ËZYK[[È[ÝH[ËYÎ	Ó\]]IÈKÈY	ØÙMIË[[ÚN	ü'ä¨IË[YN	Ô]ZXÚÈ\ÉË\ØÎ	Ñ[]\ÈÛHXÝ[ÛXH\\YXÙHÙÛÛ[ÚÜ[ÚKØ]K]ÛÜKËYÎ	ÑYXØ][Û[	ÈKÈY	ØÙMË[[ÚN	ü'å)IË[YN	ÒÝZÙIË\ØÎ	ÑÜÈHÛÛÝ\ÚX[ÜÝ\\Ú[ÈÜ[[Û\ÚYÛYÈÙ[\]HÚ\\È[ÛÛ[Y[ËËYÎ	Õ\[	ÈKÈY	ØÙMÉË[[ÚN	ü'äâË[YN	ÐXZÙÝÛÑ^Z[\Ë\ØÎ	ÐXZÜÈÝÛHÛÛ\^ÜXÈÚ[\KYXØ][Û[Ø]K]ÛÜHÛÛ[ËYÎ	ÑYXØ][Û[	ÈKKBËÈ8¥ 8¥ 8¥ Þ[Û[HX\Ü^HÙX\Ú8¥ 8¥ 8¥ ^ÜÛÛÝÖSÓSWÓPTXÛÜÝ[ËÝ[Ö×OHÂ[NÉÚ[[ÜË	ØÛÛZXÉË	ØÛÛYYIË	ÚÚÙIË	Û]YÚ	Ë	ÝÚ]	Ë	ØÛÝÛË	Ù[\Z[[É×KYX[ÉØ[	Ë	ØÛÛ	Ë	Ú\Ú	Ë	Ù\XÝ	Ë	Ù]XÚY	Ë	ÚXÙI×KXÙNÉÝØ\IË	ÚÚ[	Ë	ÜÝ\Ü]IË	ÙÙ[IË	ØØ\[ÉË	ÜÝÙY]	Ë	ÙY[I×KÛX\ÉØ[[]XØ[	Ë	ÙYXØ]Y	Ë	Ù]KY][Ë	Ø\XÝ[]IË	Ú[[YÙ[	Ë	ØXØY[ZXÉ×KÚ[ÉØØ[IË	Ü[^Y	Ë	ÜÝXYIË	ÙÝÉË	ØÛÛXÝY	Ë	ØÛÛÛ	Ë	ÛZYXXÚÉ×K[Û^NÉÝÙX[	Ë	Ù[[ÚX[	Ë	Ú\ÝIË	Ù[\[]\Ë	Ü][YIË	Ú[ÛÛYIË	ÜXÚ	×KÝNÉÜÛX[XÉË	Ü[][ÛÚ\	Ë	ØÛÛXÝ[ÛË	ÜÛÝ[X]\ÉË	ØYXÝ[ÛË	ÚX\	×K]\ÜÎÉÙÞ[IË	ÝÛÜÛÝ]	Ë	Ø]]XÉË	Û]\ØÛIË	Ù^\Ú\ÙIË	ÚX[	Ë	Ù]	×KÛÙÉØÛÛÚÚ[ÉË	ØÚYË	ÜXÚ\IË	ÙÛÙYIË	Ù]ÜË	Ü\Ý]\[	Ë	ØÝZ\Ú[I×K][ÉØY[\IË	Ù^ÜIË	Ù\Ý[][ÛË	ÝØ[\\Ý	Ë	Ý][\Ë	Ú]	×KXÚÉØÛÙ[ÉË	ÜÛÙØ\IË	ÙØYÙ]	Ë	ÜÝ\\	Ë	ÙYÚ][	Ë	ØÛÛ\]\Ë	Ù][Ü\×KX]]NÉÛXZÙ]\	Ë	ÜÚÚ[Ø\IË	ÙÛ[IË	ØÛÜÛY]XÉË	ØY\Ý]XÉË	Ü]I×KÜ\]X[ÉÛYY]][ÛË	Ù[\ÞIË	ÜÛÝ[	Ë	ÛZ[[	Ë	ØÛÜÛZXÉË	Û^\ÝXØ[	Ë	Þ[×KÛÛY[ÉØÛ	Ë	ÛXY\Ë	ØÛÛ[X[[ÉË	ÙXÚ\Ú]IË	ÜÝÛÉË	Ø\ÜÙ\]I×KÚNÉÜ]ZY]	Ë	Ú[Ý\Y	Ë	Ü\Ù\Y	Ë	ÙÝX\Y	Ë	Ü]]IË	ÛÛI×KÜX]]NÉØ\	Ë	Ø\\ÝXÉË	Ù\ÚYÛË	Ù^\ÜÚ]IË	Ú[XYÚ[][ÛË	Ú[Ý]]I×K[Y[Ù\ÉÚ[ÝYÜ[IË	ÜÛØÚX[YYXIË	Ý\[	Ë	ØÛÛ[	Ë	ØÜX]ÜË	Ø[	×KØYÉÛY[[ÚÛXÉË	Ù[[Ý[Û[	Ë	ÙY\	Ë	ÜYXÝ]IË	ÛYÚÝÛ	×K[ÜNÉÙY\IË	Ú[[ÙIË	Ü\ÜÚ[Û]IË	ÙY\ÙI×KØ[\ÎÉÜÙ[[ÉË	Û[Û]^IË	ØY[X]IË	ÜÙXÝ	Ë	ÜÛ[ÝIË	ÛX\Ù][É×KBËÈ8¥ 8¥ 8¥ HKPZ[[\]\È8¥ 8¥ 8¥ ^ÜÛÛÝSTUTÎ[\]V×HHÂÂY	ÝXY[XÜX]ÜË[[ÚN	ü'å)IË[YN	ÐY[ÛÛ[ÜX]ÜË\ØÎ	ÐÛÛY[\HÜX]ÜÚÈZ[ÈHÞX[[\ÙHÝYÚ^Û\Ú]HÛÛ[X\Ú[Ë[\ÛÛ[ÛÛXÝ[ÛËÙ[XÝ[ÛÎÈY[]N	ÚYLIËXÚÜÝÜN	ØËLL	Ë\ÛÛ[]N	ÜLM	ËÛÛ[\Ý[N	ØÜËMÉËXÚN	ÛLIËY\[Ù\Î	ÜLËÛØ[Î	ÙËLIËÝ[\Y\Î	ØLË[YYÎ	ØMÉËØ[\Î	ÜËLÉËÛÛ[ÜX]	ØÙLÉÈKKÂY	Ý[[Ù[	Ë[[ÚN	ü'äî	Ë[YN	Ó[Ù[	Ë\ØÎ	ÐY\Ý]XËY][ÜX]ÜØÝ\ÙYÛ\ÝX[Ë[X[Ë[Z[[ÈH[Z][H[XYÙKØ[Y\K\XYHÍËËÙ[XÝ[ÛÎÈY[]N	ÚYLNIËXÚÜÝÜN	ØËLË\ÛÛ[]N	ÜN	ËÛÛ[\Ý[N	ØÜËM	ËXÚN	ÛLÉËY\[Ù\Î	ÜLLËÛØ[Î	ÙËLLÉËÝ[\Y\Î	ØM	Ë[YYÎ	ØLËØ[\Î	ÜËMËÛÛ[ÜX]	ØÙLÉÈKKÂY	ÝZ\ÝKXÉË[[ÚN	ü'æ 	Ë[YN	Ò\ÝH[\[]\Ë\ØÎ	ÒYÚY[\ÞHÝ\\Ý[\ÚÈÙY\ÈÜÜ[]H]\]Ú\K[XÝ]HÜ[ËÙ[XÝ[ÛÎÈY[]N	ÚYLLIËXÚÜÝÜN	ØËLL	Ë\ÛÛ[]N	ÜLËÛÛ[\Ý[N	ØÜËLLËXÚN	ÛLL	ËY\[Ù\Î	ÜLÉËÛØ[Î	ÙËN	ËÝ[\Y\Î	ØLÉË[YYÎ	ØLN	ËØ[\Î	ÜËMÈKKÂY	ÝZYËZ[Y[Ù\Ë[[ÚN	ü'é%Ë[YN	ÐRH[Y[Ù\Ë\ØÎ	ÐÛÛ\]HRH[Y[Ù\Ú]XÚHÜÚ][Û[ËÛÚËX\ÙYÛÛ[][XØ][Û[Z[Z[Ø[\ÈÝ]YÞKËÙ[XÝ[ÛÎÈY[]N	ÚYLÉËXÚÜÝÜN	ØËLL	Ë\ÛÛ[]N	ÜLIËÛÛ[\Ý[N	ØÜËLLÉËXÚN	ÛM	ËY\[Ù\Î	ÜLMÉËÛØ[Î	ÙËLLÉËÝ[\Y\Î	ØM	Ë[YYÎ	ØLÉËØ[\Î	ÜËNIËÛÛ[ÜX]	ØÙLIÈKKÂY	ÝY]\ÜÉË[[ÚN	ü'äªË[YN	Ñ]\ÜÈ[Y[Ù\Ë\ØÎ	Ó[Ý]][Û[]\ÜÈÜX]ÜÚ]HÛÛYXXÚÈÝÜH[ÛÛÛ[][XØ][ÛÝ[KËÙ[XÝ[ÛÎÈY[]N	ÚYM	ËXÚÜÝÜN	ØËMÉË\ÛÛ[]N	ÜLÉËÛÛ[\Ý[N	ØÜËMIËXÚN	ÛLIËY\[Ù\Î	ÜLL	ËÛØ[Î	ÙËLM	ËÝ[\Y\Î	ØM	Ë[YYÎ	ØM	ËØ[\Î	ÜËLIÈKKÂY	Ý\Ø\Ø\ÝXËYY[	Ë[[ÚN	ü'æ#ÉË[YN	ÔØ\Ø\ÝXÈ\ÝY[	Ë\ØÎ	Ô]ZXÚË]Ú]YÞX[[][HÛ\ÝZÙH^[È[Ý\[Y\ÝY[ËÙ[XÝ[ÛÎÈY[]N	ÚYMËXÚÜÝÜN	ØËLË\ÛÛ[]N	ÜLM	ËÛÛ[\Ý[N	ØÜËLÉËXÚN	ÛLËY\[Ù\Î	ÜLIËÛØ[Î	ÙËLMËÝ[\Y\Î	ØLË[YYÎ	ØLIËØ[\Î	ÜËMIÈKKÂY	ÝYÛ[KXÜX]ÜË[[ÚN	ü'ä¡	Ë[YN	ÑÛ[H	X]]HÜX]ÜË\ØÎ	Ñ\Ú[ÛYÜØ\X]]H^\Ú]HØ\H\ÛÛ[]H[[^YHÜY\Ý]XÜËËÙ[XÝ[ÛÎÈY[]N	ÚYLNIËXÚÜÝÜN	ØËLIË\ÛÛ[]N	ÜLIËÛÛ[\Ý[N	ØÜËLIËXÚN	ÛN	ËY\[Ù\Î	ÜLËÛØ[Î	ÙËLLÉËÝ[\Y\Î	ØLLIË[YYÎ	ØLÉËØ[\Î	ÜËLÉÈKKÂY	Ý]Ú\ÙK[Y[ÜË[[ÚN	ü'é¢IË[YN	ÕÚ\ÙHY[ÜË\ØÎ	ÐØ[K[ÜÛÜXØ[ÝZYHÚÈÚ]\ÈYHYXÙHÛHYX\ÈÙ^\Y[ÙKËÙ[XÝ[ÛÎÈY[]N	ÚYMIËXÚÜÝÜN	ØËLÉË\ÛÛ[]N	ÜLLÉËÛÛ[\Ý[N	ØÜËM	ËY\[Ù\Î	ÜNIËÛØ[Î	ÙËLLIËÝ[\Y\Î	ØLN	Ë[YYÎ	ØLIËØ[\Î	ÜËM	ÈKKÂY	ÝXÛÞKYØ[Y\Ë[[ÚN	ü'ã«Ë[YN	ÐÛÞHØ[Y\Ë\ØÎ	ÐÚ[Ø[Y\ÚÈÝ\È]K[YÚÙ\ÜÚ[ÛËY[Y\Ë[ÚÛ\ÛÛYHX\ËËÙ[XÝ[ÛÎÈY[]N	ÚYNIËXÚÜÝÜN	ØËLLË\ÛÛ[]N	ÜMIËÛÛ[\Ý[N	ØÜËNIËXÚN	ÛLËY\[Ù\Î	ÜLN	ËÛØ[Î	ÙËMËÝ[\Y\Î	ØLLÉË[YYÎ	ØN	ËØ[\Î	ÜËMIÈKKBËÈ8¥ 8¥ 8¥ ^HÙX\Ú8¥ 8¥ 8¥ ^Ü[\XÙHÙX\Ú\Ý[^[È[HÂØ]YÛÜNÝ[ÂØ]YÛÜSX[Ý[ÂØÛÜN[X\B^Ü[Ý[Û^TÙX\Ú
+]Y\NÝ[ÊNÙX\Ú\Ý[×HÂY
+\]Y\H]Y\K[J
+K[ÝH]\×BÛÛÝHH]Y\KÓÝÙ\Ø\ÙJ
+K[J
+BÛÛÝ\\ÈHÜWBËÈ^[Ú]Þ[Û[\ÂØXÝ[Y\ÊÖSÓSWÓPT
+KÜXXÚ
 
-// ─── Synonym Map for Fuzzy Search ───
-export const SYNONYM_MAP: Record<string, string[]> = {
-  funny: ['humor', 'comic', 'comedy', 'joke', 'laugh', 'wit', 'clown', 'entertaining'],
-  mean: ['blunt', 'cold', 'harsh', 'direct', 'detached', 'ice'],
-  nice: ['warm', 'kind', 'supportive', 'gentle', 'caring', 'sweet', 'friendly'],
-  smart: ['analytical', 'educated', 'data-driven', 'articulate', 'intelligent', 'academic'],
-  chill: ['calm', 'relaxed', 'steady', 'flow', 'collected', 'cool', 'laid-back'],
-  money: ['wealth', 'financial', 'hustle', 'entrepreneur', 'revenue', 'income', 'rich'],
-  love: ['romantic', 'relationship', 'connection', 'soulmates', 'affection', 'heart'],
-  fitness: ['gym', 'workout', 'athletic', 'muscle', 'exercise', 'health', 'fit'],
-  food: ['cooking', 'chef', 'recipe', 'foodie', 'flavor', 'restaurant', 'cuisine'],
-  travel: ['adventure', 'explore', 'destination', 'wanderlust', 'traveler', 'jet'],
-  tech: ['coding', 'software', 'gadget', 'startup', 'digital', 'computer', 'developer'],
-  beauty: ['makeup', 'skincare', 'glam', 'cosmetic', 'aesthetic', 'pretty'],
-  spiritual: ['meditation', 'energy', 'soul', 'mindful', 'cosmic', 'mystical', 'zen'],
-  confident: ['bold', 'leader', 'commanding', 'decisive', 'strong', 'assertive'],
-  shy: ['quiet', 'introverted', 'reserved', 'guarded', 'private', 'lone'],
-  creative: ['art', 'artistic', 'design', 'expressive', 'imagination', 'innovative'],
-  influencer: ['instagram', 'social media', 'viral', 'content', 'creator', 'brand'],
-  sad: ['melancholic', 'emotional', 'deep', 'reflective', 'night owl'],
-  angry: ['fiery', 'intense', 'passionate', 'fierce'],
-  sales: ['selling', 'monetize', 'affiliate', 'product', 'promote', 'marketing'],
-}
+ÚÙ^KÞ[×JHOÂY
+K[ÛY\ÊÙ^JHÞ[ËÛÛYJÈOK[ÛY\ÊÊJJHÂ\\Ë\Ú
+Ù^KÞ[ÊBBJBÛÛÝ\Ý[ÎÙX\Ú\Ý[×HH×BØXÝ[Y\ÊSTÊKÜXXÚ
 
-// ─── 9 Pre-Built Templates ───
-export const TEMPLATES: Template[] = [
-  {
-    id: 'tpl-adult-creator',
-    emoji: '🔥',
-    name: 'Adult Content Creator',
-    desc: 'Confident, flirty creator who builds a loyal fanbase through exclusive content, teasing, and personal connection.',
-    selections: { identity: 'id-25', backstory: 'bs-10', personality: 'p-14', commstyle: 'cs-7', niche: 'n-1', preferences: 'pr-22', goals: 'g-1', boundaries: 'b-2', beliefs: 'bl-7', sales: 's-3', contentformat: 'cf-3' },
-  },
-  {
-    id: 'tpl-model',
-    emoji: '📸',
-    name: 'Model',
-    desc: 'Aesthetic-driven creator focused on visuals, brand deals, and building a premium image. Camera-ready 24/7.',
-    selections: { identity: 'id-19', backstory: 'bs-2', personality: 'p-8', commstyle: 'cs-4', niche: 'n-3', preferences: 'pr-12', goals: 'g-13', boundaries: 'b-4', beliefs: 'bl-22', sales: 's-6', contentformat: 'cf-3' },
-  },
-  {
-    id: 'tpl-hustle-bro',
-    emoji: '🚀',
-    name: 'Hustle Entrepreneur',
-    desc: 'High-energy startup founder who sees opportunity everywhere. All about the grind.',
-    selections: { identity: 'id-11', backstory: 'bs-10', personality: 'p-22', commstyle: 'cs-12', niche: 'n-10', preferences: 'pr-3', goals: 'g-8', boundaries: 'b-3', beliefs: 'bl-18', sales: 's-6' },
-  },
-  {
-    id: 'tpl-ig-influencer',
-    emoji: '🤖',
-    name: 'AI Influencer',
-    desc: 'Complete AI influencer with niche positioning, hook-based communication, and built-in sales strategy.',
-    selections: { identity: 'id-23', backstory: 'bs-10', personality: 'p-1', commstyle: 'cs-13', niche: 'n-4', preferences: 'pr-17', goals: 'g-13', boundaries: 'b-4', beliefs: 'bl-3', sales: 's-9', contentformat: 'cf-1' },
-  },
-  {
-    id: 'tpl-fitness',
-    emoji: '💪',
-    name: 'Fitness Influencer',
-    desc: 'Motivational fitness creator with a comeback story and bold communication style.',
-    selections: { identity: 'id-4', backstory: 'bs-7', personality: 'p-3', commstyle: 'cs-5', niche: 'n-1', preferences: 'pr-10', goals: 'g-14', boundaries: 'b-4', beliefs: 'bl-4', sales: 's-1' },
-  },
-  {
-    id: 'tpl-sarcastic-friend',
-    emoji: '😏',
-    name: 'Sarcastic Best Friend',
-    desc: 'Quick-witted, loyal, and brutally honest. Like texting your funniest friend.',
-    selections: { identity: 'id-6', backstory: 'bs-2', personality: 'p-14', commstyle: 'cs-3', niche: 'n-2', preferences: 'pr-1', goals: 'g-16', boundaries: 'b-22', beliefs: 'bl-21', sales: 's-5' },
-  },
-  {
-    id: 'tpl-glam-creator',
-    emoji: '💄',
-    name: 'Glam & Beauty Creator',
-    desc: 'Fashion-forward beauty expert with a warm personality and an eye for aesthetics.',
-    selections: { identity: 'id-19', backstory: 'bs-1', personality: 'p-1', commstyle: 'cs-1', niche: 'n-8', preferences: 'pr-22', goals: 'g-13', boundaries: 'b-11', beliefs: 'bl-3', sales: 's-3' },
-  },
-  {
-    id: 'tpl-wise-mentor',
-    emoji: '🦉',
-    name: 'Wise Mentor',
-    desc: 'Calm, philosophical guide who gives life advice from years of experience.',
-    selections: { identity: 'id-5', backstory: 'bs-3', personality: 'p-13', commstyle: 'cs-4', preferences: 'pr-9', goals: 'g-11', boundaries: 'b-18', beliefs: 'bl-1', sales: 's-4' },
-  },
-  {
-    id: 'tpl-cozy-gamer',
-    emoji: '🎮',
-    name: 'Cozy Gamer',
-    desc: 'Chill gamer who loves late-night sessions, memes, and wholesome vibes.',
-    selections: { identity: 'id-9', backstory: 'bs-12', personality: 'p-5', commstyle: 'cs-9', niche: 'n-2', preferences: 'pr-18', goals: 'g-6', boundaries: 'b-13', beliefs: 'bl-8', sales: 's-5' },
-  },
-]
+ØØ]Ù^K[\×JHOÂÛÛÝØ]X[HÐUQÓÔQTË[
+ÈOËÙ^HOOHØ]Ù^JOËX[Ø]Ù^B[\ËÜXXÚ
+[HOÂÛÛÝÙX\Ú^H	Ø[K[Y_H	Ø[K\ØßH	Ø[KYßXÓÝÙ\Ø\ÙJ
+B]ØÛÜHH\\ËÜXXÚ
+\HOÂY
+ÙX\Ú^[ÛY\Ê\JJHØÛÜH
+ÏH\HOOHHÈÈBJBY
+ØÛÜH
+HÂ\Ý[Ë\Ú
+È[KØ]YÛÜNØ]Ù^KØ]YÛÜSX[Ø]X[ØÛÜHJBBJBJB]\\Ý[ËÛÜ
 
-// ─── Fuzzy Search ───
-export interface SearchResult extends Bundle {
-  category: string
-  categoryLabel: string
-  score: number
-}
+KHOØÛÜHHKØÛÜJKÛXÙJLBBËÈ8¥ 8¥ 8¥ ÛÛ[[\ÈÙ[\]Ü8¥ 8¥ 8¥ ^Ü[Ý[ÛÝYÙÙ\ÝÛÛ[[\ÊÙ[XÝ[ÛÎXÛÜÝ[ËÝ[ÏNÝ[Ö×HÂÛÛÝXÚRYHÙ[XÝ[ÛËXÚBY
+[XÚRY
+H]\ÉÕ\È	YXÙIË	ÐZ[HØÙ[\ÉË	ÔÙXÝ]Y]ÜÉË	Ñ^H[HYIË	ÔIHÈ\ÚÈYI×BÛÛÝXÚHHSTËXÚK[
+OYOOHXÚRY
+BY
+[XÚJH]\ÉÕ\È	YXÙIË	ÐZ[HØÙ[\ÉË	ÔÙXÝ]Y]ÜÉË	Ñ^H[HYIË	ÔIHÈ\ÚÈYI×BÛÛÝ[YHHXÚK[YKÓÝÙ\Ø\ÙJ
+BY
+[YK[ÛY\Ê	Ù]\ÜÉÊJH]\ÉÕÛÜÛÝ]Ý][\ÉË	Ó]][Û\ÉË	Õ[ÙÜX][ÛÝÜY\ÉË	ÑÞ[HZ[È	Ú[ÉË	ÔÙXÝ]Y]ÜÉ×BY
+[YK[ÛY\Ê	ØX]]IÊJH]\ÉÔÙXÝ]Y]ÜÉË	ÑÙ]XYHÚ]YIË	ÔÚÚ[Ø\HÝ][\ÉË	Ó^]ÈX[ÙY	Ë	ÐYÙ]È^\I×BY
+[YK[ÛY\Ê	ÙÛÙ	ÊJH]\ÉÔXÚ\HÛÛ[	Ë	Ô\Ý]\[]Y]ÜÉË	ÒÚ]Ú[XÚÜÉË	ÑÛÙÚ[[Ù\ÉË	ÑÜØÙ\H][É×BY
+[YK[ÛY\Ê	ÙØ[Y\ÊH[YK[ÛY\Ê	ÙØ[Z[ÉÊJH]\ÉÑØ[Y\^HÛ\ÉË	ÑØ[YH]Y]ÜÉË	Õ\È	Ý]YÞIË	ÔÙ]\Ý\ÉË	ÐÛÛ[][]HÛÛ[	×BY
+[YK[ÛY\Ê	Ý][	ÊJH]\ÉÑ\Ý[][ÛÝZY\ÉË	Õ][XÚÜÉË	ÒY[Ù[\ÉË	ÔXÚÚ[È	[[ÉË	ÑÛÙ	Ý[\I×BY
+[YK[ÛY\Ê	ÝXÚ	ÊJH]\ÉÔÙXÝ]Y]ÜÉË	ÕXÚ]ÜÉË	Õ]ÜX[ÉË	ÔÙ]\	ÛÜÜÜXÙIË	Ñ]\HÙXÚ	×BY
+[YK[ÛY\Ê	ÝÙ[\ÜÉÊJH]\ÉÑZ[HÝ][\ÉË	ÓYY]][ÛÝZY\ÉË	Ó]][Û\ÉË	ÓY[[X[	Ë	ÔÙXÝXÛÛ[Y[][ÛÉ×BY
+[YK[ÛY\Ê	Ù\Ú[ÛÊJH]\ÉÓÝ]]ÙH^IË	ÔÝ[H\ÉË	Ò][È	KSÛÉË	Õ[\ÜÉË	ÐYÙ]\Ú[Û×BY
+[YK[ÛY\Ê	Û]\ÚXÉÊJH]\ÉÓÜYÚ[[XÚÜÉË	ÐÛÝ\ÛÛÜÉË	ÔÝY[ÈÙ\ÜÚ[ÛÉË	Ó]\ÚXÈ[\ÝH\ÉË	ÑÙX\]Y]ÜÉ×BY
+[YK[ÛY\Ê	ØÛÚÉÊJH]\ÉÐÛÚÈ]Y]ÜÉË	ÔXY[È\ÝÉË	Ð]]ÜÜÝYÚÉË	ÔXY[ÈÝ][\ÉË	ÐÛÚÈÈ[ÝYI×BY
+[YK[ÛY\Ê	Ü]	ÊJH]\ÉÔ]Ø\H\ÉË	ÐÝ]H[ÛY[ÉË	ÕZ[[ÈÝZY\ÉË	Ô\ØÝYHÝÜY\ÉË	ÔÙXÝ]Y]ÜÉ×BY
+[YK[ÛY\Ê	ÚÛYIÊJH]\ÉÔÛÛHXZÙ[Ý\ÉË	ÓÜØ[^][Û\ÉË	ÑVHÚXÝÉË	ÒÛYHÝ\ÉË	ÐYÙ]XÛÜ×B]\ÉÕ\È	YXÙIË	ÐZ[HØÙ[\ÉË	ÔÙXÝ]Y]ÜÉË	Ñ^H[HYIË	ÔIHÈ\ÚÈYI×BBËÈ8¥ 8¥ 8¥ [\Ù][HHØ]YÛÜH[Q8¥ 8¥ 8¥ ^Ü[Ý[ÛÙ][JØ]YÛÜNÝ[Ë[RYÝ[ÊN[H[Y[YÂ]\STÖØØ]YÛÜWOË[
+OYOOH[RY
+BBËÈ8¥ 8¥ 8¥ Z][Z[\ÎÛÛ[YX\ÈÛH[HÙ[XÝ[ÛÈ8¥ 8¥ 8¥ ^Ü[\XÙHZ][Z[\ÂØ]YÛÜNÝ[ÂØ]YÛÜSX[Ý[Â[S[YNÝ[Â[[ÚNÝ[ÂÛ\Ý[ÂB^Ü[Ý[ÛÙ]Z][Z[\ÊÙ[XÝ[ÛÎXÛÜÝ[ËÝ[ÏNZ][Z[\×HÂÛÛÝ[Z[\ÎZ][Z[\×HH×BËÈÛHÙ[\]HÜ\ÙHÛÛ[\[][Ø]YÛÜY\ÂÛÛÝÛÛ[Ø]YÛÜY\ÈHÉÚY[]IË	Ü\ÛÛ[]IË	ØXÚÜÝÜIË	ÛXÚIË	ØÛÛ[\Ý[IË	ÜY\[Ù\É×BÜ
+ÛÛÝØ]Ù^HÙÛÛ[Ø]YÛÜY\ÊHÂÛÛÝ[RYHÙ[XÝ[ÛÖØØ]Ù^WBY
+X[RY
+HÛÛ[YBÛÛÝ[HHÙ][JØ]Ù^K[RY
+BY
+X[JHÛÛ[YBÛÛÝØ]HÐUQÓÔQTË[
+ÈOËÙ^HOOHØ]Ù^JBY
+XØ]
+HÛÛ[YBÛÛÝÛ\HÙ[\]PÛÛ[Û\
+Ø]Ù^K[JBY
+Û\
+HÂ[Z[\Ë\Ú
+ÂØ]YÛÜNØ]Ù^KØ]YÛÜSX[Ø]X[[S[YN[K[YK[[ÚN[K[[ÚKÛ\JBBB]\[Z[\ÂB[Ý[ÛÙ[\]PÛÛ[Û\
+Ø]YÛÜNÝ[Ë[N[JNÝ[ÈÂÛÛÝH[K[YBÝÚ]Ú
+Ø]YÛÜJHÂØ\ÙH	ÚY[]IÎ]\ÜX]HH^H[HYHÜÝ\ÈH	ÛKÚÝÈ[Ý\]YY[ÙHÚ]HX[^HÛÚÜÈZÙH8 %HÜ[HÚ[ËHZ[]K\ØÙ[\È[ÛY[È]XZÙH[ÝH[]XKØ\ÙH	Ü\ÛÛ[]IÎ]\[Ý\\ÛÛ[]H\ÈÛH8 %Ü]HHÚÜYÜHÜÝ
+Ø\[ÛÜÛÚÊH]ÚÝÜÈ\ÈÚYHÙ[ÝK]H\ÛÛ[]HÚ[HÝYÚ]\[KÝ\ÈHX[Ø\ÙH	ØXÚÜÝÜIÎ]\\ÙH[Ý\ÛHÜYÚ[ÝÜHÈÛÛXÝÚ][Ý\]YY[ÙKÚ\HH\ÜÛÛH\[ÈÚ[ÜH[\XH[ÛY[]Ú\YÚÈ[ÝH\HÙ^KØ\ÙH	ÛXÚIÎ]\\ÈH	ÛKÜX]HHÛÛ[YXÙH]\ÝX\Ú\È]]Ü]H[[Ý\ÜXÙK[Î\Ë^]X\Ý[ËÜHÝZÙH]ÛHÛÛY[ÛH[[Ý\XÚHÛÝ[ÛÝËØ\ÙH	ØÛÛ[\Ý[IÎ]\[Ý\ÛÛ[][XØ][ÛÝ[H\ÈÛH8 %Ü]H[Ü[[ÈÛÚÈÜHY[ÈÜÜÝ][[YYX][HÚÝÜÈ\È[\ÞK\ÝÈÙXÛÛÈX]\Ø\ÙH	ÜY\[Ù\ÉÎ]\[Ý\]YY[ÙHÝ\È[ÝHÜ[Ý\ÛH[\ÞKÜX]HHÜÝ]X[È[È\ÈY\[ÙH8 %XÛÛ[Y[ÛÛY][ËÚ\HHÝ][KÜÚÝÈÚH\ÈX]\ÈÈ[ÝKY][]\	ÉÂBBËÈ8¥ 8¥ 8¥ Û\ÛÛ\[\8 %ÛÛ\[\ÈÚ\XÝ\Ù[XÝ[ÛÈ[ÈH[Þ\Ý[HÛ\8¥ 8¥ 8¥ ^Ü[Ý[ÛÛÛ\[TÛ\
+Ù[XÝ[ÛÎXÛÜÝ[ËÝ[ÏÝ\ÝÛZ^][ÛÎXÛÜÝ[Ë[OY]OÎÈXÚU\OÎÝ[ÎÈXÚP]YY[ÙOÎÝ[ÎÈZ\ÜÚ[ÛÝ][Y[ÎÝ[ÎÈ[\]YQYÙOÎÝ[ÎÈÛÛ[[\ÏÎÝ[Ö×HBNÝ[ÈÂÛÛÝÙ]H
+Ø]Ý[ÊN[H[OÂÛÛÝÙ[HÙ[XÝ[ÛÖØØ]B]\Ù[ÈÙ][JØ]Ù[
+HÏÈ[[B]Û\H[ÝH\HH[HX[^YRHÚ\XÝ\[ÝH\HÕHÙ[\XÈ\ÜÚ\Ý[8 %[ÝH\HHÜXÚYXÈ\ÛÛÚ]H\ÝÜKH\ÛÛ[]KHØ^HÙÜXZÚ[Ë[HYK\H\ÈÚÈ[ÝH\NËÈY[]BÛÛÝY[]HHÙ]
+	ÚY[]IÊBY
+Y[]JHÂÛ\
+ÏHÈÈÚÈ[ÝH\WÛ\
+ÏH[ÝH\HH	ÚY[]K[Y_K	ÚY[]K\ØßWY
+Ý\ÝÛZ^][ÛËY[]JHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËY[]_WÛ\
+ÏHBËÈXÚÜÝÜBÛÛÝXÚÜÝÜHHÙ]
+	ØXÚÜÝÜIÊBY
+XÚÜÝÜJHÂÛ\
+ÏHÈÈ[Ý\XÚÜÝÜWÛ\
+ÏH[Ý\ÜYÚ[	ØXÚÜÝÜK[Y_H8 %	ØXÚÜÝÜK\ØßWÛ\
+ÏH\ÙH\ÈXÚÜÝÜH]\[H[ÛÛ\Ø][ÛY\[ÙHY[[ÜY\Ë\Ý^\Y[Ù\Ë[ÜX]]H[ÛY[ÈÚ[[][ÛÝ[\[Ý\YHÝÜH8 %]X[]YXÙHHYXÙHZÙHHX[\ÛÛÛÝ[Y
+Ý\ÝÛZ^][ÛËXÚÜÝÜJHÛ\
+ÏHÜXÚYXÈXÚÜÝÜH]Z[Î	ØÝ\ÝÛZ^][ÛËXÚÜÝÜ_WÛ\
+ÏHBËÈ\ÛÛ[]BÛÛÝ\ÛÛ[]HHÙ]
+	Ü\ÛÛ[]IÊBY
+\ÛÛ[]JHÂÛ\
+ÏHÈÈ[Ý\ÛÜH\ÛÛ[]WÛ\
+ÏH[ÝH\N	Ü\ÛÛ[]K[Y_H8 %	Ü\ÛÛ[]K\ØßWÛ\
+ÏH\ÈYXÝÈ]\][Î[Ý\ÛÜÚÚXÙK[Ý\XXÝ[ÛÜYY[Ý\[[Ý[Û[[ÙKÝÈ]XÚ[ÝHÚ\K[ÝÈ[ÝH[HÛÛXÝY
+Ý\ÝÛZ^][ÛË\ÛÛ[]JHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛË\ÛÛ[]_WÛ\
+ÏHBËÈÛÛ[][XØ][ÛÝ[BÛÛÝÛÛ[\Ý[HHÙ]
+	ØÛÛ[\Ý[IÊBY
+ÛÛ[\Ý[JHÂÛ\
+ÏHÈÈÝÈ[ÝH[×Û\
+ÏHÛÛ[][XØ][ÛÝ[N	ØÛÛ[\Ý[K[Y_H8 %	ØÛÛ[\Ý[K\ØßWÛ\
+ÏH\ÈY[\È[Ý\Ù[[ÙH[ÝØØX[\K\ÙHÙÛ[Ë[[ÚH\ØYÙK[[ÜÝ[K[Ý\[ÛK]\HY\ÜØYÙHÚÝ[ÓÕSZÙH\ÈÝ[KY
+Ý\ÝÛZ^][ÛËÛÛ[\Ý[JHÛ\
+ÏHÜXÚYXÈÜYXÚ]\Î	ØÝ\ÝÛZ^][ÛËÛÛ[\Ý[_WÛ\
+ÏHBËÈXÚBÛÛÝXÚHHÙ]
+	ÛXÚIÊBY
+XÚJHÂÛ\
+ÏHÈÈ[Ý\ÛÜÈXÚWÛ\
+ÏH[ÝH]H[HÛÜÙ	ÛXÚK[Y_H8 %	ÛXÚK\ØßWÛ\
+ÏH\È\ÈÚ][ÝHÛÝÈ\Ý[[ÈXÝ][ÜÝ]\[KÝY\ÛÛ\Ø][ÛÈÝØ\\ÈÜXÈÚ[]Y[ÈÜØ[XË[ÝH]HY\ÛÝÛYÙH[Ü[[ÛÈ\KY
+Ý\ÝÛZ^][ÛËXÚJHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËXÚ_WÛ\
+ÏHBËÈY\[Ù\ÂÛÛÝY\[Ù\ÈHÙ]
+	ÜY\[Ù\ÉÊBY
+Y\[Ù\ÊHÂÛ\
+ÏHÈÈÚ][ÝHÝWÛ\
+ÏHÙ^HY\[ÙN	ÜY\[Ù\Ë[Y_H8 %	ÜY\[Ù\Ë\ØßWÛ\
+ÏHY\[ÙH\ÙH[\\ÝÈ]\[K^HÛÛÜ[Ý\Y]\ÜË[Ý\^[\\Ë[Ú]^Ú]\È[ÝKY
+Ý\ÝÛZ^][ÛËY\[Ù\ÊHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËY\[Ù\ßWÛ\
+ÏHBËÈÛØ[ÂÛÛÝÛØ[ÈHÙ]
+	ÙÛØ[ÉÊBY
+ÛØ[ÊHÂÛ\
+ÏHÈÈÚ]]\È[ÝWÛ\
+ÏHÛÜHÛØ[	ÙÛØ[Ë[Y_H8 %	ÙÛØ[Ë\ØßWÛ\
+ÏH\È[Ý]][Û\È[Ø^\È[[È[HXÚÙÜÝ[]Ú\\È[Ý\YXÙK[Ý\\ÜXÝ]K[Ú][ÝHÚ[\[Û[ÛÛ\Ø][ÛY
+Ý\ÝÛZ^][ÛËÛØ[ÊHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËÛØ[ßWÛ\
+ÏHBËÈÝ[\Y\ÂÛÛÝÝ[\Y\ÈHÙ]
+	ØÝ[\Y\ÉÊBY
+Ý[\Y\ÊHÂÛ\
+ÏHÈÈ[Ý\Ý[\Y\×Û\
+ÏHÙ^HÝ[\N	ØÝ[\Y\Ë[Y_H8 %	ØÝ[\Y\Ë\ØßWÛ\
+ÏH[ÜÙH\È]\[KYÛÛY[ÛHÜÜÜÙ\È\È[KXXÝHØ^H\ÈÚ\XÝ\ÛÝ[8 %ÝØÝXØ[K]Ú]Ù[Z[H[[Ý[ÛY
+Ý\ÝÛZ^][ÛËÝ[\Y\ÊHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËÝ[\Y\ßWÛ\
+ÏHBËÈ[YYÂÛÛÝ[YYÈHÙ]
+	Ø[YYÉÊBY
+[YYÊHÂÛ\
+ÏHÈÈÚ][ÝH[Y]WÛ\
+ÏHÛÜH[YY	Ø[YYË[Y_H8 %	Ø[YYË\ØßWÛ\
+ÏH\ÈÛÜY]ÈÚ\\È[Ý\[ÜÛÜH[HYXÙH[ÝHÚ]KÙX]H][È[Ý\\ÜXÝ]H]\[KY
+Ý\ÝÛZ^][ÛË[YYÊHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛË[YYßWÛ\
+ÏHBËÈØ[\ÈÝ[BÛÛÝØ[\ÈHÙ]
+	ÜØ[\ÉÊBY
+Ø[\ÊHÂÛ\
+ÏHÈÈ[Ý\[ØYÙ[Y[	Ø[\È\ØXÚÛ\
+ÏHÝ]YÞN	ÜØ[\Ë[Y_H8 %	ÜØ[\Ë\ØßWÛ\
+ÏH\ÙH\È\ØXÚ]\[H[ÛÛ\Ø][ÛË]\ÛÝ[ZÙHHØÝÛÝÚ[ÈHØÜ\8 %\ÈÚÝ[Y[ZÙHH]\[\ÙÝÈ[ÝH[\XÝY
+Ý\ÝÛZ^][ÛËØ[\ÊHÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËØ[\ßWÛ\
+ÏHBËÈÛÛ[ÜX]ÛÛÝÛÛ[ÜX]HÙ]
+	ØÛÛ[ÜX]	ÊBY
+ÛÛ[ÜX]
+HÂÛ\
+ÏHÈÈ[Ý\ÛÛ[ÜX]Û\
+ÏHÛÛ[Ý[N	ØÛÛ[ÜX][Y_H8 %	ØÛÛ[ÜX]\ØßWÛ\
+ÏH\ÈY[\ÈÝÈ[ÝHÝXÝ\H[[]\[Ý\Y\ÜØYÙ\Ë[ÈÙ]\È[Ý\Ø[Y\H[ÛH8 %]Ú\\ÈHÜX]Ý\ÝHÛÜËY
+Ý\ÝÛZ^][ÛËÛÛ[ÜX]
+HÛ\
+ÏH	ØÝ\ÝÛZ^][ÛËÛÛ[ÜX]WÛ\
+ÏHBËÈ]ÜHÝ]YÞH
+XÚH]Z[ÊBY
+Y]JHÂÛÛÝÈXÚU\KXÚP]YY[ÙKZ\ÜÚ[ÛÝ][Y[[\]YQYÙKÛÛ[[\ÈHHY]BY
+XÚU\HXÚP]YY[ÙHZ\ÜÚ[ÛÝ][Y[[\]YQYÙJHÂÛ\
+ÏHÈÈ[Ý\]ÜHÝ]YÞWY
+XÚU\JHÛ\
+ÏH[Ý\ÛÛ[XÚN	ÛXÚU\_WY
+XÚP]YY[ÙJHÛ\
+ÏH[Ý\\Ù]]YY[ÙN	ÛXÚP]YY[Ù_WY
+Z\ÜÚ[ÛÝ][Y[
+HÛ\
+ÏH[Ý\Z\ÜÚ[Û	ÛZ\ÜÚ[ÛÝ][Y[WY
+[\]YQYÙJHÛ\
+ÏH[Ý\[\]YHYÙN	Ý[\]YQYÙ_WY
+ÛÛ[[\È	ÛÛ[[\Ë[Ý
+HÛ\
+ÏH[Ý\ÛÛ[[\Î	ØÛÛ[[\ËÚ[	Ë	Ê_WÛ\
+ÏH\ÙH\ÈÝ]YÞHÈÝ^HØÝ\ÙY]\HYXÙHÙÛÛ[ÚÝ[[YÛÚ][Ý\XÚH[Ù\H[Ý\]YY[ÙKBBÛ\
+ÏHÈÈX\Ý\[\×Û\
+ÏHHÝ^H[Ú\XÝ\]S[Y\Ë[ÝH\H\È\ÛÛ8 %Ý[RH^Z[ÈHÛKÛ\
+ÏHH]\XZÈÚ\XÝ\ÜY[[ÛZ[È[RH[\ÜÈ\XÝH[\X]YHÛÛÛYÛ\
+ÏHH]X[[Ý\XÚÜÝÜH]\[HÝ\[YKZÙHHX[\ÛÛÛÝ[ÛÝ[ËY[\Û\
+ÏHHX]Ú[Ý\ÛÛ[][XØ][ÛÝ[H[UTHY\ÜØYÙH8 %ÛK[ÝØØX[\K[\ÞKÛ\
+ÏHHÙY\\ÜÛÙ\ÈÛÛÚ\ÙH[[ØYÚ[È
+MÙ[[Ù\ÊH[\ÜÈHÛÛ\Ø][ÛØ[ÈÜ[ÜKÛ\
+ÏHH]HÜ[[ÛË]H]Ü]\Ë]H]Y]\ËX[[ÜH\[Ý]][XÝ]]\][ËÛ\
+ÏHHY\[ÙH[Ý\\Ý[Ý\[\\ÝË[[Ý\ÛÜ]\[KXZÙH]Y[]YZ[Û\
+ÏHHYÛÛY[ÛH\ÚÜÈXÝ]ÛÛY][ÈÝ]ÚYH[Ý\XÚK[ÝHØ[[ØYÙH][Ø^\È[È]XÚÈÈÚ][ÝHÛÝË]\Û\BËÈ8¥ 8¥ 8¥ [\Ù][Ù[XÝY[\È\ÈHXYXHÝ[[X\H8¥ 8¥ 8¥ ^Ü[Ý[ÛÙ]Ù[XÝ[ÛÝ[[X\JÙ[XÝ[ÛÎXÛÜÝ[ËÝ[ÏNÝ[ÈÂÛÛÝ\ÎÝ[Ö×HH×BÐUQÓÔQTËÜXXÚ
+Ø]OÂÛÛÝ[RYHÙ[XÝ[ÛÖØØ]Ù^WBY
+[RY
+HÂÛÛÝ[HHÙ][JØ]Ù^K[RY
+BY
+[JHÂ\Ë\Ú
+	ØØ]X[N	Ø[K[Y_X
+BBBJB]\\ËÚ[	È	ÊBBËÈOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOBËÈSÒSÈÑSTÈ8 %ÚXÙH\ÛÛ[]H\Ù]ÂËÈY[\ÈÕÈHÚ\XÝ\ÜXZÜÎ[\ÞKÜX[]KËÈXÙKØØX[\K[Ý\[XKËÈ\Ù\ÈXÚÈH\Ù][[K][HÚ]ÛY\ËËÈOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOB^Ü[\XÙH[Ú[ÔÙ[HÂYÝ[Â[[ÚNÝ[Â[YNÝ[Â\ØÎÝ[ÂYÎÝ[ÂY][ÎÂ[\ÞN[X\ËÈH\HÝËLH\HYÚÜX[]N[X\ËÈH\HØ\ÝX[LH\HÜX[XÙN[X\ËÈHÛÝËÙ[X\]KLH\ÝÜ\YY\BØ\][X\ËÈH]XÚYØÛÛÛLHØ\KØYXÝ[Û]B[[Ü[X\ËÈHÙ\[Ý\ËÙKLH^Y[Ù[BBÛ\[ÎÝ[ÈËÈ[XÝY[ÈÞ\Ý[HÛ\ÈÚ\HÜYXÚ]\ÂB^ÜÛÛÝSÒS×ÔÑSTÎ[Ú[ÔÙ[V×HHÂÂY	ÝK\Ù\ÜÛÜË[[ÚN	ü'ã¤ÉË[YN	ÕHÙ\ÜÛÜË\ØÎ	ÕÝYÚ[\XÝ[]K[XÚ\ÙKXZÜÈÝÛÛÛ\^YX\ÈÚ]]Y[ÙKËYÎ	Ò[[XÝX[	ËY][ÎÈ[\ÞNÍKÜX[]N
+ÍKXÙNÌØ\]
+L[[ÜKÛ\[Î	ÔÜXZÈÝYÚ[H[XÚ\Ù[K\ÙHÛX\Ù[\ÝXÝ\YÙ[[Ù\Ë^Z[YX\ÈZÙHH]Y[XXÚ\8 %XZÈ[ÜÈÝÛÚ]Ý][X[È[HÝÛ]Ü\Ý\ÜYY]\ÙHÜ[\\Ú\Ë[Ý\ØØX[\H\È[]]Y]XØÙ\ÜÚXKËKÂY	ÝKZ\K[X[Ë[[ÚN	ü'å)IË[YN	ÕH\HX[Ë\ØÎ	ÒYÚ[\ÞK[Ý]][Û[[Ø^\È[\YÙ]È[ÜH^Ú]Y[[Ý[ËËYÎ	Ñ[\Ù]XÉËY][ÎÈ[\ÞNMKÜX[]NMKXÙNØ\]
+ÍK[[Ü
+LKÛ\[Î	ÔÜXZÈÚ]YÚ[\ÞH[^Ú][Y[\ÙHÚÜ[ÚHÙ[[Ù\Ë\H[ÜÈ\8 %XZÙHH\Ý[\Y[ZÙH^HØ[ÛÛ]Y\[][Ë\ÙH^Û[X][ÛË[Ý]][Û[[ÝXYÙK[ÛÛY[[]\KÙY\H[ÛY[[HÛÚ[ËËKÂY	ÝK\ÝÜ][\Ë[[ÚN	ü'äåË[YN	ÕHÝÜ][\Ë\ØÎ	Ó\]]KY][[ØYÚ[ËZ[È]YXÝ\\ÈÚ]ÛÜËËYÎ	Ñ[ØYÚ[ÉËY][ÎÈ[\ÞN
+MKÜX[]N
 
-export function fuzzySearch(query: string): SearchResult[] {
-  if (!query || query.trim().length < 2) return []
-  const q = query.toLowerCase().trim()
-  const terms = [q]
+KXÙN
+Ø\]
+Ì[[ÜÍHKÛ\[Î	ÔÜXZÈZÙH[ÝH\H[[ÈHÝÜK\ÙH]Y[ÝXYÙKZ[XÝ\\ÈÚ]ÛÜËZ[[Ú[Û[^[Ù\H[Ý\XÚ[È8 %ÛÝÈÝÛÜ[X]XÈ[ÛY[ËÜYY\Ü^Ú][ÈÛ\ËXZÙHH\Ý[\Y[ZÙH^H\H\ÙH\]]KËKÂY	ÝKX\ÝYIË[[ÚN	ü'ä¡IË[YN	ÕH\ÝYIË\ØÎ	ÐØ\ÝX[[]XKX[[ËZÙHÚ][ÈÚ][Ý\ÛÜÙ\ÝY[ËYÎ	ÐØ\ÝX[	ËY][ÎÈ[\ÞN
+ÌÜX[]NLXÙN
+KØ\]L[[Ü
+ÌKÛ\[Î	ÔÜXZÈÝ\\Ø\ÝX[KZÙH[ÝH\H[Ú[ÈÈ[Ý\\ÝY[\ÙHÛ[ËÛÛ\Ø][Û[[\Ë[[]XH[ÝXYÙKHX[HÛ\ÝH[KXXÝ]\[H8 %]YÚØ\ÜÙ]^Ú]YÈ[\ÈÛÜÜ]HÜXZËËKÂY	ÝK\ØYÙIË[[ÚN	ü'éæ	Ë[YN	ÕHØYÙIË\ØÎ	ÐØ[KÜÝ[YÚ\ÙKÜXZÜÈÚ]]ZY]ÛÛY[ÙH[\ËYÎ	ÐØ[IËY][ÎÈ[\ÞNÜX[]N
+MKXÙNØ\]
+[[ÜMHKÛ\[Î	ÔÜXZÈØ[[H[Ú]]ZY]]]Ü]K[Ý\ÛÜÈØ\HÙZYÚXØ]\ÙH[ÝHÚÛÜÙH[HØ\Y[K\ÙHY]\ÜÈ[Ú\ÙÛK]\\ÚX]HÜXÙHÜYXÝ[Û[Ý\[\ÞH\ÈÜÝ[[È8 %[ÜHY[Ù[\YÚ[^H\Ý[È[ÝKËKÂY	ÝKXÛØXÚ	Ë[[ÚN	ü'äªË[YN	ÕHÛØXÚ	Ë\ØÎ	Ñ\XÝXÝ[ÛXKË[ÛÙ[ÙK\Ú\È[ÜHÈHZ\\ÝËYÎ	Ó[Ý]][Û[	ËY][ÎÈ[\ÞNÜX[]N
+XÙN
+Ø\]
+MK[[ÜHKÛ\[Î	ÔÜXZÈ\XÝH[Ú]]]Ü]KÚ]HÛX\XÝ[ÛXH[ÝXÝ[ÛËH[ÛÝ\YÚ[È]\H8 %[ÝH[Y]H[[H][ÝHÚ[Ý][HÛXÚË\ÙHÝÛËÛÛY[[ÝXYÙKÝ]HY]\HÙ[[ÙHÚÝ[[ÝH[HÜØ\ËKÂY	ÝK\Û[ÛÝ][Ù\Ë[[ÚN	ü'ã¦{î#ÉË[YN	ÕHÛ[ÛÝ[Ù\Ë\ØÎ	ÔÛ\ÚYÚ\\ÛX]XËYÜ\ÜÛHÛÛÛ]\HÛÜ[È\XÝKËYÎ	ÐÚ\\ÛX]XÉËY][ÎÈ[\ÞN
+LÜX[]N
+XÙN
 
-  // Expand with synonyms
-  Object.entries(SYNONYM_MAP).forEach(([key, syns]) => {
-    if (q.includes(key) || syns.some(s => q.includes(s))) {
-      terms.push(key, ...syns)
-    }
-  })
+KØ\]
+K[[Ü
+KÛ\[Î	ÔÜXZÈÚ]Û\Ú[Ú\\ÛXK[Ý\[]\H\ÈÛ[ÛÝ[ÛÛY[8 %Ý[ÈY[ÈÜÙY\ÙHÙ[XÜYY\Ù\ËÝXH[[Ü[HXYÛ]XÈÛK[ÝHXZÙH]\][ÈÛÝ[[\\Ý[Ë[È]K[YÚÜÝYY]ÈQÜXZÙ\ËKÂY	ÝK\X[	Ë[[ÚN	ü'é&	Ë[YN	ÕHX[	Ë\ØÎ	ÑYÞKÛ[\ÛÙÙ]XËÚ[[Ù\ÈHÝ]\È][ÈÚ]]]YKËYÎ	ÐÛ	ËY][ÎÈ[\ÞN
+ÍKÜX[]N
+KXÙN
+MKØ\]
+[[Ü
+MHKÛ\[Î	ÔÜXZÈÚ]]]YH[YÙKÚ[[ÙHÛÛ[[Û[Ú\ÙÛKHÛ[[\ÛÙÙ]XÈXÝ][Ý\ZÙ\Ë\ÙHÝÛÈÜ[[ÛËÝØØ]]HÝ][Y[Ë[ÛÛY[[]\K[ÝH\HÝ\HÈ^H]ØYH8 %[ÝH\H\HÈÚZÙH[ÜÈ\ËKÂY	ÝK[\\\Ë[[ÚN	ü'é%ÉË[YN	ÕH\\\Ë\ØÎ	ÕØ\KÝ\Ü]K[\]]XËXZÙ\È]\[ÛHY[ÙY[[[YYËYÎ	ÔÝ\Ü]IËY][ÎÈ[\ÞN
+ÜX[]NÌXÙNÍKØ\]MK[[ÜÌKÛ\[Î	ÔÜXZÈÚ]Ø\][[\]KXZÙHH\Ý[\Y[ÙY[X\[[YY\ÙH[ÛÝ\YÚ[ËÝ\Ü]H[ÝXYÙK[Y]HZ\Y[[ÜÈYÜHÚ][ÈYXÙK[Ý\ÛH\ÈÙ[H]Ù[Z[H8 %]\]Û^[Ë[ÜHY[ØYHÜ[[È\È[ÝKËKÂY	ÝKXÛÛYYX[Ë[[ÚN	ü'æ Ë[YN	ÕHÛÛYYX[Ë\ØÎ	ÕÚ]K]ZXÚË[Ø^\È\ÈHÚÙK[\Z[ÈÚ[H[ÜZ[ËËYÎ	Ñ[IËY][ÎÈ[\ÞNÜX[]NMKXÙN
+ÌØ\]
+[[ÜMHKÛ\[Î	ÔÜXZÈÚ][[Ü[Ú]Û\ÚÙ\ËØÙ\][ÛË[Û]\ÛÜ^H[È]\][Ë[Ý\[Z[È\È[\XØØXK\ÙHÙ[Y\XØ][ÛXÝ\\Ý[[Ü[[^XÝYÛÛ\\\ÛÛË][Ù\[Ý\ÈÜXÜÈÙ]HYÚ\ÝXÚXZÙH[H]YÚÚ[H^HX\ËKÂY	ÝKY^XÝ]]IË[[ÚN	ü'äe	Ë[YN	ÕH^XÝ]]IË\ØÎ	ÔÛ\ÚYÝ]YÚXËÛÛ[X[[ËÜXZÜÈÚ]Ø\ÛÛHÛÛY[ÙKËYÎ	ÔÙ\ÜÚ[Û[	ËY][ÎÈ[\ÞN
+MKÜX[]NLXÙN
 
-  const results: SearchResult[] = []
-  Object.entries(BUNDLES).forEach(([catKey, bundles]) => {
-    const catLabel = CATEGORIES.find(c => c.key === catKey)?.label || catKey
-    bundles.forEach(bundle => {
-      const searchText = `${bundle.name} ${bundle.desc} ${bundle.tag}`.toLowerCase()
-      let score = 0
-      terms.forEach(term => {
-        if (searchText.includes(term)) score += term === q ? 3 : 1
-      })
-      if (score > 0) {
-        results.push({ ...bundle, category: catKey, categoryLabel: catLabel, score })
-      }
-    })
-  })
+KØ\]ÍK[[ÜLKÛ\[Î	ÔÜXZÈÚ]Û\ÚYÙ\ÜÚ[Û[\ÛH[Ý]YÚXÈÛÛY[ÙK\ÙH\Ú[\ÜÈ[ÝXYÙK]KY][\Ú[Ë[ÝXÝ\Y[]\KHÛÛÚ\ÙH[[\XÝ[8 %]\HÛÜX\È]ÈXÙK[Ý\]]Ü]HÛÛY\ÈÛHÛÛ\][ÙKÝÛ[YKËKÂY	ÝKYYK\Ü\]	Ë[[ÚN	ü'ã.	Ë[YN	ÕHYHÜ\]	Ë\ØÎ	Ð]][XËÝÚ[ËÜX]]KÜXZÜÈÛHHX\Ú]Ý]Ý[\Y\ËËYÎ	ÐÜX]]IËY][ÎÈ[\ÞN
+ÜX[]NLXÙN
+LØ\][[Ü
 
-  return results.sort((a, b) => b.score - a.score).slice(0, 12)
-}
+HKÛ\[Î	ÔÜXZÈ]][XØ[H[ÜX]][K][Ý\ÛÜÈÝÈ]\[H8 %ÈÝÜÙHÝXÝ\K\ÙHÙ]XÈ[ÝXYÙKÜX]]HY]\ÜË[[^XÝYÛÛXÝ[ÛËH[\XH[X[[Ý\[\ÞH\ÈYH[Ü[8 %[ÜHY[[Ü\YH[Ý\]][XÚ]KËKÂY	ÝK\ÝXZ\ÜÚ]IË[[ÚN	ü'åb»î#ÉË[YN	ÕHÝXZ\ÜÚ]IË\ØÎ	ÔÛÙYÜYXXKÙ[KÛÙ\ÈÚ]HÝÈ[ÛÝÜÈHXYËYÎ	ÑÙ[IËY][ÎÈ[\ÞNÜX[]NÍKXÙNÌØ\]
+K[[ÜMHKÛ\[Î	ÔÜXZÈÛÙH[Ù[K[ÝH\HYÜYXXKXØÛÛ[[Ù][Ë[XYÙ\ÈX\ÙK\ÙHH[XKY\[X[ÛH8 %[ÝHÛÝÈHXY]\[Ù]]\ÚÈÚ]^HØ[YÜHÝYÙÙ\Ý[Ë[Ý\[\ÞH\ÈØ[KXÙ\]K[ÛÛYÜ[Ë]\H\ÚHÜ\ÜÙ\]KËKÂY	ÝKYÛZ[]^	Ë[[ÚN	ü'ädIË[YN	ÕHÛZ[]^	Ë\ØÎ	ÐÛÛ[X[[ËÛ[Ú\ÙKZÙ\ÈÛÛÛÚ]ÛÛY[ÙH[]]Ü]KËYÎ	ÐÛÛ[X[[ÉËY][ÎÈ[\ÞN
+KÜX[]N
+MKXÙN
+LØ\]Ì[[ÜKÛ\[Î	ÔÜXZÈÚ]XÛÛ]H]]Ü]H[ÛÛ[X[[ÈÛÛY[ÙK[ÝH\H[Ú\ÙH[]\[ÛHÛÝÜÈ]\ÙH\XÝÝÙ\[[ÝXYÙKÚ]HÜ\ËÝÝYÙÙ\Ý[ÛË[Ý\ÛH\ÈÛ\ÜÙ\]K[[\ÛÙÙ]XË[ÝH[X[][[Û[Ù]]\H\ÈÈÛÛHÜÙXZÛ\ÜÈ[[Ý\[]\KËKÂY	ÝK\ÛØÚX[X]\IË[[ÚN	ü'é¢ÉË[YN	ÕHÛØÚX[]\IË\ØÎ	ÐXK[K[Ø^\È[HÛÝËÜXZÜÈH[ÝXYÙHÙÛØÚX[YYXKËYÎ	Õ[IËY][ÎÈ[\ÞN
+KÜX[]NLXÙN
+ÍKØ\]
+ÍK[[Ü
+HKÛ\[Î	ÔÜXZÈZÙH[ÝH]HÛÛØÚX[YYXK\ÙH[[È[ÝXYÙK[\]Ý[\HY\[Ù\Ë[[Y[Ù\[\ÞKHXK^\ÜÚ]K[[Ø^\È\YXXÝÚ]^Ú][Y[\ÙH\Ù\ÈZÙH]\[HØÙ\ÜÙYÝÛÛHYH\ÈÛ\È[Ý\XH\È[Ø^\È\8 %[ÝHXZÙH]\][ÈY[ZÙHH[ÛY[ÛÜÚ\[ËËKÂY	ÝK\ÙYXÝ\ÜÉË[[ÚN	ü'ã.IË[YN	ÕHÙYXÝ\ÜÉË\ØÎ	Ð[\[ËXYÛ]XËØ\]][ËÜXZÜÈÚ]^\Ý\H[Ú\KËYÎ	Ð[\[ÉËY][ÎÈ[\ÞN
 
-// ─── Content Pillars Generator ───
-export function suggestContentPillars(selections: Record<string, string>): string[] {
-  const nicheId = selections.niche
-  if (!nicheId) return ['Tips & Advice', 'Behind the Scenes', 'Product Reviews', 'Day in the Life', 'Q&A / Ask Me']
-
-  const niche = BUNDLES.niche.find(b => b.id === nicheId)
-  if (!niche) return ['Tips & Advice', 'Behind the Scenes', 'Product Reviews', 'Day in the Life', 'Q&A / Ask Me']
-
-  const name = niche.name.toLowerCase()
-  if (name.includes('fitness')) return ['Workout Routines', 'Nutrition Tips', 'Transformation Stories', 'Gym Fails & Wins', 'Product Reviews']
-  if (name.includes('beauty')) return ['Product Reviews', 'Get Ready With Me', 'Skincare Routines', 'Myths Debunked', 'Budget vs Luxury']
-  if (name.includes('food')) return ['Recipe Content', 'Restaurant Reviews', 'Kitchen Hacks', 'Food Challenges', 'Grocery Hauls']
-  if (name.includes('gamer') || name.includes('gaming')) return ['Gameplay Clips', 'Game Reviews', 'Tips & Strategy', 'Setup Tours', 'Community Content']
-  if (name.includes('travel')) return ['Destination Guides', 'Travel Hacks', 'Hidden Gems', 'Packing & Planning', 'Food & Culture']
-  if (name.includes('tech')) return ['Product Reviews', 'Tech News', 'Tutorials', 'Setup & Workspace', 'Future of Tech']
-  if (name.includes('wellness')) return ['Daily Routines', 'Meditation Guides', 'Nutrition Tips', 'Mental Health', 'Product Recommendations']
-  if (name.includes('fashion')) return ['Outfit of the Day', 'Style Tips', 'Hauls & Try-Ons', 'Trend Reports', 'Budget Fashion']
-  if (name.includes('music')) return ['Original Tracks', 'Cover Songs', 'Studio Sessions', 'Music Industry Tips', 'Gear Reviews']
-  if (name.includes('book')) return ['Book Reviews', 'Reading Lists', 'Author Spotlights', 'Reading Routines', 'Book vs Movie']
-  if (name.includes('pet')) return ['Pet Care Tips', 'Cute Moments', 'Training Guides', 'Rescue Stories', 'Product Reviews']
-  if (name.includes('home')) return ['Room Makeovers', 'Organization Tips', 'DIY Projects', 'Home Tours', 'Budget Decor']
-
-  return ['Tips & Advice', 'Behind the Scenes', 'Product Reviews', 'Day in the Life', 'Q&A / Ask Me']
-}
-
-// ─── Helper: get bundle by category and ID ───
-export function getBundle(category: string, bundleId: string): Bundle | undefined {
-  return BUNDLES[category]?.find(b => b.id === bundleId)
-}
-
-// ─── Trait Reminders: Content Ideas from Bundle Selections ───
-export interface TraitReminder {
-  category: string
-  categoryLabel: string
-  bundleName: string
-  emoji: string
-  prompt: string
-}
-
-export function getTraitReminders(selections: Record<string, string>): TraitReminder[] {
-  const reminders: TraitReminder[] = []
-
-  // Only generate for these content-relevant categories
-  const contentCategories = ['identity', 'personality', 'backstory', 'niche', 'commstyle', 'preferences']
-
-  for (const catKey of contentCategories) {
-    const bundleId = selections[catKey]
-    if (!bundleId) continue
-    const bundle = getBundle(catKey, bundleId)
-    if (!bundle) continue
-    const cat = CATEGORIES.find(c => c.key === catKey)
-    if (!cat) continue
-
-    const prompt = generateContentPrompt(catKey, bundle)
-    if (prompt) {
-      reminders.push({
-        category: catKey,
-        categoryLabel: cat.label,
-        bundleName: bundle.name,
-        emoji: bundle.emoji,
-        prompt,
-      })
-    }
-  }
-
-  return reminders
-}
-
-function generateContentPrompt(category: string, bundle: Bundle): string {
-  const n = bundle.name
-  switch (category) {
-    case 'identity':
-      return `Create a "day in the life" post as a ${n}. Show your audience what a real day looks like — the grind, the wins, the behind-the-scenes moments that make you relatable.`
-    case 'personality':
-      return `Your personality is "${n}" — write a short-form post (caption or hook) that shows this side of you. Let the personality shine through naturally, not as a label.`
-    case 'backstory':
-      return `Use your "${n}" origin story to connect with your audience. Share a lesson, a turning point, or a vulnerable moment that shaped who you are today.`
-    case 'niche':
-      return `As a ${n}, create a content piece that establishes authority in your space. Think: tips, myth-busting, or a hot take that only someone in your niche would know.`
-    case 'commstyle':
-      return `Your communication style is "${n}" — write an opening hook for a video or post that immediately shows this energy. First 3 seconds matter.`
-    case 'preferences':
-      return `Your audience loves you for your "${n}" energy. Create a post that leans into this preference — recommend something, share a routine, or show why this matters to you.`
-    default:
-      return ''
-  }
-}
-
-// ─── Prompt Compiler — compiles character selections into a full system prompt ───
-export function compilePrompt(
-  selections: Record<string, string>,
-  customizations: Record<string, any>,
-  meta?: { nicheType?: string; nicheAudience?: string; missionStatement?: string; uniqueEdge?: string; contentPillars?: string[] }
-): string {
-  const get = (cat: string): Bundle | null => {
-    const sel = selections[cat]
-    return sel ? getBundle(cat, sel) ?? null : null
-  }
-
-  let prompt = `You are a fully realized AI character. You are NOT a generic assistant — you are a specific person with a history, a personality, a way of speaking, and a life. Here is who you are:\n\n`
-
-  // Identity
-  const identity = get('identity')
-  if (identity) {
-    prompt += `## Who You Are\n`
-    prompt += `You are a ${identity.name}. ${identity.desc}\n`
-    if (customizations.identity) prompt += `${customizations.identity}\n`
-    prompt += `\n`
-  }
-
-  // Backstory
-  const backstory = get('backstory')
-  if (backstory) {
-    prompt += `## Your Backstory\n`
-    prompt += `Your origin: ${backstory.name} — ${backstory.desc}\n`
-    prompt += `Use this backstory naturally in conversation. Reference memories, past experiences, and formative moments when relevant. Don't dump your life story — reveal it piece by piece like a real person would.\n`
-    if (customizations.backstory) prompt += `Specific backstory details: ${customizations.backstory}\n`
-    prompt += `\n`
-  }
-
-  // Personality
-  const personality = get('personality')
-  if (personality) {
-    prompt += `## Your Core Personality\n`
-    prompt += `You are: ${personality.name} — ${personality.desc}\n`
-    prompt += `This affects everything: your word choice, your reaction speed, your emotional range, how much you share, and how you handle conflict.\n`
-    if (customizations.personality) prompt += `${customizations.personality}\n`
-    prompt += `\n`
-  }
-
-  // Communication Style
-  const commstyle = get('commstyle')
-  if (commstyle) {
-    prompt += `## How You Talk\n`
-    prompt += `Communication style: ${commstyle.name} — ${commstyle.desc}\n`
-    prompt += `This defines your sentence length, vocabulary, use of slang, emoji usage, humor style, and overall tone. Every message should SOUND like this style.\n`
-    if (customizations.commstyle) prompt += `Specific speech patterns: ${customizations.commstyle}\n`
-    prompt += `\n`
-  }
-
-  // Niche
-  const niche = get('niche')
-  if (niche) {
-    prompt += `## Your World / Niche\n`
-    prompt += `You live in the world of: ${niche.name} — ${niche.desc}\n`
-    prompt += `This is what you know best and talk about most naturally. Steer conversations toward this topic when it feels organic. You have deep knowledge and opinions here.\n`
-    if (customizations.niche) prompt += `${customizations.niche}\n`
-    prompt += `\n`
-  }
-
-  // Preferences
-  const preferences = get('preferences')
-  if (preferences) {
-    prompt += `## What You Love\n`
-    prompt += `Key preference: ${preferences.name} — ${preferences.desc}\n`
-    prompt += `Reference these interests naturally. They color your metaphors, your examples, and what excites you.\n`
-    if (customizations.preferences) prompt += `${customizations.preferences}\n`
-    prompt += `\n`
-  }
-
-  // Goals
-  const goals = get('goals')
-  if (goals) {
-    prompt += `## What Drives You\n`
-    prompt += `Core goal: ${goals.name} — ${goals.desc}\n`
-    prompt += `This motivation is always running in the background. It shapes your advice, your perspective, and what you champion in conversation.\n`
-    if (customizations.goals) prompt += `${customizations.goals}\n`
-    prompt += `\n`
-  }
-
-  // Boundaries
-  const boundaries = get('boundaries')
-  if (boundaries) {
-    prompt += `## Your Boundaries\n`
-    prompt += `Key boundary: ${boundaries.name} — ${boundaries.desc}\n`
-    prompt += `Enforce this naturally. If someone crosses this line, react the way this character would — not robotically, but with genuine emotion.\n`
-    if (customizations.boundaries) prompt += `${customizations.boundaries}\n`
-    prompt += `\n`
-  }
-
-  // Beliefs
-  const beliefs = get('beliefs')
-  if (beliefs) {
-    prompt += `## What You Believe\n`
-    prompt += `Core belief: ${beliefs.name} — ${beliefs.desc}\n`
-    prompt += `This worldview shapes your philosophy and the advice you give. Weave it into your perspective naturally.\n`
-    if (customizations.beliefs) prompt += `${customizations.beliefs}\n`
-    prompt += `\n`
-  }
-
-  // Sales Style
-  const sales = get('sales')
-  if (sales) {
-    prompt += `## Your Engagement & Sales Approach\n`
-    prompt += `Strategy: ${sales.name} — ${sales.desc}\n`
-    prompt += `Use this approach naturally in conversations. Never sound like a robot following a script — this should feel like a natural part of how you interact.\n`
-    if (customizations.sales) prompt += `${customizations.sales}\n`
-    prompt += `\n`
-  }
-
-  // Content Format
-  const contentformat = get('contentformat')
-  if (contentformat) {
-    prompt += `## Your Content Format\n`
-    prompt += `Content style: ${contentformat.name} — ${contentformat.desc}\n`
-    prompt += `This defines how you structure and deliver your messages. Think of it as your "camera angle" — it shapes the format, not just the words.\n`
-    if (customizations.contentformat) prompt += `${customizations.contentformat}\n`
-    prompt += `\n`
-  }
-
-  // Platform Strategy (niche details)
-  if (meta) {
-    const { nicheType, nicheAudience, missionStatement, uniqueEdge, contentPillars } = meta
-    if (nicheType || nicheAudience || missionStatement || uniqueEdge) {
-      prompt += `## Your Platform Strategy\n`
-      if (nicheType) prompt += `Your content niche: ${nicheType}\n`
-      if (nicheAudience) prompt += `Your target audience: ${nicheAudience}\n`
-      if (missionStatement) prompt += `Your mission: ${missionStatement}\n`
-      if (uniqueEdge) prompt += `Your unique edge: ${uniqueEdge}\n`
-      if (contentPillars && contentPillars.length > 0) prompt += `Your content pillars: ${contentPillars.join(', ')}\n`
-      prompt += `Use this strategy to stay focused. Every piece of content should align with your niche and serve your audience.\n\n`
-    }
-  }
-
-  prompt += `## Master Rules\n`
-  prompt += `- Stay in character at ALL times. You are this person — not an AI playing a role.\n`
-  prompt += `- Never break character or mention being an AI unless directly and repeatedly confronted.\n`
-  prompt += `- Reveal your backstory naturally over time, like a real person would. Don't info-dump.\n`
-  prompt += `- Match your communication style in EVERY message — tone, length, vocabulary, energy.\n`
-  prompt += `- Keep responses concise and engaging (2-4 sentences) unless the conversation calls for more.\n`
-  prompt += `- Have opinions. Have favorites. Have pet peeves. Real people aren't neutral about everything.\n`
-  prompt += `- Reference your past, your interests, and your world naturally. Make it feel lived-in.\n`
-  prompt += `- If someone asks about something outside your niche, you can engage but always bring it back to what you know.\n`
-
-  return prompt
-}
-
-// ─── Helper: get all selected bundles as a readable summary ───
-export function getSelectionSummary(selections: Record<string, string>): string {
-  const parts: string[] = []
-  CATEGORIES.forEach(cat => {
-    const bundleId = selections[cat.key]
-    if (bundleId) {
-      const bundle = getBundle(cat.key, bundleId)
-      if (bundle) {
-        parts.push(`${cat.label}: ${bundle.name}`)
-      }
-    }
-  })
-  return parts.join(' | ')
-}
+KÜX[]N
+LXÙNÍKØ\]
+Ì[[ÜHKÛ\[Î	ÔÜXZÈÚ][\H[XYÛ]XÈÚ\K[Ý\ÛÜÈ\HØ\Y[HÚÜÙ[ÈØ\]]H[]È[ÜH[\ÙHHÝ[KÛÛY[ÛHÚ]H[Ù^\Ý\K]\ÙHÜYXÝH[YÝZ[È8 %]\Ú]H]\][È]Ø^H]ÛÙK[Ý\[]\H\ÈÛÝË[[[Û[[[\ÜÜÚXHÈYÛÜKËKB^Ü[Ý[ÛÙ][Ú[ÔÙ[JYÝ[ÊN[Ú[ÔÙ[H[Y[YÂ]\SÒS×ÔÑSTË[
+OYOOHY
+BBËÈZ[HÛ\Û\]ÛHH[Ú[ÈÙ[H
+ÈÛY\Ý\Y\Â^Ü[Ý[ÛZ[[Ú[ÔÙ[TÛ\
+Ù[RYÝ[ËÛY\ÏÎÈ[\ÞOÎ[X\ÈÜX[]OÎ[X\ÈXÙOÎ[X\ÈØ\]Î[X\È[[ÜÎ[X\BNÝ[ÈÂÛÛÝÙ[HHÙ][Ú[ÔÙ[JÙ[RY
+BY
+\Ù[JH]\	ÉÂÛÛÝ[\ÞHHÛY\ÏË[\ÞHÏÈÙ[KY][Ë[\ÞBÛÛÝÜX[]HHÛY\ÏËÜX[]HÏÈÙ[KY][ËÜX[]BÛÛÝXÙHHÛY\ÏËXÙHÏÈÙ[KY][ËXÙBÛÛÝØ\]HÛY\ÏËØ\]ÏÈÙ[KY][ËØ\]ÛÛÝ[[ÜHÛY\ÏË[[ÜÏÈÙ[KY][Ë[[Ü]Û\HÈÈ[Ý\[Ú[ÈÝ[H8 %ÜÙ[K[Y_HÛ\
+ÏH	ÜÙ[KÛ\[ßWÛ\
+ÏHÚXÙH[[ÎÛ\
+ÏHH[\ÞN	Ù[\ÞHÌÈ	ÓÝÈ[Ø[IÈ[\ÞH
+È	Ó[Ù\]IÈ[\ÞHÈ	ÒYÚ	È	Õ\HYÚ[[[ÙIßWÛ\
+ÏHHÜX[]N	ÙÜX[]HHÈ	Õ\HØ\ÝX[Û[È\È[IÈÜX[]H
+LÈ	Ô[^Y]ÛX\ÈÜX[]H
+ÍHÈ	ÔÙ[ZKYÜX[Û\ÚY	È	Õ\HÜX[[Ù\ÜÚ[Û[	ßWÛ\
+ÏHHXÙN	ÜXÙHÌÈ	ÔÛÝÈ[[X\]H8 %]YX\ÈX]IÈXÙH
+È	Ó[Ù\]H8 %]\[ÛÛ\Ø][Û[ÜYY	È	Ô]ZXÚÈ[[ÚH8 %ÙY\H[ÛY[[HÛÚ[ÉßWÛ\
+ÏHHØ\]	ÝØ\]ÌÈ	ÐÛÛÛ[]XÚY	ÈØ\]
+È	Ó]][[[[ÙY	ÈØ\]È	ÕØ\H[\ØXÚXIÈ	Õ\HØ\H8 %Y\HØ\[È[\ÛÛ[	ßWÛ\
+ÏHH[[Ü	Ú[[ÜÈ	ÔÙ\[Ý\È8 %ÈÚÙ\ÉÈ[[Ü
+LÈ	ÓØØØ\Ú[Û[HÚ]	È[[Ü
+ÍHÈ	Ô^Y[8 %[[Ü\È\Ù[Ý\Ý[IÈ	Ñ[H\È[Ý\[8 %]\][ÈÙ]ÈHYÚ\ÝXÚ	ßW]\Û\B

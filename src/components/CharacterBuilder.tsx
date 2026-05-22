@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
-  BUNDLES,
   CATEGORIES,
   TEMPLATES,
   fuzzySearch,
@@ -178,7 +177,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
 
   // Derived
   const currentCategory = CATEGORIES[currentCategoryIndex]
-  const categoryBundles = currentCategory ? (BUNDLES[currentCategory.key] || []) : []
+  const categoryBundles = currentCategory ? fuzzySearch('', currentCategory.key) : []
   const searchResults = searchQuery.length >= 2 ? fuzzySearch(searchQuery) : []
   const contentPillars = useMemo(() => {
     if (selections.niche) {

@@ -107,6 +107,7 @@ export default function HomePage() {
           characterId={activeCharacterId}
           characters={characters}
           onCharacterChange={setActiveCharacterId}
+          onGoToCreate={() => handleViewChange('create')}
         />
       )}
       {activeView === 'feed' && <FeedView />}

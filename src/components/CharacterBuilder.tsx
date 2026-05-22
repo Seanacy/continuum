@@ -1134,7 +1134,8 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   // ============================================
   // BUILD ASSISTANT — System prompt compiler
   // ============================================
-  if (step === 'voice' && editingCharacter && (
+  if (step === 'voice' && editingCharacter ) {
+    return (
         <TalkingProfileBuilder
           characterId={editingCharacter.id}
           characterName={editingCharacter.name}
@@ -1157,9 +1158,10 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           }}
           onBack={() => setStep('reminders')}
         />
-      )}
+      )
+  }
 
-      {step === 'assistant' && existingCharacter) {
+  if (step === 'assistant' && existingCharacter) {
     return (
       <BuildAssistant
         character={{

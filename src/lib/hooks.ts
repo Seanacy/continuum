@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { trackInteraction } from './interaction-tracker'
 
 // ============================================
-// useUser — get current authenticated user
+// useUser â get current authenticated user
 // ============================================
 export function useUser() {
   const [user, setUser] = useState<{
@@ -26,7 +26,7 @@ export function useUser() {
 }
 
 // ============================================
-// useCharacters — fetch all user's active characters
+// useCharacters â fetch all user's active characters
 // ============================================
 export interface CharacterSummary {
   id: string
@@ -55,7 +55,7 @@ export function useCharacters() {
         )
       }
     } catch {
-      // Silently fail — characters are optional
+      // Silently fail â characters are optional
     }
     setLoading(false)
   }, [])
@@ -68,7 +68,7 @@ export function useCharacters() {
 }
 
 // ============================================
-// useChat — manage chat state
+// useChat â manage chat state
 // ============================================
 export function useChat(threadId?: string, characterId?: string) {
   const [messages, setMessages] = useState<
@@ -90,6 +90,7 @@ export function useChat(threadId?: string, characterId?: string) {
         hashtags?: string[]
         priceCents: number
       }
+      generatedImage?: { url: string; prompt: string; width?: number; height?: number; priceCents: number }
       openCharacterBuilder?: { suggestion?: string }
     }>
   >([])
@@ -125,7 +126,7 @@ export function useChat(threadId?: string, characterId?: string) {
     }
     setMessages((prev) => [...prev, tempMsg])
 
-    // Show "searching" state after a short delay — any web search takes 4+ seconds,
+    // Show "searching" state after a short delay â any web search takes 4+ seconds,
     // so if we're still waiting after 1.5s, Emily is almost certainly searching
     const searchTimer = setTimeout(() => setSearching(true), 1500)
 
@@ -156,6 +157,7 @@ export function useChat(threadId?: string, characterId?: string) {
           imageUrls: data.imageUrls || undefined,
           reminderSet: data.reminderSet || undefined,
           generatedContent: data.generatedContent || undefined,
+          generatedImage: data.generatedImage || undefined,
           openCharacterBuilder: data.openCharacterBuilder || undefined,
         }
         setMessages((prev) => [
@@ -178,7 +180,7 @@ export function useChat(threadId?: string, characterId?: string) {
 }
 
 // ============================================
-// useFeed — manage feed state
+// useFeed â manage feed state
 // ============================================
 export function useFeed() {
   const [items, setItems] = useState<
@@ -225,7 +227,7 @@ export function useFeed() {
 }
 
 // ============================================
-// useThreads — manage threads
+// useThreads â manage threads
 // ============================================
 export function useThreads() {
   const [threads, setThreads] = useState<

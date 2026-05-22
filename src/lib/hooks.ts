@@ -82,6 +82,15 @@ export function useChat(threadId?: string, characterId?: string) {
       searchQuery?: string
       imageUrls?: string[]
       reminderSet?: { content: string; dueAt: string }
+      generatedContent?: {
+        contentType: string
+        platform?: string
+        topic: string
+        content: string
+        hashtags?: string[]
+        priceCents: number
+      }
+      openCharacterBuilder?: { suggestion?: string }
     }>
   >([])
   const [loading, setLoading] = useState(false)
@@ -146,6 +155,8 @@ export function useChat(threadId?: string, characterId?: string) {
           searchQuery: data.searchPerformed ? data.searchQuery : undefined,
           imageUrls: data.imageUrls || undefined,
           reminderSet: data.reminderSet || undefined,
+          generatedContent: data.generatedContent || undefined,
+          openCharacterBuilder: data.openCharacterBuilder || undefined,
         }
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== tempMsg.id),

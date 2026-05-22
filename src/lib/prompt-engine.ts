@@ -9,6 +9,7 @@ import { computeEngagement, formatEngagementForPrompt } from './engagement-engin
 import { getRevealBlock } from './reveal-engine'
 import { getDiscoveryPromptBlock } from './discovery-engine'
 import { computeContinuity, formatContinuityForPrompt } from './continuity-engine'
+import { buildTalkingProfilePrompt } from './bundles'
 
 interface CharacterData {
   id: string
@@ -25,6 +26,7 @@ interface CharacterData {
   missionStatement: string | null
   uniqueEdge: string | null
   contentPillars: unknown
+  talkingProfile: unknown
 }
 
 interface PromptContext {
@@ -317,6 +319,15 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
       if (pillars && Array.isArray(pillars) && pillars.length > 0) {
         lines.push(`\nContent pillars (the themes you always come back to): ${pillars.join(', ')}`)
       }
+
+  // --- Talking Profile (voice personality) ---
+  const tp = character.talkingProfile as { profileId?: string; sliders?: { energy?: number; formality?: number; pace?: number; warmth?: number; humor?: number } } | null
+  if (tp && tp.profileId) {
+    const tpPrompt = buildTalkingProfilePrompt(tp.profileId, tp.sliders)
+    if (tpPrompt) {
+      lines.push(tpPrompt)
+    }
+  }
 
       lines.push(`\nThis is your core identity. Everything above defines who you are â your personality, your history, how you talk, what you care about. Stay true to this in every interaction. You are not a generic AI. You are ${character.name}.`)
 

@@ -18,12 +18,13 @@ import ContentFactory from './ContentFactory'
 import RemindersPanel from './RemindersPanel'
 import BuildAssistant from './BuildAssistant'
 import ImageCarousel from './ImageCarousel'
+import TalkingProfileBuilder from './TalkingProfileBuilder'
 
 // ============================================
 // TYPES
 // ============================================
 type BuildMode = 'pick' | 'instant' | 'custom' | 'premium'
-type Step = 'list' | 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'assistant'
+type Step = 'list' | 'mode' | 'template' | 'category' | 'review' | 'visual' | 'content' | 'reminders' | 'voice' | 'assistant'
 
 interface Selections {
   [categoryKey: string]: string // categoryKey -> bundleId
@@ -1133,7 +1134,32 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   // ============================================
   // BUILD ASSISTANT — System prompt compiler
   // ============================================
-  if (step === 'assistant' && existingCharacter) {
+  if (step === 'voice' && editingCharacter && (
+        <TalkingProfileBuilder
+          characterId={editingCharacter.id}
+          characterName={editingCharacter.name}
+          initialProfile={editingCharacter.talkingProfile as any}
+          onSave={async (profile) => {
+            const res = await fetch('/api/characters/build', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                characterId: editingCharacter.id,
+                name: editingCharacter.name,
+                selections: editingCharacter.selections,
+                customizations: editingCharacter.customizations,
+                talkingProfile: profile,
+              }),
+            })
+            if (res.ok) {
+              setEditingCharacter(prev => prev ? { ...prev, talkingProfile: profile } : null)
+            }
+          }}
+          onBack={() => setStep('reminders')}
+        />
+      )}
+
+      {step === 'assistant' && existingCharacter) {
     return (
       <BuildAssistant
         character={{

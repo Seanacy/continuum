@@ -321,7 +321,7 @@ Be thorough. This is the most valuable thing you can do for them as a content pa
       }
 
   // --- Talking Profile (voice personality) ---
-  const tp = character.talkingProfile as { profileId?: string; sliders?: { energy?: number; formality?: number; pace?: number; warmth?: number; humor?: number } } | null
+  const tp = (character as any).talkingProfile as { profileId?: string; sliders?: { energy?: number; formality?: number; pace?: number; warmth?: number; humor?: number } } | null
   if (tp && tp.profileId) {
     const tpPrompt = buildTalkingProfilePrompt(tp.profileId, tp.sliders)
     if (tpPrompt) {

@@ -212,9 +212,10 @@ interface ChatViewProps {
   characterId?: string
   characters?: CharacterSummary[]
   onCharacterChange?: (id: string) => void
+  onGoToCreate?: () => void
 }
 
-export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange }: ChatViewProps) {
+export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate }: ChatViewProps) {
   const { messages, loading, sending, searching, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
@@ -391,6 +392,46 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                     </svg>
                     Reminder set
                   </span>
+                )}
+                {msg.role === 'assistant' && msg.generatedContent && (
+                  <div className="mb-3 p-3 rounded-xl bg-continuum-surface border border-continuum-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-continuum-accent uppercase tracking-wider">
+                        {msg.generatedContent.contentType.replace(/_/g, ' ')}
+                        {msg.generatedContent.platform && ` · ${msg.generatedContent.platform}`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(msg.generatedContent!.content)
+                        }}
+                        className="text-xs text-continuum-muted hover:text-continuum-accent transition flex items-center gap-1"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        Copy
+                      </button>
+                    </div>
+                    <p className="text-sm text-continuum-text whitespace-pre-wrap leading-relaxed">{msg.generatedContent.content}</p>
+                    {msg.generatedContent.hashtags && msg.generatedContent.hashtags.length > 0 && (
+                      <p className="mt-2 text-xs text-continuum-accent">{msg.generatedContent.hashtags.map(h => h.startsWith('#') ? h : `#${h}`).join(' ')}</p>
+                    )}
+                    <span className="block mt-2 text-[10px] text-continuum-muted">Charged ${(msg.generatedContent.priceCents / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                {msg.role === 'assistant' && msg.openCharacterBuilder && (
+                  <button
+                    type="button"
+                    onClick={() => onGoToCreate?.()}
+                    className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-continuum-accent/10 border border-continuum-accent/30 text-continuum-accent text-sm hover:bg-continuum-accent/20 transition"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Open Character Builder
+                  </button>
                 )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>

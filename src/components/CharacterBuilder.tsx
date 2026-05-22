@@ -1133,21 +1133,21 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   // ============================================
   // BUILD ASSISTANT — System prompt compiler
   // ============================================
-  if (step === 'voice' && editingCharacter ) {
+  if (step === 'voice' && existingCharacter ) {
     return (
         <TalkingProfileBuilder
-          characterId={editingCharacter.id}
-          characterName={editingCharacter.name}
-          initialProfile={editingCharacter.talkingProfile as any}
+          characterId={existingCharacter.id}
+          characterName={existingCharacter.name}
+          initialProfile={existingCharacter.talkingProfile as any}
           onSave={async (profile) => {
             const res = await fetch('/api/characters/build', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                characterId: editingCharacter.id,
-                name: editingCharacter.name,
-                selections: editingCharacter.selections,
-                customizations: editingCharacter.customizations,
+                characterId: existingCharacter.id,
+                name: existingCharacter.name,
+                selections: existingCharacter.selections,
+                customizations: existingCharacter.customizations,
                 talkingProfile: profile,
               }),
             })

@@ -102,9 +102,7 @@ export default function FeedView() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col h-full">
-        {cookingCount > 0 && (
-          <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
-        )}
+      <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
         <div className="flex items-center justify-center flex-1 text-continuum-muted px-8 text-center">
           <div>
             <p className="text-lg">Nothing here yet.</p>
@@ -119,9 +117,7 @@ export default function FeedView() {
 
   return (
     <div className="h-full overflow-y-auto px-4 py-4 space-y-3">
-      {cookingCount > 0 && (
-        <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
-      )}
+      <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
       {items.map((item) => {
         switch (item.type) {
           case 'social_pick':
@@ -149,23 +145,33 @@ export default function FeedView() {
 // ============================================
 function CookingButton({ count, onClick }: { count: number; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 hover:border-orange-500/50 transition flex items-center justify-between group"
-    >
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{'🍳'}</span>
-        <span className="text-sm font-medium text-orange-300 group-hover:text-orange-200 transition">
-          What&apos;s Cooking
-        </span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-medium">
-          {count} active
-        </span>
-        <span className="text-orange-400 text-xs">{'\u2192'}</span>
-      </div>
-    </button>
+    <div className="space-y-1">
+      <button
+        onClick={onClick}
+        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 hover:border-orange-500/50 transition flex items-center justify-between group"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{'🍳'}</span>
+          <span className="text-sm font-medium text-orange-300 group-hover:text-orange-200 transition">
+            What&apos;s Cooking
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-medium">
+            {count > 0 ? count + ' active' : 'See collabs'}
+          </span>
+          <span className="text-orange-400 text-xs">{'→'}</span>
+        </div>
+      </button>
+      <a
+        href="/cooking"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block text-center text-[10px] text-orange-400/60 hover:text-orange-300 transition"
+      >
+        Share the public cooking page
+      </a>
+    </div>
   )
 }
 

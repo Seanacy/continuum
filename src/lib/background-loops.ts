@@ -415,24 +415,20 @@ export async function runProximityScan(): Promise<{ connectionsFound: number }> 
   try {
     const result = await scanForProximity()
 
-    await db.backgroundEvent.create({
-      data: {
-        type: 'proximity_scan',
-        status: 'completed',
-        payload: JSON.stringify(result),
-      },
-    })
+    await db.$executeRawUnsafe(
+      \`INSERT INTO background_events (id, type, status, payload, created_at, updated_at)
+       VALUES (gen_random_uuid()::text, 'proximity_scan', 'completed', $1::jsonb, NOW(), NOW())\`,
+      JSON.stringify(result)
+    )
 
     return result
   } catch (error) {
     console.error('[ProximityScan] Failed:', error)
-    await db.backgroundEvent.create({
-      data: {
-        type: 'proximity_scan',
-        status: 'failed',
-        payload: JSON.stringify({ error: String(error) }),
-      },
-    })
+    await db.$executeRawUnsafe(
+      \`INSERT INTO background_events (id, type, status, payload, created_at, updated_at)
+       VALUES (gen_random_uuid()::text, 'proximity_scan', 'failed', $1::jsonb, NOW(), NOW())\`,
+      JSON.stringify({ error: String(error) })
+    )
     return { connectionsFound: 0 }
   }
 }
@@ -446,24 +442,20 @@ export async function runEchoExchangeLoop(): Promise<{ exchanged: number; surfac
   try {
     const result = await runEchoExchanges()
 
-    await db.backgroundEvent.create({
-      data: {
-        type: 'echo_exchanges',
-        status: 'completed',
-        payload: JSON.stringify(result),
-      },
-    })
+    await db.$executeRawUnsafe(
+      \`INSERT INTO background_events (id, type, status, payload, created_at, updated_at)
+       VALUES (gen_random_uuid()::text, 'echo_exchanges', 'completed', $1::jsonb, NOW(), NOW())\`,
+      JSON.stringify(result)
+    )
 
     return result
   } catch (error) {
     console.error('[EchoExchanges] Failed:', error)
-    await db.backgroundEvent.create({
-      data: {
-        type: 'echo_exchanges',
-        status: 'failed',
-        payload: JSON.stringify({ error: String(error) }),
-      },
-    })
+    await db.$executeRawUnsafe(
+      \`INSERT INTO background_events (id, type, status, payload, created_at, updated_at)
+       VALUES (gen_random_uuid()::text, 'echo_exchanges', 'failed', $1::jsonb, NOW(), NOW())\`,
+      JSON.stringify({ error: String(error) })
+    )
     return { exchanged: 0, surfaced: 0 }
   }
 }

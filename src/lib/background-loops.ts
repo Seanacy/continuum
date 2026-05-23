@@ -1,9 +1,12 @@
 // Background Loops
-// 4 loops that run on cron schedules (6-12h cycles):
+// 7 loops that run on cron schedules (6-12h cycles):
 // 1. Memory rollup — compress old moments
 // 2. Feed generation — create new feed items
 // 3. State update — evolve AI personality based on patterns
 // 4. Notification generation — proactive pushes (max 2/day)
+// 5. Echoverse: Bubble recomputation — decay signals, recompute categories + profiles
+// 6. Echoverse: Proximity scan — find new bubble overlaps
+// 7. Echoverse: Echo exchanges — run AI-to-AI conversations
 
 import { db } from './db'
 import { callLLM } from './llm'
@@ -11,6 +14,10 @@ import { summarizeMoments, getMemoryContext } from './memory-engine'
 import { generateFeedItems } from './feed-engine'
 import { discoverSocialContent } from './social-engine'
 import { computeEngagement, type EngagementProfile } from './engagement-engine'
+import { extractSignalsFromChat, decaySignals, recomputeBubbleProfile, trackTimingSignal } from './bubble-tracker'
+import { recomputeCategories } from './category-engine'
+import { scanForProximity } from './proximity-engine'
+import { runEchoExchanges } from './echo-engine'
 
 // ============================================
 // LOOP 1: MEMORY ROLLUP
@@ -347,4 +354,116 @@ export async function runSignalInference(): Promise<{ processed: number }> {
   }
 
   return { processed }
+}
+
+
+// ============================================
+// LOOP 5: ECHOVERSE — BUBBLE RECOMPUTATION
+// Schedule: every 12 hours
+// Decays old signals, recomputes categories and profiles
+// ============================================
+export async function runBubbleRecomputation(): Promise<{ processed: number }> {
+  const users = await db.user.findMany({ select: { id: true } })
+  let processed = 0
+
+  for (const user of users) {
+    try {
+      // Track timing signal (when is this user active)
+      await trackTimingSignal(user.id)
+
+      // Decay old signals
+      await decaySignals(user.id)
+
+      // Recompute categories from signals
+      await recomputeCategories(user.id)
+
+      // Recompute the bubble profile vector
+      await recomputeBubbleProfile(user.id)
+
+      processed++
+
+      await db.backgroundEvent.create({
+        data: {
+          userId: user.id,
+          type: 'bubble_recomputation',
+          status: 'completed',
+          payload: JSON.stringify({ processed: true }),
+        },
+      })
+    } catch (error) {
+      console.error(`[BubbleRecomputation] Failed for user ${user.id}:`, error)
+      await db.backgroundEvent.create({
+        data: {
+          userId: user.id,
+          type: 'bubble_recomputation',
+          status: 'failed',
+          payload: JSON.stringify({ error: String(error) }),
+        },
+      })
+    }
+  }
+
+  return { processed }
+}
+
+// ============================================
+// LOOP 6: ECHOVERSE — PROXIMITY SCAN
+// Schedule: every 12 hours (after bubble recomputation)
+// Finds new bubble overlaps between users
+// ============================================
+export async function runProximityScan(): Promise<{ connectionsFound: number }> {
+  try {
+    const result = await scanForProximity()
+
+    await db.backgroundEvent.create({
+      data: {
+        type: 'proximity_scan',
+        status: 'completed',
+        payload: JSON.stringify(result),
+      },
+    })
+
+    return result
+  } catch (error) {
+    console.error('[ProximityScan] Failed:', error)
+    await db.backgroundEvent.create({
+      data: {
+        type: 'proximity_scan',
+        status: 'failed',
+        payload: JSON.stringify({ error: String(error) }),
+      },
+    })
+    return { connectionsFound: 0 }
+  }
+}
+
+// ============================================
+// LOOP 7: ECHOVERSE — ECHO EXCHANGES
+// Schedule: every 12 hours (after proximity scan)
+// Runs AI-to-AI conversations for detected connections
+// ============================================
+export async function runEchoExchangeLoop(): Promise<{ exchanged: number; surfaced: number }> {
+  try {
+    const result = await runEchoExchanges()
+
+    await db.backgroundEvent.create({
+      data: {
+        type: 'echo_exchanges',
+        status: 'completed',
+        payload: JSON.stringify(result),
+      },
+    })
+
+    return result
+  } catch (error) {
+    console.error('[EchoExchanges] Failed:', error)
+    await db.backgroundEvent.create({
+      data: {
+        type: 'echo_exchanges',
+        status: 'failed',
+        payload: JSON.stringify({ error: String(error) }),
+      },
+    })
+    return { exchanged: 0, surfaced: 0 }
+  }
 }

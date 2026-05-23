@@ -33,11 +33,11 @@ const TYPE_COLORS: Record<string, string> = {
 }
 
 const SOURCE_ICONS: Record<string, string> = {
-  reddit: '\u{1F4AC}',
-  twitter: '\u{1F426}',
-  youtube: '\u25B6{'\uFE0F'}',
-  github: '\u{1F4BB}',
-  news: '\u{1F4F0}',
+  reddit: '💬',
+  twitter: '🐦',
+  youtube: '▶️',
+  github: '💻',
+  news: '📰',
 }
 
 interface SocialPickData {
@@ -154,7 +154,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 hover:border-orange-500/50 transition flex items-center justify-between group"
     >
       <div className="flex items-center gap-2">
-        <span className="text-lg">{'\u{1F373}'}</span>
+        <span className="text-lg">{'🍳'}</span>
         <span className="text-sm font-medium text-orange-300 group-hover:text-orange-200 transition">
           What&apos;s Cooking
         </span>
@@ -197,7 +197,7 @@ function WhatsCookingView({ onBack }: { onBack: () => void }) {
           {'\u2190'} Feed
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-lg">{'\u{1F373}'}</span>
+          <span className="text-lg">{'🍳'}</span>
           <h2 className="text-lg font-semibold text-continuum-text">What&apos;s Cooking</h2>
         </div>
       </div>
@@ -377,7 +377,7 @@ function SocialCard({
 
   if (!pick) return <FeedCard item={item} />
 
-  const sourceIcon = SOURCE_ICONS[pick.source] || '\u{1F310}'
+  const sourceIcon = SOURCE_ICONS[pick.source] || '🌐'
   const sourceName = pick.source.charAt(0).toUpperCase() + pick.source.slice(1)
 
   return (
@@ -485,10 +485,10 @@ function CreativeWritingCard({ item }: { item: FeedItem }) {
 
   const formatLabel: Record<string, string> = {
     poem: '\u2728 Poem',
-    micro_story: '\u{1F4D6} Story',
-    thought_experiment: '\u{1F9E0} What if...',
-    journal_prompt: '\u{1F4DD} Journal Prompt',
-    letter: '\u{1F48C} Letter',
+    micro_story: '📖 Story',
+    thought_experiment: '🧠 What if...',
+    journal_prompt: '📝 Journal Prompt',
+    letter: '💌 Letter',
   }
 
   return (
@@ -591,7 +591,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
     >
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-teal-400">{'\u{1F50D}'} Emily found this</span>
+          <span className="text-xs font-medium text-teal-400">{'🔍'} Emily found this</span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
         {data.title && (
@@ -601,7 +601,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
       </div>
       {data.reason && (
         <div className="px-4 pb-3 pt-1 border-t border-continuum-border/50">
-          <p className="text-xs text-continuum-muted italic">{'\u{1F4A1}'} {data.reason}</p>
+          <p className="text-xs text-continuum-muted italic">{'💡'} {data.reason}</p>
         </div>
       )}
       {data.tags && data.tags.length > 0 && (
@@ -645,7 +645,7 @@ function VideoScriptCard({ item }: { item: FeedItem }) {
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-indigo-400">{'\u{1F3AC}'} Script</span>
+            <span className="text-xs font-medium text-indigo-400">{'🎬'} Script</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium">PRO</span>
           </div>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>

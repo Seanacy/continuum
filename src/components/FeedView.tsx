@@ -15,6 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
   daily_brief: 'Your Day',
   curated_find: 'Emily found this',
   video_script: 'Emily imagined this',
+  echo_connection: 'Echo Match',
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ const TYPE_COLORS: Record<string, string> = {
   daily_brief: 'text-amber-400',
   curated_find: 'text-teal-400',
   video_script: 'text-indigo-400',
+  echo_connection: 'text-violet-400',
 }
 
 const SOURCE_ICONS: Record<string, string> = {
@@ -93,6 +95,8 @@ export default function FeedView() {
           case 'video_script':
             return <VideoScriptCard key={item.id} item={item} />
           default:
+            case 'echo_connection':
+              return <EchoConnectionCard key={item.id} item={item} />
             return <FeedCard key={item.id} item={item} />
         }
       })}
@@ -464,4 +468,78 @@ function getTimeAgo(date: Date): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.floor(hours / 24)
   return `${days}d ago`
+}
+
+
+// ============================================
+// Echo Connection Card — AI found a match
+// ============================================
+function EchoConnectionCard({ item }: { item: FeedItem }) {
+  const [responding, setResponding] = useState(false)
+  const [responded, setResponded] = useState(false)
+  const [action, setAction] = useState<string | null>(null)
+  const timeAgo = getTimeAgo(new Date(item.createdAt))
+
+  let data: { connectionId?: string; message?: string; action?: string } | null = null
+  try { data = JSON.parse(item.content) } catch { return <FeedCard item={item} /> }
+  if (!data?.message) return <FeedCard item={item} />
+
+  const handleAction = async (actionType: 'accepted' | 'dismissed') => {
+    if (!data?.connectionId || responding) return
+    setResponding(true)
+    try {
+      const res = await fetch('/api/connections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connectionId: data.connectionId, action: actionType }),
+      })
+      if (res.ok) {
+        setResponded(true)
+        setAction(actionType)
+        trackInteraction('echo_connection_' + actionType, { connectionId: data.connectionId })
+      }
+    } catch { /* silent */ }
+    setResponding(false)
+  }
+
+  return (
+    <div
+      className={`rounded-xl border overflow-hidden transition ${
+        item.seen ? 'bg-continuum-surface border-continuum-border' : 'bg-continuum-surface border-violet-500/30'
+      }`}
+    >
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-medium text-violet-400">Echo Match</span>
+          <span className="text-xs text-continuum-muted">{timeAgo}</span>
+        </div>
+        <p className="text-sm text-continuum-text leading-relaxed">{data.message}</p>
+      </div>
+
+      {!responded ? (
+        <div className="px-4 pb-3 flex gap-2">
+          <button
+            onClick={() => handleAction('accepted')}
+            disabled={responding}
+            className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition disabled:opacity-50"
+          >
+            {responding ? '...' : 'Connect'}
+          </button>
+          <button
+            onClick={() => handleAction('dismissed')}
+            disabled={responding}
+            className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-continuum-bg text-continuum-muted hover:bg-continuum-border/50 transition disabled:opacity-50"
+          >
+            Not now
+          </button>
+        </div>
+      ) : (
+        <div className="px-4 pb-3">
+          <p className="text-xs text-continuum-muted italic">
+            {action === 'accepted' ? 'Connection accepted! You\'ll hear more soon.' : 'Got it, maybe next time.'}
+          </p>
+        </div>
+      )}
+    </div>
+  )
 }

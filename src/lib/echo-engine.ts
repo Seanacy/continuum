@@ -3,6 +3,7 @@
 // this engine runs the background conversation between their AIs.
 // Each AI represents its user, exchanges relevant context,
 // and decides what to surface back to its human.
+// NEW: Also generates collaboration proposals for "What's Cooking"
 
 import { db } from '@/lib/db'
 import { callLLM } from '@/lib/llm'
@@ -15,22 +16,24 @@ const MAX_ECHOES_PER_CYCLE = 5 // don't run too many per background loop
 // ============================================
 // MAIN — process pending connections and run AI-to-AI exchanges
 // ============================================
-export async function runEchoExchanges(): Promise<{ exchanged: number; surfaced: number }> {
+export async function runEchoExchanges(): Promise<{ exchanged: number; surfaced: number; collabs: number }> {
   const pending = await getPendingConnections()
   let exchanged = 0
   let surfaced = 0
+  let collabs = 0
 
   for (const connection of pending.slice(0, MAX_ECHOES_PER_CYCLE)) {
     try {
       const result = await runSingleExchange(connection)
       if (result.exchanged) exchanged++
       if (result.surfaced) surfaced++
+      if (result.collabCreated) collabs++
     } catch (err) {
       console.error(`[EchoEngine] Exchange failed for connection ${connection.id}:`, err)
     }
   }
 
-  return { exchanged, surfaced }
+  return { exchanged, surfaced, collabs }
 }
 
 // ============================================
@@ -43,7 +46,7 @@ async function runSingleExchange(connection: {
   overlap_score: number
   matching_categories: string[]
   matching_signals: string[]
-}): Promise<{ exchanged: boolean; surfaced: boolean }> {
+}): Promise<{ exchanged: boolean; surfaced: boolean; collabCreated: boolean }> {
   // Get context about both users
   const [userA, userB, memoryA, memoryB, charA, charB] = await Promise.all([
     db.user.findUnique({ where: { id: connection.user_a_id }, select: { id: true, name: true, aiName: true } }),
@@ -54,7 +57,7 @@ async function runSingleExchange(connection: {
     getActiveCharacter(connection.user_b_id),
   ])
 
-  if (!userA || !userB) return { exchanged: false, surfaced: false }
+  if (!userA || !userB) return { exchanged: false, surfaced: false, collabCreated: false }
 
   const aiNameA = charA?.name || userA.aiName || 'AI-A'
   const aiNameB = charB?.name || userB.aiName || 'AI-B'
@@ -128,9 +131,10 @@ Based on what you know about YOUR user, what from this conversation would your u
   ])
 
   // Save the echo conversation
-  await db.$executeRawUnsafe(
+  const echoConvoResult = await db.$queryRawUnsafe<Array<{ id: string }>>(
     `INSERT INTO echo_conversations (id, connection_id, ai_a_summary, ai_b_summary, exchange_log, surface_to_a, surface_to_b, status, created_at, updated_at)
-     VALUES (gen_random_uuid()::text, $1, $2, $3, $4::jsonb, $5, $6, 'completed', NOW(), NOW())`,
+     VALUES (gen_random_uuid()::text, $1, $2, $3, $4::jsonb, $5, $6, 'completed', NOW(), NOW())
+     RETURNING id`,
     connection.id,
     synthesisA.content,
     synthesisB.content,
@@ -138,6 +142,8 @@ Based on what you know about YOUR user, what from this conversation would your u
     surfaceA,
     surfaceB
   )
+
+  const echoConvoId = echoConvoResult[0]?.id
 
   // Update connection status
   await db.$executeRawUnsafe(
@@ -150,12 +156,130 @@ Based on what you know about YOUR user, what from this conversation would your u
                         !synthesisB.content.toLowerCase().includes('nothing worth') &&
                         surfaceA.length > 10 && surfaceB.length > 10
 
+  let collabCreated = false
+
   if (shouldSurface) {
     await surfaceConnection(connection.id, connection.user_a_id, connection.user_b_id, surfaceA, surfaceB)
-    return { exchanged: true, surfaced: true }
+
+    // NEW: Generate a collaboration proposal if the overlap is strong enough
+    if (echoConvoId && connection.overlap_score >= 0.5) {
+      collabCreated = await generateCollabProposal(
+        echoConvoId,
+        connection.user_a_id,
+        connection.user_b_id,
+        aiNameA,
+        aiNameB,
+        synthesisA.content,
+        synthesisB.content,
+        connection.matching_categories,
+        connection.matching_signals
+      )
+    }
+
+    return { exchanged: true, surfaced: true, collabCreated }
   }
 
-  return { exchanged: true, surfaced: false }
+  return { exchanged: true, surfaced: false, collabCreated: false }
+}
+
+// ============================================
+// GENERATE COLLAB PROPOSAL — AIs design a collaboration for "What's Cooking"
+// ============================================
+async function generateCollabProposal(
+  echoConvoId: string,
+  userAId: string,
+  userBId: string,
+  aiNameA: string,
+  aiNameB: string,
+  synthesisA: string,
+  synthesisB: string,
+  categories: string[],
+  signals: string[]
+): Promise<boolean> {
+  try {
+    // The two AIs brainstorm a collaboration idea together
+    const collabIdea = await callLLM(
+      `You are a creative collaboration designer. Two AI companions just had a conversation about their users:
+
+${aiNameA}'s assessment: "${synthesisA}"
+${aiNameB}'s assessment: "${synthesisB}"
+
+Shared interest areas: ${categories.join(', ')}
+Specific signals: ${signals.join(', ')}
+
+Design ONE specific collaboration these two users could do together. This should be something concrete they could actually create, build, or produce together in their shared interest area.
+
+IMPORTANT: Respond in EXACTLY this JSON format, nothing else:
+{
+  "title": "Short catchy title for the collab (max 60 chars)",
+  "description": "2-3 sentence description of what they'd create together and why it would be cool",
+  "optionA": "First direction they could take it (max 80 chars)",
+  "optionB": "Alternative direction they could take it (max 80 chars)"
+}
+
+The two options should be genuinely different creative directions — fans will vote on which one the collab should pursue. Make both options exciting.`,
+      [{ role: 'user', content: 'Design the collaboration proposal.' }],
+      { maxTokens: 300, temperature: 0.8 }
+    )
+
+    // Parse the JSON response
+    const parsed = parseCollabResponse(collabIdea.content)
+    if (!parsed) {
+      console.error('[EchoEngine] Failed to parse collab proposal JSON')
+      return false
+    }
+
+    // Save the collab proposal
+    await db.$executeRawUnsafe(
+      `INSERT INTO collab_proposals (id, echo_convo_id, user_a_id, user_b_id, title, description, option_a, option_b, votes_a, votes_b, status, accepted_by_a, accepted_by_b, created_at, updated_at)
+       VALUES (gen_random_uuid()::text, $1, $2, $3, $4, $5, $6, $7, 0, 0, 'cooking', false, false, NOW(), NOW())`,
+      echoConvoId,
+      userAId,
+      userBId,
+      parsed.title.slice(0, 60),
+      parsed.description.slice(0, 500),
+      parsed.optionA.slice(0, 80),
+      parsed.optionB.slice(0, 80)
+    )
+
+    console.log(`[EchoEngine] Created collab proposal: ${parsed.title}`)
+    return true
+  } catch (err) {
+    console.error('[EchoEngine] Failed to generate collab proposal:', err)
+    return false
+  }
+}
+
+// ============================================
+// PARSE COLLAB RESPONSE — extract structured JSON from LLM output
+// ============================================
+function parseCollabResponse(content: string): {
+  title: string
+  description: string
+  optionA: string
+  optionB: string
+} | null {
+  try {
+    // Try direct parse first
+    const parsed = JSON.parse(content)
+    if (parsed.title && parsed.description && parsed.optionA && parsed.optionB) {
+      return parsed
+    }
+  } catch {
+    // Try extracting JSON from the response
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0])
+        if (parsed.title && parsed.description && parsed.optionA && parsed.optionB) {
+          return parsed
+        }
+      } catch {
+        // Fall through
+      }
+    }
+  }
+  return null
 }
 
 // ============================================

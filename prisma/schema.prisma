@@ -1,4 +1,10 @@
 generator client {
+  bubbleProfile    BubbleProfile?
+  bubbleSignals    BubbleSignal[]
+  bubbleCategories BubbleCategory[]
+  connectionsAsA   BubbleConnection[] @relation("connectionsAsA")
+  connectionsAsB   BubbleConnection[] @relation("connectionsAsB")
+
   provider = "prisma-client-js"
 }
 
@@ -332,4 +338,98 @@ model VideoJob {
   @@index([userId, status])
   @@index([createdAt])
   @@map("video_jobs")
+}
+
+// ============================================
+// ECHOVERSE: BUBBLE WORLD SYSTEM
+// ============================================
+
+model BubbleProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  signalSummary  Json     @default("{}") @map("signal_summary")
+  profileVector  Json     @default("[]") @map("profile_vector")
+  totalSignals   Int      @default(0) @map("total_signals")
+  lastComputedAt DateTime @default(now()) @map("last_computed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("bubble_profiles")
+}
+
+model BubbleSignal {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  signalType      String   @map("signal_type")
+  signalKey       String   @map("signal_key")
+  signalValue     String   @default("") @map("signal_value")
+  strength        Float    @default(1.0)
+  occurrenceCount Int      @default(1) @map("occurrence_count")
+  source          String   @default("chat")
+  lastSeenAt      DateTime @default(now()) @map("last_seen_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, signalType, signalKey])
+  @@index([userId])
+  @@index([userId, signalType])
+  @@map("bubble_signals")
+}
+
+model BubbleCategory {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryName    String   @map("category_name")
+  categorySignals Json     @default("[]") @map("category_signals")
+  weight          Float    @default(1.0)
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("bubble_categories")
+}
+
+model BubbleConnection {
+  id                 String   @id @default(cuid())
+  userAId            String   @map("user_a_id")
+  userA              User     @relation("connectionsAsA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId            String   @map("user_b_id")
+  userB              User     @relation("connectionsAsB", fields: [userBId], references: [id], onDelete: Cascade)
+  overlapScore       Float    @default(0.0) @map("overlap_score")
+  matchingCategories Json     @default("[]") @map("matching_categories")
+  matchingSignals    Json     @default("[]") @map("matching_signals")
+  status             String   @default("detected")
+  surfacedToA        Boolean  @default(false) @map("surfaced_to_a")
+  surfacedToB        Boolean  @default(false) @map("surfaced_to_b")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  echoConversations EchoConversation[]
+
+  @@index([userAId, userBId])
+  @@index([status])
+  @@map("bubble_connections")
+}
+
+model EchoConversation {
+  id           String           @id @default(cuid())
+  connectionId String           @map("connection_id")
+  connection   BubbleConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  aiASummary   String           @default("") @map("ai_a_summary")
+  aiBSummary   String           @default("") @map("ai_b_summary")
+  exchangeLog  Json             @default("[]") @map("exchange_log")
+  surfaceToA   String           @default("") @map("surface_to_a")
+  surfaceToB   String           @default("") @map("surface_to_b")
+  status       String           @default("pending")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@index([connectionId])
+  @@index([status])
+  @@map("echo_conversations")
 }

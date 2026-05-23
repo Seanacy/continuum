@@ -1,10 +1,4 @@
 generator client {
-  bubbleProfile    BubbleProfile?
-  bubbleSignals    BubbleSignal[]
-  bubbleCategories BubbleCategory[]
-  connectionsAsA   BubbleConnection[] @relation("connectionsAsA")
-  connectionsAsB   BubbleConnection[] @relation("connectionsAsB")
-
   provider = "prisma-client-js"
 }
 
@@ -43,6 +37,11 @@ model User {
   usageLogs          UsageLog[]
   creditTransactions CreditTransaction[]
   characters         Character[]
+  bubbleProfile      BubbleProfile?
+  bubbleSignals      BubbleSignal[]
+  bubbleCategories   BubbleCategory[]
+  connectionsAsA     BubbleConnection[] @relation("connectionsAsA")
+  connectionsAsB     BubbleConnection[] @relation("connectionsAsB")
   videoJobs          VideoJob[]
 
   // Wallet system — dollar balance stored in cents ($5.00 = 500)

@@ -149,7 +149,7 @@ function calculateOverlap(
       const signalsB = new Set(catB.category_signals.map(s => s.toLowerCase()))
 
       // Find signal overlap between these two categories
-      const shared = [...signalsA].filter(s => signalsB.has(s))
+      const shared = Array.from(signalsA).filter(s => signalsB.has(s))
 
       if (shared.length >= 1) {
         // Weight the overlap by both categories' importance
@@ -172,8 +172,8 @@ function calculateOverlap(
 
   return {
     score,
-    matchingCategories: [...new Set(matchingCategories)],
-    matchingSignals: [...new Set(matchingSignals)],
+    matchingCategories: Array.from(new Set(matchingCategories)),
+    matchingSignals: Array.from(new Set(matchingSignals)),
   }
 }
 

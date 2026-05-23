@@ -496,7 +496,7 @@ function EchoConnectionCard({ item }: { item: FeedItem }) {
       if (res.ok) {
         setResponded(true)
         setAction(actionType)
-        trackInteraction('echo_connection_' + actionType, { connectionId: data.connectionId })
+        trackInteraction(('echo_connection_' + actionType) as any, { connectionId: data.connectionId })
       }
     } catch { /* silent */ }
     setResponding(false)

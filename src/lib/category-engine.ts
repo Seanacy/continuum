@@ -53,10 +53,10 @@ export async function recomputeCategories(userId: string): Promise<number> {
       if (match) {
         // Update existing category
         matchedExistingIds.add(match.id)
-        const mergedSignals = [...new Set([
+        const mergedSignals = Array.from(new Set([
           ...(parseJson(match.category_signals) as string[]),
           ...cluster.signals,
-        ])]
+        ]))
 
         await db.$executeRawUnsafe(
           `UPDATE bubble_categories

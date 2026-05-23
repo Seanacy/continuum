@@ -35,7 +35,7 @@ const TYPE_COLORS: Record<string, string> = {
 const SOURCE_ICONS: Record<string, string> = {
   reddit: '\u{1F4AC}',
   twitter: '\u{1F426}',
-  youtube: '\u25B6\uFE0F',
+  youtube: '\u25B6{'\uFE0F'}',
   github: '\u{1F4BB}',
   news: '\u{1F4F0}',
 }
@@ -154,7 +154,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 hover:border-orange-500/50 transition flex items-center justify-between group"
     >
       <div className="flex items-center gap-2">
-        <span className="text-lg">\u{1F373}</span>
+        <span className="text-lg">{'\u{1F373}'}</span>
         <span className="text-sm font-medium text-orange-300 group-hover:text-orange-200 transition">
           What&apos;s Cooking
         </span>
@@ -163,7 +163,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
         <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-medium">
           {count} active
         </span>
-        <span className="text-orange-400 text-xs">\u2192</span>
+        <span className="text-orange-400 text-xs">{'\u2192'}</span>
       </div>
     </button>
   )
@@ -194,10 +194,10 @@ function WhatsCookingView({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           className="text-continuum-muted hover:text-continuum-text transition text-sm"
         >
-          \u2190 Feed
+          {'\u2190'} Feed
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-lg">\u{1F373}</span>
+          <span className="text-lg">{'\u{1F373}'}</span>
           <h2 className="text-lg font-semibold text-continuum-text">What&apos;s Cooking</h2>
         </div>
       </div>
@@ -270,7 +270,7 @@ function CollabCard({ collab }: { collab: CollabProposal }) {
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-orange-400 font-medium">
-            {collab.user_a_name} \u00D7 {collab.user_b_name}
+            {collab.user_a_name} {'\u00D7'} {collab.user_b_name}
           </span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
@@ -540,7 +540,7 @@ function DailyBriefCard({ item }: { item: FeedItem }) {
   try { data = JSON.parse(item.content) } catch { return <FeedCard item={item} /> }
   if (!data?.body) return <FeedCard item={item} />
 
-  const lines = data.body.split('\n').map(l => l.replace(/^[-\u2022]\s*/, '').trim()).filter(Boolean)
+  const lines = data.body.split('\n').map(l => l.replace(/^[-{'\u2022'}]\s*/, '').trim()).filter(Boolean)
 
   return (
     <div
@@ -551,13 +551,13 @@ function DailyBriefCard({ item }: { item: FeedItem }) {
     >
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-amber-400">\u2600\uFE0F {data.title || 'Your Day'}</span>
+          <span className="text-xs font-medium text-amber-400">{'\u2600'}{'\uFE0F'} {data.title || 'Your Day'}</span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
         <div className="space-y-1.5">
           {lines.map((line, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <span className="text-amber-400/60 text-xs mt-0.5">\u203A</span>
+              <span className="text-amber-400/60 text-xs mt-0.5">{'\u203A'}</span>
               <p className="text-sm text-continuum-text leading-relaxed">{line}</p>
             </div>
           ))}
@@ -591,7 +591,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
     >
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-teal-400">\u{1F50D} Emily found this</span>
+          <span className="text-xs font-medium text-teal-400">{'\u{1F50D}'} Emily found this</span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
         {data.title && (
@@ -601,7 +601,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
       </div>
       {data.reason && (
         <div className="px-4 pb-3 pt-1 border-t border-continuum-border/50">
-          <p className="text-xs text-continuum-muted italic">\u{1F4A1} {data.reason}</p>
+          <p className="text-xs text-continuum-muted italic">{'\u{1F4A1}'} {data.reason}</p>
         </div>
       )}
       {data.tags && data.tags.length > 0 && (
@@ -645,7 +645,7 @@ function VideoScriptCard({ item }: { item: FeedItem }) {
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-indigo-400">\u{1F3AC} Script</span>
+            <span className="text-xs font-medium text-indigo-400">{'\u{1F3AC}'} Script</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium">PRO</span>
           </div>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
@@ -688,7 +688,7 @@ function VideoScriptCard({ item }: { item: FeedItem }) {
 
       {!expanded && data.scenes.length > 0 && (
         <div className="px-4 pb-2">
-          <p className="text-[10px] text-continuum-muted">Tap to see {data.scenes.length}-scene storyboard \u2192</p>
+          <p className="text-[10px] text-continuum-muted">Tap to see {data.scenes.length}-scene storyboard {'\u2192'}</p>
         </div>
       )}
 

@@ -216,7 +216,7 @@ interface ChatViewProps {
 }
 
 export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate }: ChatViewProps) {
-  const { messages, loading, sending, searching, sendMessage } = useChat(threadId, characterId)
+  const { messages, loading, sending, searching, dailyRemaining, dailyLimitReached, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
@@ -581,6 +581,14 @@ export default function ChatView({ threadId, partnerMode, characterId, character
         </div>
       )}
 
+      {/* Daily Limit Banner */}
+      {dailyLimitReached && (
+        <div className="px-4 py-3 bg-amber-500/10 border-t border-amber-500/30 text-center">
+          <p className="text-sm text-amber-300 font-medium">You've used all 25 messages for today</p>
+          <p className="text-xs text-continuum-muted mt-1">Your messages reset at midnight. Come back tomorrow!</p>
+        </div>
+      )}
+
       {/* Input Bar */}
       <form
         onSubmit={handleSubmit}
@@ -678,13 +686,13 @@ export default function ChatView({ threadId, partnerMode, characterId, character
             onChange={(e) => setInput(e.target.value)}
             placeholder={listening ? 'Listening...' : 'Say something...'}
             className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-continuum-surface border border-continuum-border focus:border-continuum-accent outline-none text-sm transition"
-            disabled={sending || listening}
+            disabled={sending || listening || dailyLimitReached}
           />
 
           {/* Send Button */}
           <button
             type="submit"
-            disabled={(!input.trim() && !pendingImage) || sending}
+            disabled={(!input.trim() && !pendingImage) || sending || dailyLimitReached}
             className="px-4 py-2.5 rounded-xl bg-continuum-accent hover:bg-continuum-accent-dim text-white text-sm font-medium transition disabled:opacity-30 shrink-0"
           >
             Send
@@ -731,6 +739,12 @@ export default function ChatView({ threadId, partnerMode, characterId, character
             {speaking && (
               <span className="text-continuum-accent animate-pulse">Speaking...</span>
             )}
+          </div>
+        )}
+
+        {dailyRemaining !== null && dailyRemaining <= 5 && !dailyLimitReached && (
+          <div className="mt-2 text-xs text-center">
+            <span className="text-amber-400">{dailyRemaining} message{dailyRemaining !== 1 ? 's' : ''} left today</span>
           </div>
         )}
       </form>

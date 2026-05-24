@@ -17,6 +17,7 @@ import { logUsage } from '@/lib/usage-tracker'
 export const dynamic = 'force-dynamic'
 
 const CONTEXT_WINDOW = 20
+const DAILY_MESSAGE_LIMIT = 25
 const EXTRACTION_INTERVAL = 10
 const MAX_TOOL_ROUNDS = 3 // max times Emily can search per message
 
@@ -48,6 +49,22 @@ export async function POST(req: NextRequest) {
 
   const { content, threadId, characterId, image, imageType, timezone, localTime } = parsed.data
   const partnerMode = body.partnerMode === true
+
+    // Daily message cap
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+    const todayCount = await db.message.count({
+      where: { userId: user.id, role: 'user', createdAt: { gte: todayStart } }
+    })
+    const remaining = Math.max(0, DAILY_MESSAGE_LIMIT - todayCount)
+    if (remaining <= 0) {
+      return NextResponse.json({
+        error: 'daily_limit',
+        remaining: 0,
+        limit: DAILY_MESSAGE_LIMIT,
+        resetsAt: new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString()
+      }, { status: 429 })
+    }
 
   try {
     // 1. Update energy state
@@ -427,6 +444,8 @@ export async function POST(req: NextRequest) {
       generatedContent,
       generatedImage,
       openCharacterBuilder,
+      dailyRemaining: remaining - 1,
+      dailyLimit: DAILY_MESSAGE_LIMIT,
     })
   } catch (error) {
     console.error('Chat error:', error)

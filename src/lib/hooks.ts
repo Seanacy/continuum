@@ -167,7 +167,6 @@ export function useChat(threadId?: string, characterId?: string) {
           { ...tempMsg, id: 'user-' + Date.now() },
           aiMsg,
         ])
-      }
         if (data.dailyRemaining !== undefined) setDailyRemaining(data.dailyRemaining)
       } else if (res.status === 429) {
         const errData = await res.json()

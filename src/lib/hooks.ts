@@ -97,6 +97,8 @@ export function useChat(threadId?: string, characterId?: string) {
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [searching, setSearching] = useState(false)
+  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null)
+  const [dailyLimitReached, setDailyLimitReached] = useState(false)
 
   const loadMessages = useCallback(async () => {
     setLoading(true)
@@ -166,6 +168,14 @@ export function useChat(threadId?: string, characterId?: string) {
           aiMsg,
         ])
       }
+        if (data.dailyRemaining !== undefined) setDailyRemaining(data.dailyRemaining)
+      } else if (res.status === 429) {
+        const errData = await res.json()
+        setDailyRemaining(0)
+        setDailyLimitReached(true)
+        // Remove the optimistic user message
+        setMessages((prev) => prev.filter((m) => m.id !== tempMsg.id))
+      }
     } catch (error) {
       clearTimeout(searchTimer)
       console.error('Send failed:', error)
@@ -176,7 +186,7 @@ export function useChat(threadId?: string, characterId?: string) {
     }
   }
 
-  return { messages, loading, sending, searching, sendMessage, reload: loadMessages }
+  return { messages, loading, sending, searching, dailyRemaining, dailyLimitReached, sendMessage, reload: loadMessages }
 }
 
 // ============================================

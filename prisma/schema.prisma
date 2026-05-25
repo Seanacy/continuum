@@ -576,3 +576,38 @@ model AdCampaign {
   @@index([metaCampaignId])
   @@map("ad_campaigns")
 }
+
+
+// ============================================
+// GEMINI IMAGE QUOTA TRACKING
+// ============================================
+model ImageQuota {
+  id          String   @id @default(cuid())
+  date        String   @unique // "2026-05-25" format, one row per day
+  freeUsed    Int      @default(0) @map("free_used") // images generated on free tier today
+  paidUsed    Int      @default(0) @map("paid_used") // images generated on paid tier today
+  paidCostCents Int    @default(0) @map("paid_cost_cents") // total paid cost in cents today
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("image_quotas")
+}
+
+// Per-user image generation log
+model ImageGeneration {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  characterId String?  @map("character_id")
+  promptUsed  String   @db.Text @map("prompt_used")
+  referenceUrl String? @map("reference_url") // the scene photo URL
+  resultUrl   String?  @map("result_url") // generated image URL
+  tier        String   @default("free") // "free" or "paid"
+  costCents   Int      @default(0) @map("cost_cents")
+  status      String   @default("pending") // "pending", "completed", "failed"
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("image_generations")
+}

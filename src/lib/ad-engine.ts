@@ -402,3 +402,55 @@ export async function deleteAd(adCampaignId: string, userId: string) {
 
   return { success: true };
 }
+
+
+// Bulk Metrics Refresh
+
+export async function refreshAllUserAdMetrics(userId: string) {
+  const activeAds = await db.adCampaign.findMany({
+    where: {
+      userId,
+      status: { in: ['active', 'pending', 'paused'] },
+      metaAdId: { not: null },
+    },
+  });
+
+  const results = [];
+  for (const ad of activeAds) {
+    try {
+      const insights = await getAdInsights(ad.facebookAccountId, ad.metaAdId!);
+      if (insights) {
+        await db.adCampaign.update({
+          where: { id: ad.id },
+          data: { metrics: insights as any, metricsUpdatedAt: new Date() },
+        });
+        results.push({ id: ad.id, status: 'updated' });
+      } else {
+        results.push({ id: ad.id, status: 'no_data' });
+      }
+    } catch (error: any) {
+      results.push({ id: ad.id, status: 'error', error: error.message });
+    }
+  }
+
+  return results;
+}
+
+export async function refreshAllAdMetricsCron() {
+  const usersWithAds = await db.adCampaign.findMany({
+    where: {
+      status: { in: ['active', 'pending'] },
+      metaAdId: { not: null },
+    },
+    select: { userId: true },
+    distinct: ['userId'],
+  });
+
+  const results = [];
+  for (const { userId } of usersWithAds) {
+    const userResults = await refreshAllUserAdMetrics(userId);
+    results.push({ userId, ads: userResults });
+  }
+
+  return results;
+}

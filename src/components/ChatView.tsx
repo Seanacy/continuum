@@ -532,32 +532,32 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
                 {msg.role === 'assistant' && msg.contentPack && (
                   <div className="mb-3 space-y-2 overflow-hidden">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-continuum-accent uppercase tracking-wider">Content Pack</span>
-                      <span className="text-[10px] text-continuum-muted">{msg.contentPack.pieces.length} pieces · {msg.contentPack.weekTheme}</span>
+                      <span className="text-sm font-semibold text-continuum-accent uppercase tracking-wider">Content Pack</span>
+                      <span className="text-xs text-continuum-muted">{msg.contentPack.pieces.length} pieces · {msg.contentPack.weekTheme}</span>
                     </div>
-                    <p className="text-[10px] text-continuum-muted italic mb-1">Swipe to see more cards &#8594;</p>
+                    <p className="text-xs text-continuum-muted italic mb-1">Swipe to see more cards &#8594;</p>
                     <div className="flex overflow-x-auto gap-2 pb-2 snap-x snap-mandatory">
                       {msg.contentPack.pieces.map((piece: any, idx: number) => (
                         <div key={idx} className="snap-start shrink-0 w-64 p-3 rounded-xl bg-continuum-surface border border-continuum-border">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-semibold text-continuum-accent uppercase">{piece.contentType.replace(/_/g, ' ')}</span>
-                              {piece.platform && <span className="text-[10px] text-continuum-muted">· {piece.platform}</span>}
+                              <span className="text-xs font-semibold text-continuum-accent uppercase">{piece.contentType.replace(/_/g, ' ')}</span>
+                              {piece.platform && <span className="text-xs text-continuum-muted">· {piece.platform}</span>}
                             </div>
-                            {piece.daySuggestion && <span className="text-[10px] text-continuum-muted">{piece.daySuggestion}</span>}
+                            {piece.daySuggestion && <span className="text-xs text-continuum-muted">{piece.daySuggestion}</span>}
                           </div>
                           <p className="text-sm text-continuum-text whitespace-pre-wrap leading-relaxed mb-2 line-clamp-6">{piece.content}</p>
                           {piece.hashtags && piece.hashtags.length > 0 && (
-                            <p className="text-[10px] text-continuum-accent mb-2">{piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ')}</p>
+                            <p className="text-xs text-continuum-accent mb-2">{piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ')}</p>
                           )}
                           {piece.needsUserPhoto && piece.photoSuggestion && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-amber-400 mb-2 p-1.5 rounded-lg bg-amber-500/10">
+                            <div className="flex items-center gap-1.5 text-xs text-amber-400 mb-2 p-1.5 rounded-lg bg-amber-500/10">
                               <span>📷</span>
                               <span>{piece.photoSuggestion}</span>
                             </div>
                           )}
                           {!piece.needsUserPhoto && piece.photoSuggestion && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-continuum-muted mb-2 p-1.5 rounded-lg bg-continuum-accent/5">
+                            <div className="flex items-center gap-1.5 text-xs text-continuum-muted mb-2 p-1.5 rounded-lg bg-continuum-accent/5">
                               <span>🎨</span>
                               <span>AI image: {piece.photoSuggestion}</span>
                             </div>
@@ -572,7 +572,7 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
                         </div>
                       ))}
                     </div>
-                    <span className="block text-[10px] text-continuum-muted">Charged ${(msg.contentPack.totalPriceCents / 100).toFixed(2)}</span>
+                    <span className="block text-xs text-continuum-muted">Charged ${(msg.contentPack.totalPriceCents / 100).toFixed(2)}</span>
                   </div>
                 )}
                 {msg.content.startsWith('[Sent an image]') ? (

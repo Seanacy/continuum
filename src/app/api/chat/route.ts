@@ -379,6 +379,8 @@ export async function POST(req: NextRequest) {
                   totalPriceCents,
                 }
                 toolResultText = 'Content pack generated successfully with ' + pieces.length + ' pieces. Charged $' + (totalPriceCents / 100).toFixed(2) + '. Remaining balance: $' + (charge.remaining / 100).toFixed(2) + '. The content pack will display as cards the user can swipe through. Give a brief natural confirmation and mention the week theme. Do NOT repeat the content back.'
+              // Skip second LLM call to avoid Vercel timeout
+              finalContent = 'Here is your content pack for the week! I put together ' + pieces.length + ' pieces around the theme "' + weekTheme + '". Swipe through them below, each one is ready to copy and post.'
               } else {
                 toolResultText = 'The user does not have enough funds for this content pack. They need $' + (totalPriceCents / 100).toFixed(2) + ' but only have $' + (charge.remaining / 100).toFixed(2) + '. Let them know they need to add funds.'
               }
@@ -414,6 +416,9 @@ export async function POST(req: NextRequest) {
           ],
         }
         history.push(toolResult)
+
+        // Content pack is terminal - break to avoid timeout on second LLM call
+        if (contentPack) break
 
         // Continue the loop â Claude will now process the results
         continue

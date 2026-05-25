@@ -45,7 +45,7 @@ function resolveTraitNames(selections: Record<string, string>): string[] {
   const traits: string[] = []
   for (const [categoryKey, bundleId] of Object.entries(selections)) {
     const category = CATEGORIES.find(c => c.key === categoryKey)
-    const allBundles = (BUNDLES as Record<string, any[]>)[categoryKey] || []
+    const allBundles = (BUNDLES as unknown as Record<string, any[]>)[categoryKey] || []
     const bundle = allBundles.find((b: any) => b.id === bundleId)
     if (category && bundle) {
       traits.push(category.label + ': ' + bundle.name + ' — ' + bundle.desc)

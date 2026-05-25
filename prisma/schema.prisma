@@ -45,6 +45,7 @@ model User {
   videoJobs          VideoJob[]
   collabProposalsA   CollabProposal[]   @relation("collabUserA")
   collabProposalsB   CollabProposal[]   @relation("collabUserB")
+  businesses         Business[]
 
   // Wallet system — dollar balance stored in cents ($5.00 = 500)
   walletBalance   Int    @default(0) @map("wallet_balance")    // balance in cents
@@ -60,7 +61,30 @@ model User {
   specialties      String?  @map("specialties")
   targetAudience   String?  @map("target_audience")
 
+  // Multi-business system
+  businesses       Business[]
+
   @@map("users")
+}
+
+model Business {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  websiteUrl       String?  @map("website_url")
+  businessType     String?  @map("business_type")
+  productsServices String?  @map("products_services") @db.Text
+  targetAudience   String?  @map("target_audience") @db.Text
+  socialLinks      Json     @default("[]") @map("social_links")
+  location         String?
+  brandVoice       String?  @map("brand_voice")
+  scrapedData      Json?    @map("scraped_data")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("businesses")
 }
 
 model AiState {
@@ -346,6 +370,29 @@ model VideoJob {
   @@index([userId, status])
   @@index([createdAt])
   @@map("video_jobs")
+}
+
+// ============================================
+// BUSINESS PROFILES (multi-business per user)
+// ============================================
+model Business {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String   // business name
+  websiteUrl       String?  @map("website_url")
+  businessType     String?  @map("business_type")
+  productsServices String?  @map("products_services") @db.Text
+  targetAudience   String?  @map("target_audience") @db.Text
+  socialLinks      Json     @default("[]") @map("social_links") // [{platform, url}]
+  location         String?
+  brandVoice       String?  @map("brand_voice")
+  scrapedData      Json?    @map("scraped_data") // raw AI-extracted info from links
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("businesses")
 }
 
 // ============================================

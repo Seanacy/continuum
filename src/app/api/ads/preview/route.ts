@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { getAdPreview, getReachEstimate, TargetingSpec } from '@/lib/meta-ads';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing facebookAccountId' }, { status: 400 });
     }
 
-    const fbAccount = await prisma.facebookAccount.findFirst({
+    const fbAccount = await db.facebookAccount.findFirst({
       where: { id: facebookAccountId, userId: user.id, status: 'active' },
     });
 

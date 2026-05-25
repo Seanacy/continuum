@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push-client'
+import BusinessManager from './BusinessManager'
 
 interface DiscoveryQuestion {
   id: string
@@ -20,6 +21,8 @@ export default function SettingsView() {
   const [pushSupported, setPushSupported] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
+  const [showBusinessManager, setShowBusinessManager] = useState(false)
+
 
   // Mission state
   const [mission, setMission] = useState<string>('')
@@ -196,6 +199,28 @@ export default function SettingsView() {
     <div className="h-full overflow-y-auto px-4 py-6">
       <h2 className="text-lg font-semibold text-continuum-text mb-1">Settings</h2>
       <p className="text-sm text-continuum-muted mb-6">Customize your experience</p>
+
+      {/* My Businesses */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-continuum-text mb-1">My Businesses</h3>
+        <p className="text-xs text-continuum-muted mb-3">
+          Add your businesses so Content Pack can create posts tailored to each one.
+        </p>
+        <button
+          onClick={() => setShowBusinessManager(true)}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent/50 transition w-full"
+        >
+          <span className="text-base">🏢</span>
+          <span className="text-sm text-continuum-text">Manage Businesses</span>
+          <svg className="ml-auto w-4 h-4 text-continuum-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+
+      {showBusinessManager && (
+        <BusinessManager onClose={() => setShowBusinessManager(false)} />
+      )}
 
       {/* User Mission — Your WHY */}
       <div className="mb-8">

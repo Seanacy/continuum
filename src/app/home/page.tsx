@@ -9,9 +9,11 @@ import ThreadsView from '@/components/ThreadsView'
 import SettingsView from '@/components/SettingsView'
 import CharacterBuilder from '@/components/CharacterBuilder'
 import OnboardingFlow from '@/components/OnboardingFlow'
+import AdsView from '@/components/AdsView'
+import AdPublisher from '@/components/AdPublisher'
 import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
 
-type View = 'chat' | 'feed' | 'threads' | 'create' | 'settings'
+type View = 'chat' | 'feed' | 'threads' | 'create' | 'ads' | 'settings'
 
 export default function HomePage() {
   const { user, loading } = useUser()
@@ -19,6 +21,7 @@ export default function HomePage() {
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>(undefined)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [partnerMode, setPartnerMode] = useState(false)
+  const [adPiece, setAdPiece] = useState<any>(null)
   const { messages } = useChat()
   const { characters, reload: reloadCharacters } = useCharacters()
   const [activeCharacterId, setActiveCharacterId] = useState<string | undefined>(undefined)
@@ -108,12 +111,24 @@ export default function HomePage() {
           characters={characters}
           onCharacterChange={setActiveCharacterId}
           onGoToCreate={() => handleViewChange('create')}
+          onPublishAsAd={(piece: any) => setAdPiece(piece)}
         />
       )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
       {activeView === 'create' && <CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} />}
-      {activeView === 'settings' && <SettingsView />}
-    </AppShell>
+      {activeView === 'ads' && <AdsView />}
+        {activeView === 'settings' && <SettingsView />}
+    {adPiece && (
+          <AdPublisher
+            piece={adPiece}
+            onClose={() => setAdPiece(null)}
+            onPublished={() => {
+              setAdPiece(null)
+              handleViewChange('ads')
+            }}
+          />
+        )}
+      </AppShell>
   )
 }

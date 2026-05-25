@@ -119,7 +119,7 @@ async function getToken(facebookAccountId: string): Promise<string> {
   if (!token) {
     throw new Error('No valid token found. Please reconnect your Facebook account.');
   }
-  return token;
+  return token.accessToken;
 }
 
 // Campaign Management

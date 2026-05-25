@@ -437,6 +437,15 @@ export async function POST(req: NextRequest) {
         content: finalContent,
         threadId,
         characterId: activeCharacter?.id || null,
+        metadata: {
+          ...(contentPack ? { contentPack } : {}),
+          ...(generatedContent ? { generatedContent } : {}),
+          ...(generatedImage ? { generatedImage } : {}),
+          ...(searchQueries.length > 0 ? { searchQuery: searchQueries[0] } : {}),
+          ...(imageUrls.length > 0 ? { imageUrls } : {}),
+          ...(reminderSet ? { reminderSet } : {}),
+          ...(openCharacterBuilder ? { openCharacterBuilder } : {}),
+        },
       },
     })
 
@@ -572,6 +581,7 @@ export async function GET(req: NextRequest) {
       createdAt: m.createdAt,
       characterId: m.characterId,
       characterName: m.character?.name || null,
+      ...(m.metadata && typeof m.metadata === 'object' ? m.metadata as Record<string, unknown> : {}),
     })),
   })
 }

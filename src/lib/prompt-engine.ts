@@ -394,28 +394,38 @@ This is your north star. You can still chat, joke, be a friend â but this m
   }
 
     // ============================================
-  // BUSINESS PROFILE — the user’s business context
-  // Gives the AI enough info to generate content without asking questions.
+  // BUSINESS PROFILES — all the user's businesses
+  // Gives the AI context for content generation across multiple businesses.
   // ============================================
   let businessProfileBlock = ''
   try {
-    const bizData = await db.user.findUnique({
-      where: { id: ctx.userId },
-      select: { businessType: true, businessName: true, specialties: true, targetAudience: true, location: true },
+    const businesses = await db.business.findMany({
+      where: { userId: ctx.userId },
+      orderBy: { createdAt: 'desc' },
     })
-    if (bizData?.businessType || bizData?.businessName) {
+    if (businesses.length > 0) {
       const lines: string[] = []
-      lines.push('\n## Your User\'s Business Profile')
-      if (bizData.businessName) lines.push('Business name: ' + bizData.businessName)
-      if (bizData.businessType) lines.push('Business type: ' + bizData.businessType)
-      if (bizData.specialties) lines.push('Specialties: ' + bizData.specialties)
-      if (bizData.targetAudience) lines.push('Target audience: ' + bizData.targetAudience)
-      if (bizData.location) lines.push('Location: ' + bizData.location)
-      lines.push('\nUse this business context when generating content. You know their niche, audience, and specialties — do not ask for this info, just use it.')
+      lines.push('\n## Your User\'s Businesses')
+      lines.push(`They have ${businesses.length} business${businesses.length > 1 ? 'es' : ''} registered:\n`)
+      for (const biz of businesses) {
+        lines.push(`### ${biz.name}`)
+        if (biz.businessType) lines.push('Type: ' + biz.businessType)
+        if (biz.productsServices) lines.push('Products/Services: ' + biz.productsServices)
+        if (biz.targetAudience) lines.push('Target audience: ' + biz.targetAudience)
+        if (biz.location) lines.push('Location: ' + biz.location)
+        if (biz.brandVoice) lines.push('Brand voice: ' + biz.brandVoice)
+        if (biz.websiteUrl) lines.push('Website: ' + biz.websiteUrl)
+        const socialLinks = biz.socialLinks as { platform: string; url: string }[] | null
+        if (socialLinks && Array.isArray(socialLinks) && socialLinks.length > 0) {
+          lines.push('Social: ' + socialLinks.map(s => `${s.platform}: ${s.url}`).join(', '))
+        }
+        lines.push('')
+      }
+      lines.push('Use the right business context when generating content. If the user mentions a specific business or the message includes business info, use that one. Otherwise use whatever business context fits best. You know their niches, audiences, and specialties — do not ask for this info, just use it.')
       businessProfileBlock = lines.join('\n')
     }
   } catch {
-    // Business profile is optional
+    // Business profiles are optional
   }
 
   // Parse AI state (fallback personality if no character is synced from Personi)

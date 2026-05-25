@@ -14,6 +14,8 @@ import {
   updateAdStatus,
   getAdInsights,
   getCampaignInsights,
+  getAdStatus,
+  getCampaignStatus,
   TargetingSpec,
   BudgetSpec,
   ScheduleSpec,
@@ -50,6 +52,25 @@ export interface CreateAdInput {
   targeting: TargetingSpec;
   budget: BudgetSpec;
   schedule: ScheduleSpec;
+}
+
+// Map Meta's UPPERCASE status to our lowercase status
+function mapMetaStatus(metaStatus: string): string {
+  const map: Record<string, string> = {
+    ACTIVE: 'active',
+    PAUSED: 'paused',
+    DELETED: 'failed',
+    ARCHIVED: 'completed',
+    CAMPAIGN_PAUSED: 'paused',
+    ADSET_PAUSED: 'paused',
+    DISAPPROVED: 'failed',
+    PENDING_REVIEW: 'pending',
+    PREAPPROVED: 'pending',
+    PENDING_BILLING_INFO: 'pending',
+    IN_PROCESS: 'pending',
+    WITH_ISSUES: 'active',
+  };
+  return map[metaStatus] || 'pending';
 }
 
 // Ad Creation Orchestrator
@@ -259,9 +280,14 @@ export async function createAdFromContent(input: CreateAdInput) {
       metaAdId: ad.id,
     };
   } catch (error: any) {
+    // If token expired during creation, mark the error clearly
+    const errorMsg = error.isTokenExpired
+      ? 'Facebook token expired. Please reconnect your account and try again.'
+      : error.message || 'Unknown error';
+
     await db.adCampaign.update({
       where: { id: adCampaign.id },
-      data: { status: 'failed', errorMessage: error.message || 'Unknown error' },
+      data: { status: 'failed', errorMessage: errorMsg },
     });
     throw error;
   }
@@ -351,7 +377,7 @@ export async function listUserAds(
       take: pageSize,
       include: {
         facebookAccount: {
-          select: { fbPageName: true, igAccountId: true },
+          select: { fbPageName: true, igAccountId: true, status: true, tokenExpiresAt: true },
         },
       },
     }),
@@ -372,7 +398,7 @@ export async function getAdById(adCampaignId: string, userId: string) {
     where: { id: adCampaignId, userId },
     include: {
       facebookAccount: {
-        select: { fbPageName: true, igAccountId: true, adAccountId: true },
+        select: { fbPageName: true, igAccountId: true, adAccountId: true, status: true, tokenExpiresAt: true },
       },
     },
   });
@@ -403,8 +429,7 @@ export async function deleteAd(adCampaignId: string, userId: string) {
   return { success: true };
 }
 
-
-// Bulk Metrics Refresh
+// Bulk Metrics Refresh + Status Sync
 
 export async function refreshAllUserAdMetrics(userId: string) {
   const activeAds = await db.adCampaign.findMany({
@@ -418,18 +443,50 @@ export async function refreshAllUserAdMetrics(userId: string) {
   const results = [];
   for (const ad of activeAds) {
     try {
+      // Fetch metrics
       const insights = await getAdInsights(ad.facebookAccountId, ad.metaAdId!);
+      const updateData: any = { metricsUpdatedAt: new Date() };
+
       if (insights) {
-        await db.adCampaign.update({
-          where: { id: ad.id },
-          data: { metrics: insights as any, metricsUpdatedAt: new Date() },
-        });
-        results.push({ id: ad.id, status: 'updated' });
-      } else {
-        results.push({ id: ad.id, status: 'no_data' });
+        updateData.metrics = insights as any;
       }
+
+      // Sync status from Meta
+      try {
+        const metaAdStatus = await getAdStatus(ad.facebookAccountId, ad.metaAdId!);
+        const localStatus = mapMetaStatus(metaAdStatus.effectiveStatus);
+
+        // Only update if Meta's status differs and is meaningful
+        if (localStatus !== ad.status && localStatus !== 'pending') {
+          updateData.status = localStatus;
+
+          // If Meta disapproved the ad, record it
+          if (metaAdStatus.effectiveStatus === 'DISAPPROVED') {
+            updateData.errorMessage = 'Ad disapproved by Meta. Check your ad content and policies.';
+          }
+        }
+      } catch (statusErr: any) {
+        // Status sync is best-effort, don't fail the whole refresh
+        console.warn('Status sync failed for ad', ad.id, statusErr.message);
+      }
+
+      await db.adCampaign.update({
+        where: { id: ad.id },
+        data: updateData,
+      });
+
+      results.push({ id: ad.id, status: 'updated' });
     } catch (error: any) {
-      results.push({ id: ad.id, status: 'error', error: error.message });
+      // If token expired, mark the account and skip remaining ads for this account
+      if (error.isTokenExpired) {
+        await db.facebookAccount.update({
+          where: { id: ad.facebookAccountId },
+          data: { status: 'expired' },
+        });
+        results.push({ id: ad.id, status: 'token_expired', error: 'Token expired - reconnect needed' });
+      } else {
+        results.push({ id: ad.id, status: 'error', error: error.message });
+      }
     }
   }
 
@@ -448,9 +505,50 @@ export async function refreshAllAdMetricsCron() {
 
   const results = [];
   for (const { userId } of usersWithAds) {
-    const userResults = await refreshAllUserAdMetrics(userId);
-    results.push({ userId, ads: userResults });
+    try {
+      const userResults = await refreshAllUserAdMetrics(userId);
+      results.push({ userId, ads: userResults });
+    } catch (error: any) {
+      results.push({ userId, ads: [], error: error.message });
+    }
   }
 
   return results;
+}
+
+// Get connected account health for a user
+
+export async function getUserAdAccountHealth(userId: string) {
+  const accounts = await db.facebookAccount.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      fbPageName: true,
+      adAccountId: true,
+      status: true,
+      tokenExpiresAt: true,
+      igAccountId: true,
+    },
+  });
+
+  return accounts.map(acc => {
+    const now = Date.now();
+    const expiresAt = acc.tokenExpiresAt.getTime();
+    const daysUntilExpiry = Math.floor((expiresAt - now) / (1000 * 60 * 60 * 24));
+
+    let health: 'good' | 'warning' | 'expired' | 'disconnected' = 'good';
+    if (acc.status === 'revoked') health = 'disconnected';
+    else if (acc.status === 'expired' || daysUntilExpiry <= 0) health = 'expired';
+    else if (daysUntilExpiry <= 7) health = 'warning';
+
+    return {
+      id: acc.id,
+      fbPageName: acc.fbPageName,
+      adAccountId: acc.adAccountId,
+      igAccountId: acc.igAccountId,
+      status: acc.status,
+      daysUntilExpiry,
+      health,
+    };
+  });
 }

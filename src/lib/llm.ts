@@ -280,3 +280,61 @@ export const OPEN_CHARACTER_BUILDER_TOOL: LLMTool = {
     required: ['suggestion'],
   },
 }
+// Content Pack tool — generates 5-7 varied content pieces in one shot
+export const GENERATE_CONTENT_PACK_TOOL: LLMTool = {
+  name: 'generate_content_pack',
+  description:
+    'Generate a full week of content for the user in one shot. Use this when the user asks for a "content pack", "week of content", "batch of posts", or taps the Content Pack button. Generate 5-7 varied content pieces that the user can copy and post throughout the week. Mix up the types: captions, tips, promos, behind-the-scenes, client spotlights, story ideas, quotes. For client spotlights, ask the user about a recent client FIRST before generating. Each piece should match the user\'s brand voice and niche.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      pieces: {
+        type: 'array',
+        description: 'Array of 5-7 content pieces',
+        items: {
+          type: 'object',
+          properties: {
+            content_type: {
+              type: 'string',
+              enum: ['caption', 'tip_post', 'promo', 'behind_the_scenes', 'client_spotlight', 'story_idea', 'quote_post', 'educational', 'before_after'],
+              description: 'The type of content piece',
+            },
+            platform: {
+              type: 'string',
+              description: 'Target platform (Instagram, TikTok, Facebook, Twitter/X)',
+            },
+            content: {
+              type: 'string',
+              description: 'The full ready-to-post text content',
+            },
+            hashtags: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Relevant hashtags for this piece',
+            },
+            needs_user_photo: {
+              type: 'boolean',
+              description: 'True if this piece needs a real photo from the user (like client spotlights, before/after). False if text-only or AI image works.',
+            },
+            photo_suggestion: {
+              type: 'string',
+              description: 'If needs_user_photo is true, describe what photo the user should attach. If false, describe what AI image could be generated.',
+            },
+            day_suggestion: {
+              type: 'string',
+              enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+              description: 'Suggested day to post this piece for optimal engagement',
+            },
+          },
+          required: ['content_type', 'platform', 'content', 'needs_user_photo', 'day_suggestion'],
+        },
+      },
+      week_theme: {
+        type: 'string',
+        description: 'A brief theme or focus for this week\'s content pack',
+      },
+    },
+    required: ['pieces', 'week_theme'],
+  },
+}
+

@@ -682,7 +682,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition"
                 >
-                  <span className="text-base">ð¼ï¸</span>
+                  <span className="text-base">🖼️</span>
                   <span>Upload Photo</span>
                 </button>
                 <button
@@ -690,7 +690,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { setShowCamera(true); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
                 >
-                  <span className="text-base">ð¸</span>
+                  <span className="text-base">📸</span>
                   <span>Take Photo</span>
                 </button>
                 <button
@@ -698,7 +698,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   onClick={() => { fileUploadRef.current?.click(); setShowAttachMenu(false) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
                 >
-                  <span className="text-base">ð</span>
+                  <span className="text-base">📁</span>
                   <span>Upload File</span>
                 </button>
               

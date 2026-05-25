@@ -1,4 +1,4 @@
-—// GET /api/meta/accounts — List connected Facebook accounts
+// GET /api/meta/accounts — List connected Facebook accounts
 // DELETE /api/meta/accounts — Disconnect a Facebook account
 
 import { NextRequest, NextResponse } from 'next/server'

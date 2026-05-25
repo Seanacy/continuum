@@ -284,7 +284,7 @@ export const OPEN_CHARACTER_BUILDER_TOOL: LLMTool = {
 export const GENERATE_CONTENT_PACK_TOOL: LLMTool = {
   name: 'generate_content_pack',
   description:
-    'Generate a full week of content for the user in one shot. Use this when the user asks for a "content pack", "week of content", "batch of posts", or taps the Content Pack button. Generate 5-7 varied content pieces that the user can copy and post throughout the week. Mix up the types: captions, tips, promos, behind-the-scenes, client spotlights, story ideas, quotes. For client spotlights, ask the user about a recent client FIRST before generating. Each piece should match the user\'s brand voice and niche.',
+    'Generate a full week of content for the user in one shot. Use this when the user asks for a "content pack", "week of content", "batch of posts", or taps the Content Pack button. Generate 5-7 varied content pieces that the user can copy and post throughout the week. Mix up the types: captions, tips, promos, behind-the-scenes, client spotlights, story ideas, quotes. Do NOT ask clarifying questions — generate immediately using what you know about the user. Each piece should match the user\'s brand voice and niche. For client spotlights, set needs_user_photo to true and suggest what photo they should use.',
   input_schema: {
     type: 'object',
     properties: {

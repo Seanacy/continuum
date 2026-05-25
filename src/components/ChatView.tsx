@@ -214,9 +214,10 @@ interface ChatViewProps {
   characters?: CharacterSummary[]
   onCharacterChange?: (id: string) => void
   onGoToCreate?: () => void
+  onPublishAsAd?: (piece: any) => void
 }
 
-export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate }: ChatViewProps) {
+export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate, onPublishAsAd }: ChatViewProps) {
   const { messages, loading, sending, searching, dailyRemaining, dailyLimitReached, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
@@ -513,13 +514,24 @@ const [showBusinessManager, setShowBusinessManager] = useState(false)
                               <span>AI image: {piece.photoSuggestion}</span>
                             </div>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => navigator.clipboard.writeText(piece.content + (piece.hashtags ? '\n\n' + piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ') : ''))}
-                            className="w-full text-sm text-center py-1.5 rounded-lg bg-continuum-accent/10 text-continuum-accent hover:bg-continuum-accent/20 transition"
-                          >
-                            Copy
-                          </button>
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => navigator.clipboard.writeText(piece.content + (piece.hashtags ? '\n\n' + piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ') : ''))}
+                              className="flex-1 text-sm text-center py-1.5 rounded-lg bg-continuum-accent/10 text-continuum-accent hover:bg-continuum-accent/20 transition"
+                            >
+                              Copy
+                            </button>
+                            {onPublishAsAd && (
+                              <button
+                                type="button"
+                                onClick={() => onPublishAsAd(piece)}
+                                className="flex-1 text-sm text-center py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition"
+                              >
+                                Publish Ad
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

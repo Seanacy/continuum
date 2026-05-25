@@ -13,6 +13,7 @@ export default function AppShell({
   onViewChange,
   partnerMode,
   onPartnerModeToggle,
+  showAds = false,
 }: {
   aiName: string
   children: React.ReactNode
@@ -20,6 +21,7 @@ export default function AppShell({
   onViewChange: (view: View) => void
   partnerMode?: boolean
   onPartnerModeToggle?: () => void
+  showAds?: boolean
 }) {
   const { unreadCount } = useNotifications()
   const [showNotifs, setShowNotifs] = useState(false)
@@ -107,11 +109,13 @@ export default function AppShell({
           active={activeView === 'create'}
           onClick={() => onViewChange('create')}
         />
-        <NavButton
-          label="Ads"
-          active={activeView === 'ads'}
-          onClick={() => onViewChange('ads')}
-        />
+        {showAds && (
+          <NavButton
+            label="Ads"
+            active={activeView === 'ads'}
+            onClick={() => onViewChange('ads')}
+          />
+        )}
         <NavButton
           label="Settings"
           active={activeView === 'settings'}

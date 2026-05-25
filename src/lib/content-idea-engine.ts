@@ -134,7 +134,7 @@ export async function generateContentIdeas(input: IdeaGeneratorInput): Promise<C
   let ideas: any[] = []
   try {
     // Extract JSON from response (handle if wrapped in markdown code blocks)
-    let jsonStr = response.trim()
+    let jsonStr = response.content.trim()
     if (jsonStr.startsWith('```')) {
       jsonStr = jsonStr.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '')
     }

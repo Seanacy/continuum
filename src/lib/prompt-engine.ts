@@ -393,6 +393,31 @@ This is your north star. You can still chat, joke, be a friend â but this m
     // Mission is optional â don't break the prompt if it fails
   }
 
+    // ============================================
+  // BUSINESS PROFILE — the user’s business context
+  // Gives the AI enough info to generate content without asking questions.
+  // ============================================
+  let businessProfileBlock = ''
+  try {
+    const bizData = await db.user.findUnique({
+      where: { id: ctx.userId },
+      select: { businessType: true, businessName: true, specialties: true, targetAudience: true, location: true },
+    })
+    if (bizData?.businessType || bizData?.businessName) {
+      const lines: string[] = []
+      lines.push('\n## Your User\'s Business Profile')
+      if (bizData.businessName) lines.push('Business name: ' + bizData.businessName)
+      if (bizData.businessType) lines.push('Business type: ' + bizData.businessType)
+      if (bizData.specialties) lines.push('Specialties: ' + bizData.specialties)
+      if (bizData.targetAudience) lines.push('Target audience: ' + bizData.targetAudience)
+      if (bizData.location) lines.push('Location: ' + bizData.location)
+      lines.push('\nUse this business context when generating content. You know their niche, audience, and specialties — do not ask for this info, just use it.')
+      businessProfileBlock = lines.join('\n')
+    }
+  } catch {
+    // Business profile is optional
+  }
+
   // Parse AI state (fallback personality if no character is synced from Personi)
   const tone = aiState?.tone || 'warm'
   const energy = aiState?.energy || 'neutral'
@@ -425,6 +450,7 @@ ${characterBlock || `## Your Personality
 - You can reference past conversations naturally â like someone who remembers.
 - Your personality evolves based on your ongoing relationship.
 ${missionBlock}
+${businessProfileBlock}
 ${crossCharBlock}
 ${continuityBlock}
 

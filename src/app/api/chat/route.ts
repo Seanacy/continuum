@@ -311,6 +311,44 @@ export async function POST(req: NextRequest) {
 
         // --- CONTENT PACK TOOL ---
             else if (toolName === 'generate_content_pack') {
+          // FAILSAFE: Check business profile before allowing content pack
+          const bizProfile = await db.user.findUnique({
+            where: { id: user.id },
+            select: { location: true, businessType: true, businessName: true, specialties: true, targetAudience: true }
+          })
+          const missingFields: string[] = []
+          if (!(bizProfile as any)?.location) missingFields.push('City/Location')
+          if (!(bizProfile as any)?.businessType) missingFields.push('Business Type')
+          if (!(bizProfile as any)?.businessName) missingFields.push('Business Name')
+          if (!(bizProfile as any)?.specialties) missingFields.push('Specialties')
+          if (!(bizProfile as any)?.targetAudience) missingFields.push('Target Audience')
+
+          if (missingFields.length > 0) {
+            toolResultText = 'CANNOT generate content pack yet. The user has not completed their business profile. Missing: ' + missingFields.join(', ') + '. Tell the user they need to fill out their business profile before using Content Pack. They can do this in Settings or by tapping the Content Pack button again.'
+            // Push assistant + tool result and continue without generating
+            const assistantBlocks: unknown[] = []
+            if (response.content) {
+              assistantBlocks.push({ type: 'text', text: response.content })
+            }
+            assistantBlocks.push({
+              type: 'tool_use',
+              id: response.toolUse.id,
+              name: response.toolUse.name,
+              input: response.toolUse.input,
+            })
+            history.push({ role: 'assistant', content: assistantBlocks as LLMContentBlock[] })
+            const toolResult: ToolResultMessage = {
+              role: 'user',
+              content: [{
+                type: 'tool_result',
+                tool_use_id: response.toolUse.id,
+                content: toolResultText,
+              }],
+            }
+            history.push(toolResult)
+            continue
+          }
+
               const input = response.toolUse.input as Record<string, any>
               const pieces = input.pieces as any[]
               const weekTheme = input.week_theme as string

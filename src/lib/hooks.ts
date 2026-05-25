@@ -92,6 +92,7 @@ export function useChat(threadId?: string, characterId?: string) {
       }
       generatedImage?: { url: string; prompt: string; width?: number; height?: number; priceCents: number }
       openCharacterBuilder?: { suggestion?: string }
+      contentPack?: { pieces: any[]; weekTheme: string; totalPriceCents: number }
     }>
   >([])
   const [loading, setLoading] = useState(false)
@@ -161,6 +162,7 @@ export function useChat(threadId?: string, characterId?: string) {
           generatedContent: data.generatedContent || undefined,
           generatedImage: data.generatedImage || undefined,
           openCharacterBuilder: data.openCharacterBuilder || undefined,
+          contentPack: data.contentPack || undefined,
         }
         setMessages((prev) => [
           ...prev.filter((m) => m.id !== tempMsg.id),

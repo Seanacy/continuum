@@ -124,11 +124,11 @@ export async function generateContentIdeas(input: IdeaGeneratorInput): Promise<C
   const prompt = buildIdeaPrompt(input)
   const count = input.count || 5
   
-  const response = await callLLM({
-    system: 'You are a creative content strategist. Respond ONLY with valid JSON arrays. No markdown, no explanation.',
-    messages: [{ role: 'user', content: prompt }],
-    maxTokens: 3000,
-  })
+  const response = await callLLM(
+    'You are a creative content strategist. Respond ONLY with valid JSON arrays. No markdown, no explanation.',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 3000 }
+  )
   
   // Parse the JSON response
   let ideas: any[] = []

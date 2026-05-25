@@ -1,4 +1,4 @@
-—// GET /api/meta/callback — Facebook OAuth callback
+// GET /api/meta/callback — Facebook OAuth callback
 // Facebook redirects here after user authorizes the app
 // We exchange the code for tokens, fetch pages/ad accounts, and save everything
 

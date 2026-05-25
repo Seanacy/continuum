@@ -467,6 +467,51 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                     Open Character Builder
                   </button>
                 )}
+                {msg.role === 'assistant' && msg.contentPack && (
+                  <div className="mb-3 space-y-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-continuum-accent uppercase tracking-wider">Content Pack</span>
+                      <span className="text-[10px] text-continuum-muted">{msg.contentPack.pieces.length} pieces · {msg.contentPack.weekTheme}</span>
+                    </div>
+                    <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1 snap-x snap-mandatory">
+                      {msg.contentPack.pieces.map((piece: any, idx: number) => (
+                        <div key={idx} className="snap-start shrink-0 w-64 p-3 rounded-xl bg-continuum-surface border border-continuum-border">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-semibold text-continuum-accent uppercase">{piece.contentType.replace(/_/g, ' ')}</span>
+                              {piece.platform && <span className="text-[10px] text-continuum-muted">· {piece.platform}</span>}
+                            </div>
+                            {piece.daySuggestion && <span className="text-[10px] text-continuum-muted">{piece.daySuggestion}</span>}
+                          </div>
+                          <p className="text-sm text-continuum-text whitespace-pre-wrap leading-relaxed mb-2 line-clamp-6">{piece.content}</p>
+                          {piece.hashtags && piece.hashtags.length > 0 && (
+                            <p className="text-[10px] text-continuum-accent mb-2">{piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ')}</p>
+                          )}
+                          {piece.needsUserPhoto && piece.photoSuggestion && (
+                            <div className="flex items-center gap-1.5 text-[10px] text-amber-400 mb-2 p-1.5 rounded-lg bg-amber-500/10">
+                              <span>📷</span>
+                              <span>{piece.photoSuggestion}</span>
+                            </div>
+                          )}
+                          {!piece.needsUserPhoto && piece.photoSuggestion && (
+                            <div className="flex items-center gap-1.5 text-[10px] text-continuum-muted mb-2 p-1.5 rounded-lg bg-continuum-accent/5">
+                              <span>🎨</span>
+                              <span>AI image: {piece.photoSuggestion}</span>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => navigator.clipboard.writeText(piece.content + (piece.hashtags ? '\n\n' + piece.hashtags.map((h: string) => h.startsWith('#') ? h : '#' + h).join(' ') : ''))}
+                            className="w-full text-xs text-center py-1.5 rounded-lg bg-continuum-accent/10 text-continuum-accent hover:bg-continuum-accent/20 transition"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="block text-[10px] text-continuum-muted">Charged ${(msg.contentPack.totalPriceCents / 100).toFixed(2)}</span>
+                  </div>
+                )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>
                     <span className="text-xs opacity-60 block mb-1">ð· Image sent</span>
@@ -656,7 +701,16 @@ export default function ChatView({ threadId, partnerMode, characterId, character
                   <span className="text-base">ð</span>
                   <span>Upload File</span>
                 </button>
-              </div>
+              
+              <button
+                type="button"
+                onClick={() => { setShowAttachMenu(false); sendMessage('Generate a content pack for my week - give me 5-7 varied posts I can use across my social media this week.'); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
+              >
+                <span className="text-base">\uD83D\uDCE6</span>
+                <span>Content Pack</span>
+              </button>
+</div>
             )}
           </div>
 

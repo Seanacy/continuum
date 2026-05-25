@@ -1,4 +1,4 @@
-import { prisma } from './prisma';
+import { db } from './db';
 import { chargeAmount } from './credit-system';
 import {
   createCampaign,
@@ -67,7 +67,7 @@ export async function createAdFromContent(input: CreateAdInput) {
   } = input;
 
   // 1. Get the Facebook account details
-  const fbAccount = await prisma.facebookAccount.findFirst({
+  const fbAccount = await db.facebookAccount.findFirst({
     where: { id: facebookAccountId, userId, status: 'active' },
   });
 
@@ -91,7 +91,7 @@ export async function createAdFromContent(input: CreateAdInput) {
   }
 
   // 3. Create ad campaign record in DB (draft)
-  const adCampaign = await prisma.adCampaign.create({
+  const adCampaign = await db.adCampaign.create({
     data: {
       userId,
       facebookAccountId,
@@ -116,7 +116,7 @@ export async function createAdFromContent(input: CreateAdInput) {
       objective
     );
 
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaign.id },
       data: { metaCampaignId: campaign.id, status: 'pending' },
     });
@@ -132,7 +132,7 @@ export async function createAdFromContent(input: CreateAdInput) {
       schedule
     );
 
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaign.id },
       data: { metaAdSetId: adSet.id },
     });
@@ -237,7 +237,7 @@ export async function createAdFromContent(input: CreateAdInput) {
         throw new Error('Unsupported ad format: ' + content.format);
     }
 
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaign.id },
       data: { metaAdCreativeId: creativeId },
     });
@@ -245,7 +245,7 @@ export async function createAdFromContent(input: CreateAdInput) {
     // 7. Create the actual ad
     const ad = await createAd(facebookAccountId, fbAccount.adAccountId, adSet.id, creativeId, name + ' - Ad');
 
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaign.id },
       data: { metaAdId: ad.id, status: 'pending' },
     });
@@ -259,7 +259,7 @@ export async function createAdFromContent(input: CreateAdInput) {
       metaAdId: ad.id,
     };
   } catch (error: any) {
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaign.id },
       data: { status: 'failed', errorMessage: error.message || 'Unknown error' },
     });
@@ -270,7 +270,7 @@ export async function createAdFromContent(input: CreateAdInput) {
 // Activate / Pause
 
 export async function activateAd(adCampaignId: string, userId: string) {
-  const campaign = await prisma.adCampaign.findFirst({
+  const campaign = await db.adCampaign.findFirst({
     where: { id: adCampaignId, userId },
   });
 
@@ -282,7 +282,7 @@ export async function activateAd(adCampaignId: string, userId: string) {
   await updateCampaignStatus(campaign.facebookAccountId, campaign.metaCampaignId, 'ACTIVE');
   await updateAdStatus(campaign.facebookAccountId, campaign.metaAdId, 'ACTIVE');
 
-  await prisma.adCampaign.update({
+  await db.adCampaign.update({
     where: { id: adCampaignId },
     data: { status: 'active' },
   });
@@ -291,7 +291,7 @@ export async function activateAd(adCampaignId: string, userId: string) {
 }
 
 export async function pauseAd(adCampaignId: string, userId: string) {
-  const campaign = await prisma.adCampaign.findFirst({
+  const campaign = await db.adCampaign.findFirst({
     where: { id: adCampaignId, userId },
   });
 
@@ -302,7 +302,7 @@ export async function pauseAd(adCampaignId: string, userId: string) {
 
   await updateCampaignStatus(campaign.facebookAccountId, campaign.metaCampaignId, 'PAUSED');
 
-  await prisma.adCampaign.update({
+  await db.adCampaign.update({
     where: { id: adCampaignId },
     data: { status: 'paused' },
   });
@@ -313,7 +313,7 @@ export async function pauseAd(adCampaignId: string, userId: string) {
 // Performance
 
 export async function getAdPerformance(adCampaignId: string, userId: string) {
-  const campaign = await prisma.adCampaign.findFirst({
+  const campaign = await db.adCampaign.findFirst({
     where: { id: adCampaignId, userId },
   });
 
@@ -323,7 +323,7 @@ export async function getAdPerformance(adCampaignId: string, userId: string) {
   const insights = await getAdInsights(campaign.facebookAccountId, campaign.metaAdId);
 
   if (insights) {
-    await prisma.adCampaign.update({
+    await db.adCampaign.update({
       where: { id: adCampaignId },
       data: { metrics: insights as any, metricsUpdatedAt: new Date() },
     });
@@ -344,7 +344,7 @@ export async function listUserAds(
   if (status) where.status = status;
 
   const [ads, total] = await Promise.all([
-    prisma.adCampaign.findMany({
+    db.adCampaign.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
@@ -355,7 +355,7 @@ export async function listUserAds(
         },
       },
     }),
-    prisma.adCampaign.count({ where }),
+    db.adCampaign.count({ where }),
   ]);
 
   return {
@@ -368,7 +368,7 @@ export async function listUserAds(
 }
 
 export async function getAdById(adCampaignId: string, userId: string) {
-  return prisma.adCampaign.findFirst({
+  return db.adCampaign.findFirst({
     where: { id: adCampaignId, userId },
     include: {
       facebookAccount: {
@@ -381,7 +381,7 @@ export async function getAdById(adCampaignId: string, userId: string) {
 // Delete (soft)
 
 export async function deleteAd(adCampaignId: string, userId: string) {
-  const campaign = await prisma.adCampaign.findFirst({
+  const campaign = await db.adCampaign.findFirst({
     where: { id: adCampaignId, userId },
   });
 
@@ -395,7 +395,7 @@ export async function deleteAd(adCampaignId: string, userId: string) {
     }
   }
 
-  await prisma.adCampaign.update({
+  await db.adCampaign.update({
     where: { id: adCampaignId },
     data: { status: 'failed', errorMessage: 'Deleted by user' },
   });

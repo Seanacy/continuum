@@ -12,6 +12,7 @@ import OnboardingFlow from '@/components/OnboardingFlow'
 import AdsView from '@/components/AdsView'
 import AdPublisher from '@/components/AdPublisher'
 import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
+import PointBucket from '@/components/PointBucket'
 
 // Only these emails can see the Ads tab and ad features
 const ADS_ALLOWED_EMAILS = [
@@ -126,7 +127,7 @@ export default function HomePage() {
       )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
-      {activeView === 'create' && <CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} />}
+      {activeView === 'create' && <><PointBucket /><CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} /></>}
       {isAdsAllowed && activeView === 'ads' && <AdsView />}
       {activeView === 'settings' && <SettingsView />}
       {isAdsAllowed && adPiece && (

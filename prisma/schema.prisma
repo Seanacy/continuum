@@ -46,6 +46,8 @@ model User {
   collabProposalsA   CollabProposal[]   @relation("collabUserA")
   collabProposalsB   CollabProposal[]   @relation("collabUserB")
   businesses         Business[]
+  facebookAccounts   FacebookAccount[]
+  adCampaigns        AdCampaign[]
 
   // Wallet system — dollar balance stored in cents ($5.00 = 500)
   walletBalance   Int    @default(0) @map("wallet_balance")    // balance in cents
@@ -515,4 +517,62 @@ model CollabVote {
   @@index([proposalId])
   @@index([voterId])
   @@map("collab_votes")
+}
+
+
+// ============================================
+// META ADS: FACEBOOK/INSTAGRAM AD SYSTEM
+// ============================================
+model FacebookAccount {
+  id                 String    @id @default(cuid())
+  userId             String    @map("user_id")
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fbUserId           String    @map("fb_user_id")
+  accessToken        String    @map("access_token") @db.Text
+  tokenExpiresAt     DateTime  @map("token_expires_at")
+  fbPageId           String?   @map("fb_page_id")
+  fbPageName         String?   @map("fb_page_name")
+  fbPageAccessToken  String?   @map("fb_page_access_token") @db.Text
+  igAccountId        String?   @map("ig_account_id")
+  adAccountId        String?   @map("ad_account_id")
+  permissions        Json      @default("[]")
+  status             String    @default("active") // "active", "expired", "revoked"
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  adCampaigns        AdCampaign[]
+
+  @@unique([userId, fbUserId])
+  @@index([userId])
+  @@map("facebook_accounts")
+}
+
+model AdCampaign {
+  id                  String    @id @default(cuid())
+  userId              String    @map("user_id")
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facebookAccountId   String    @map("facebook_account_id")
+  facebookAccount     FacebookAccount @relation(fields: [facebookAccountId], references: [id], onDelete: Cascade)
+  metaCampaignId      String?   @map("meta_campaign_id")
+  metaAdSetId         String?   @map("meta_ad_set_id")
+  metaAdCreativeId    String?   @map("meta_ad_creative_id")
+  metaAdId            String?   @map("meta_ad_id")
+  name                String
+  objective           String    @default("OUTCOME_AWARENESS")
+  status              String    @default("draft") // "draft", "pending", "active", "paused", "completed", "failed"
+  adFormat            String    @map("ad_format") // "image", "video", "carousel", "story"
+  content             Json      @default("{}") // ad content: text, media URLs, headline, CTA
+  targeting           Json      @default("{}") // locations, age range, interests, genders
+  budget              Json      @default("{}") // dailyBudget or lifetimeBudget in cents, currency
+  schedule            Json      @default("{}") // start/end dates, timezone
+  metrics             Json      @default("{}") // cached: impressions, clicks, spend, reach, cpc, cpm
+  metricsUpdatedAt    DateTime? @map("metrics_updated_at")
+  chargeAmountCents   Int       @default(0) @map("charge_amount_cents")
+  errorMessage        String?   @map("error_message")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([metaCampaignId])
+  @@map("ad_campaigns")
 }

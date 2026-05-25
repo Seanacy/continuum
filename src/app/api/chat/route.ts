@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
       const response = await callLLM(systemPrompt, history, {
-        maxTokens: 1024,
+        maxTokens: 4096,
         temperature: 0.7,
         tools,
       })

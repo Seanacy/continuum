@@ -290,7 +290,7 @@ export class ContentPipeline {
           userId: this.config.userId,
           characterId: this.config.characterId,
           scenePhotoUrl: approved.photoUrl,
-          characterReferenceUrl: characterRefUrl || undefined,
+          characterReferenceUrl: characterRefUrl || '',
           sceneDescription: approved.sceneDescription,
           characterDescription: characterDesc,
           contentIdeaId: approved.ideaId,

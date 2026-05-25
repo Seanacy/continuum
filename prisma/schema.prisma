@@ -54,6 +54,12 @@ model User {
   personiCharId   String? @map("personi_char_id")              // linked Personi character ID
   mission         String? @map("mission")                     // user's WHY — why they created the AI, what they need it to do
 
+  // Business profile — required for Content Pack
+  businessType     String?  @map("business_type")
+  businessName     String?  @map("business_name")
+  specialties      String?  @map("specialties")
+  targetAudience   String?  @map("target_audience")
+
   @@map("users")
 }
 

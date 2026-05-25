@@ -428,7 +428,7 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
           >
             <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               <div
-                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed overflow-hidden min-w-0 ${
                   msg.role === 'user'
                     ? 'text-white rounded-br-md bubble-user'
                     : 'text-continuum-text rounded-bl-md bubble-ai'
@@ -530,12 +530,13 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
                   </button>
                 )}
                 {msg.role === 'assistant' && msg.contentPack && (
-                  <div className="mb-3 space-y-2">
+                  <div className="mb-3 space-y-2 overflow-hidden">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-continuum-accent uppercase tracking-wider">Content Pack</span>
                       <span className="text-[10px] text-continuum-muted">{msg.contentPack.pieces.length} pieces · {msg.contentPack.weekTheme}</span>
                     </div>
-                    <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1 snap-x snap-mandatory">
+                    <p className="text-[10px] text-continuum-muted italic mb-1">Swipe to see more cards &#8594;</p>
+                    <div className="flex overflow-x-auto gap-2 pb-2 snap-x snap-mandatory">
                       {msg.contentPack.pieces.map((piece: any, idx: number) => (
                         <div key={idx} className="snap-start shrink-0 w-64 p-3 rounded-xl bg-continuum-surface border border-continuum-border">
                           <div className="flex items-center justify-between mb-2">

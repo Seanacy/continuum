@@ -13,12 +13,18 @@ export async function GET() {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
+  // Query business profile fields directly (getCurrentUser doesn't include them)
+  const fullUser = await db.user.findUnique({
+    where: { id: user.id },
+    select: { location: true, businessType: true, businessName: true, specialties: true, targetAudience: true }
+  })
+
   const profile = {
-    location: (user as any).location || '',
-    businessType: (user as any).businessType || '',
-    businessName: (user as any).businessName || '',
-    specialties: (user as any).specialties || '',
-    targetAudience: (user as any).targetAudience || '',
+    location: (fullUser as any)?.location || '',
+    businessType: (fullUser as any)?.businessType || '',
+    businessName: (fullUser as any)?.businessName || '',
+    specialties: (fullUser as any)?.specialties || '',
+    targetAudience: (fullUser as any)?.targetAudience || '',
   }
 
   const missingFields = REQUIRED_FIELDS.filter(f => !profile[f])

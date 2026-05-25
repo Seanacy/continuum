@@ -1,99 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
-import Anthropic from '@anthropic-ai/sdk';
+import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
+import { callLLM } from '@/lib/llm'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' });
-
-// POST /api/businesses/scrape — AI scrapes links to extract business info
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await getCurrentUser()
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-    const body = await req.json();
-    const { links } = body; // string — raw text with URLs pasted by user
-
-    if (!links || !links.trim()) {
-      return NextResponse.json({ error: 'Please provide at least one link' }, { status: 400 });
+    const { links } = await req.json()
+    if (!links || typeof links !== 'string') {
+      return NextResponse.json({ error: 'links field required' }, { status: 400 })
     }
 
-    // Extract URLs from the raw text
-    const urlRegex = /https?:\/\/[^\s]+/g;
-    const urls = links.match(urlRegex) || [];
-
+    // Extract URLs from raw text
+    const urlRegex = /https?:\/\/[^\s<>"{}|\\^\x60]+/gi
+    const urls = links.match(urlRegex) || []
     if (urls.length === 0) {
-      return NextResponse.json({ error: 'No valid URLs found in the text' }, { status: 400 });
+      return NextResponse.json({ error: 'No valid URLs found' }, { status: 400 })
     }
 
-    // Fetch page content for each URL (basic text extraction)
-    const pageContents: string[] = [];
-    for (const url of urls.slice(0, 5)) { // max 5 URLs
+    // Fetch each URL (max 5, 10s timeout each)
+    const pageContents: string[] = []
+    for (const url of urls.slice(0, 5)) {
       try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 10000)
         const res = await fetch(url, {
+          signal: controller.signal,
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ContinuumBot/1.0)' },
-          signal: AbortSignal.timeout(10000),
-        });
+        })
+        clearTimeout(timeout)
         if (res.ok) {
-          const html = await res.text();
-          // Strip HTML tags, get text content (basic approach)
-          const text = html
-            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 5000); // limit per page
-          pageContents.push(`--- Content from ${url} ---\n${text}`);
+          const html = await res.text()
+          // Strip HTML tags, limit to 5000 chars
+          const stripped = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 5000)
+          pageContents.push(`URL: ${url}\nContent: ${stripped}`)
         }
       } catch {
-        pageContents.push(`--- Could not fetch ${url} ---`);
+        // Skip failed fetches
       }
     }
 
-    // Use Claude to extract structured business info
-    const prompt = `You are analyzing web pages to extract business information. Here are the contents scraped from the user's links:
+    if (pageContents.length === 0) {
+      return NextResponse.json({ error: 'Could not fetch any of the provided URLs' }, { status: 400 })
+    }
 
-${pageContents.join('\n\n')}
+    // Use callLLM to extract business info
+    const prompt = `Analyze the following web page content and extract business information. Return a JSON object with these fields (use null for anything you can't determine):
+{
+  "name": "business name",
+  "websiteUrl": "main website URL",
+  "businessType": "type of business (e.g. Nail Tech, Restaurant, Clothing Brand)",
+  "productsServices": "what they sell or offer",
+  "targetAudience": "who their ideal customers are",
+  "socialLinks": [{"platform": "Instagram", "url": "..."}, ...],
+  "location": "city/state",
+  "brandVoice": "their brand tone (e.g. casual, professional, edgy)"
+}
 
-Based on all the information above, extract and return a JSON object with these fields:
-- name: Business name
-- websiteUrl: Main website URL
-- businessType: What type of business (e.g. "Nail Tech", "Restaurant", "SaaS")
-- productsServices: What products or services they offer (detailed paragraph)
-- targetAudience: Who their target market is (detailed paragraph)  
-- socialLinks: Array of {platform, url} objects for any social media found
-- location: City/region if mentioned
-- brandVoice: The tone and voice of their brand based on their content (e.g. "Professional and authoritative", "Casual and fun")
+Page content:
+${pageContents.join('\n\n---\n\n')}
 
-Return ONLY valid JSON, no markdown, no explanation.`;
+Return ONLY the JSON object, no other text.`
 
-    const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const response = await callLLM(
+      'You are a business analyst that extracts structured business information from web pages. Return only valid JSON.',
+      [{ role: 'user', content: prompt }],
+      { maxTokens: 1024, temperature: 0.3 }
+    )
 
-    // Parse the AI response
-    const aiText = message.content[0].type === 'text' ? message.content[0].text : '';
-    let extracted: any = {};
+    // Try to parse JSON from response
     try {
-      // Try to parse JSON from the response (handle markdown code blocks)
-      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        extracted = JSON.parse(jsonMatch[0]);
-      }
+      const extracted = JSON.parse(response.content)
+      return NextResponse.json({ extracted })
     } catch {
-      // If JSON parsing fails, return raw text
-      return NextResponse.json({ 
-        extracted: { name: '', websiteUrl: urls[0] || '' },
-        raw: aiText,
-        error: 'Could not parse AI response as JSON'
-      });
+      // If parsing fails, return raw text
+      return NextResponse.json({ extracted: null, raw: response.content })
     }
-
-    return NextResponse.json({ extracted, urls });
   } catch (err) {
-    console.error('POST /api/businesses/scrape error:', err);
-    return NextResponse.json({ error: 'Failed to scrape links' }, { status: 500 });
+    console.error('Scrape error:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

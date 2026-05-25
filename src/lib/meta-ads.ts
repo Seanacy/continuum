@@ -58,33 +58,102 @@ export interface ScheduleSpec {
   endTime?: string;
 }
 
+// Retry config
+const MAX_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 1000;
+
+// Rate limit / transient error codes from Meta
+const RETRYABLE_ERROR_CODES = [1, 2, 4, 17, 32, 341];
+
+function isRetryableError(code: number): boolean {
+  return RETRYABLE_ERROR_CODES.includes(code);
+}
+
+function isTokenExpiredError(code: number, subcode?: number): boolean {
+  // Code 190 = invalid/expired token
+  // Subcode 463 = token expired, 467 = invalid token
+  return code === 190 || subcode === 463 || subcode === 467;
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Helpers
 
 async function metaFetch(
   url: string,
   accessToken: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retries: number = MAX_RETRIES
 ): Promise<any> {
   const separator = url.includes('?') ? '&' : '?';
   const fullUrl = `${url}${separator}access_token=${accessToken}`;
 
-  const res = await fetch(fullUrl, {
-    ...options,
-    headers: {
-      ...options.headers,
-    },
-  });
+  let lastError: Error | null = null;
 
-  const data = await res.json();
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(fullUrl, {
+        ...options,
+        headers: {
+          ...options.headers,
+        },
+      });
 
-  if (data.error) {
-    const err = data as MetaApiError;
-    throw new Error(
-      `Meta API Error [${err.error.code}]: ${err.error.message}`
-    );
+      const data = await res.json();
+
+      if (data.error) {
+        const err = data as MetaApiError;
+        const code = err.error.code;
+        const subcode = err.error.error_subcode;
+
+        // Token expired -- don't retry, throw immediately with special marker
+        if (isTokenExpiredError(code, subcode)) {
+          const tokenErr = new Error(
+            `META_TOKEN_EXPIRED: ${err.error.message}`
+          );
+          (tokenErr as any).metaCode = code;
+          (tokenErr as any).metaSubcode = subcode;
+          (tokenErr as any).isTokenExpired = true;
+          throw tokenErr;
+        }
+
+        // Rate limit or transient -- retry with backoff
+        if (isRetryableError(code) && attempt < retries) {
+          const backoff = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+          console.warn(`Meta API rate limited (code ${code}), retrying in ${backoff}ms (attempt ${attempt + 1}/${retries})`);
+          await sleep(backoff);
+          continue;
+        }
+
+        throw new Error(
+          `Meta API Error [${err.error.code}]: ${err.error.message}`
+        );
+      }
+
+      return data;
+    } catch (error: any) {
+      lastError = error;
+
+      // Don't retry token errors or non-retryable errors
+      if (error.isTokenExpired || attempt >= retries) {
+        throw error;
+      }
+
+      // Retry on network errors
+      if (error.name === 'TypeError' || error.message?.includes('fetch')) {
+        const backoff = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+        console.warn(`Network error, retrying in ${backoff}ms (attempt ${attempt + 1}/${retries})`);
+        await sleep(backoff);
+        continue;
+      }
+
+      throw error;
+    }
   }
 
-  return data;
+  throw lastError || new Error('Meta API request failed after retries');
 }
 
 async function metaPost(
@@ -119,7 +188,46 @@ async function getToken(facebookAccountId: string): Promise<string> {
   if (!token) {
     throw new Error('No valid token found. Please reconnect your Facebook account.');
   }
+  if (token.status === 'expired') {
+    const err = new Error('Facebook token expired. Please reconnect your account.');
+    (err as any).isTokenExpired = true;
+    throw err;
+  }
   return token.accessToken;
+}
+
+// Get ad status from Meta (for syncing)
+
+export async function getAdStatus(
+  facebookAccountId: string,
+  adId: string
+): Promise<{ status: string; effectiveStatus: string }> {
+  const token = await getToken(facebookAccountId);
+  const data = await metaFetch(
+    `${GRAPH_API_BASE}/${adId}?fields=status,effective_status`,
+    token
+  );
+  return {
+    status: data.status || 'UNKNOWN',
+    effectiveStatus: data.effective_status || 'UNKNOWN',
+  };
+}
+
+// Get campaign status from Meta
+
+export async function getCampaignStatus(
+  facebookAccountId: string,
+  campaignId: string
+): Promise<{ status: string; effectiveStatus: string }> {
+  const token = await getToken(facebookAccountId);
+  const data = await metaFetch(
+    `${GRAPH_API_BASE}/${campaignId}?fields=status,effective_status`,
+    token
+  );
+  return {
+    status: data.status || 'UNKNOWN',
+    effectiveStatus: data.effective_status || 'UNKNOWN',
+  };
 }
 
 // Campaign Management
@@ -658,7 +766,6 @@ export async function getReachEstimate(
     users_upper_bound: data.data?.users_upper_bound || 0,
   };
 }
-
 
 // Time Series Insights (daily breakdown for charts)
 

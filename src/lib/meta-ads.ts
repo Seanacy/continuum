@@ -658,3 +658,34 @@ export async function getReachEstimate(
     users_upper_bound: data.data?.users_upper_bound || 0,
   };
 }
+
+
+// Time Series Insights (daily breakdown for charts)
+
+export async function getAdInsightsTimeSeries(
+  facebookAccountId: string,
+  adId: string,
+  datePreset: string = 'last_7d'
+): Promise<any[]> {
+  const token = await getToken(facebookAccountId);
+
+  const fields = [
+    'impressions',
+    'reach',
+    'clicks',
+    'cpc',
+    'cpm',
+    'ctr',
+    'spend',
+    'actions',
+    'date_start',
+    'date_stop',
+  ].join(',');
+
+  const data = await metaFetch(
+    `${GRAPH_API_BASE}/${adId}/insights?fields=${fields}&date_preset=${datePreset}&time_increment=1`,
+    token
+  );
+
+  return data.data || [];
+}

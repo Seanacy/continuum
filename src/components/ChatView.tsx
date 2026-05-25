@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChat, CharacterSummary } from '@/lib/hooks'
+import BusinessManager from './BusinessManager'
 
 // ============================================
 // Voice Output â Text-to-Speech
@@ -220,10 +221,7 @@ export default function ChatView({ threadId, partnerMode, characterId, character
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-const [showBizForm, setShowBizForm] = useState(false)
-const [bizFormData, setBizFormData] = useState({ location: '', businessType: '', businessName: '', specialties: '', targetAudience: '' })
-const [bizFormLoading, setBizFormLoading] = useState(false)
-const [bizFormSaving, setBizFormSaving] = useState(false)
+const [showBusinessManager, setShowBusinessManager] = useState(false)
   const [pendingImage, setPendingImage] = useState<{ base64: string; mimeType: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -320,65 +318,18 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
 
   return (
     <div className="flex flex-col h-full">
-      {/* Business Profile Form Modal */}
-      {showBizForm && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-continuum-surface border border-continuum-border rounded-2xl w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-continuum-text">Set Up Your Business Profile</h2>
-              <button onClick={() => setShowBizForm(false)} className="text-continuum-muted hover:text-white text-xl">&times;</button>
-            </div>
-            <p className="text-sm text-continuum-muted">Fill these in so Content Pack can create posts that actually sound like your business.</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs text-continuum-muted mb-1">Business Type</label>
-                <input type="text" placeholder="e.g. Nail Tech, Barber, Lash Artist" value={bizFormData.businessType} onChange={e => setBizFormData(d => ({ ...d, businessType: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-continuum-bg border border-continuum-border text-sm focus:border-continuum-accent outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-continuum-muted mb-1">Business / Brand Name</label>
-                <input type="text" placeholder="e.g. Glow by Keisha, The Cut Lab" value={bizFormData.businessName} onChange={e => setBizFormData(d => ({ ...d, businessName: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-continuum-bg border border-continuum-border text-sm focus:border-continuum-accent outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-continuum-muted mb-1">City / Location</label>
-                <input type="text" placeholder="e.g. Atlanta, GA" value={bizFormData.location} onChange={e => setBizFormData(d => ({ ...d, location: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-continuum-bg border border-continuum-border text-sm focus:border-continuum-accent outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-continuum-muted mb-1">Specialties / Services</label>
-                <input type="text" placeholder="e.g. Gel sets, press-ons, nail art" value={bizFormData.specialties} onChange={e => setBizFormData(d => ({ ...d, specialties: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-continuum-bg border border-continuum-border text-sm focus:border-continuum-accent outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-continuum-muted mb-1">Target Audience</label>
-                <input type="text" placeholder="e.g. Women 20-35 who love bold nail designs" value={bizFormData.targetAudience} onChange={e => setBizFormData(d => ({ ...d, targetAudience: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-continuum-bg border border-continuum-border text-sm focus:border-continuum-accent outline-none" />
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                const { location, businessType, businessName, specialties, targetAudience } = bizFormData
-                if (!location.trim() || !businessType.trim() || !businessName.trim() || !specialties.trim() || !targetAudience.trim()) {
-                  alert('Please fill in all fields')
-                  return
-                }
-                setBizFormSaving(true)
-                try {
-                  await fetch('/api/business-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bizFormData) })
-                  setShowBizForm(false)
-                  sendMessage('Generate a content pack for my week - give me 5-7 varied posts I can use across my social media this week.')
-                } catch {
-                  alert('Failed to save. Try again.')
-                } finally {
-                  setBizFormSaving(false)
-                }
-              }}
-              disabled={bizFormSaving}
-              className="w-full py-3 rounded-xl bg-continuum-accent hover:bg-continuum-accent-dim text-white font-medium text-sm transition disabled:opacity-50"
-            >
-              {bizFormSaving ? 'Saving...' : 'Save & Generate Content Pack'}
-            </button>
-          </div>
-        </div>
+{/* Business Manager Modal */}
+      {showBusinessManager && (
+        <BusinessManager
+          onClose={() => setShowBusinessManager(false)}
+          onSelectBusiness={(biz) => {
+            setShowBusinessManager(false)
+            sendMessage(`Generate a content pack for my week - give me 5-7 varied posts I can use across my social media this week. Use this business info: ${biz.name}${biz.businessType ? ', ' + biz.businessType : ''}${biz.productsServices ? '. Products/services: ' + biz.productsServices : ''}${biz.targetAudience ? '. Target audience: ' + biz.targetAudience : ''}${biz.location ? '. Location: ' + biz.location : ''}${biz.brandVoice ? '. Brand voice: ' + biz.brandVoice : ''}`)
+          }}
+        />
       )}
 
-      {/* Camera Modal */}
+            {/* Camera Modal */}
       {showCamera && (
         <CameraModal
           onCapture={handleCapture}
@@ -767,27 +718,13 @@ const [bizFormSaving, setBizFormSaving] = useState(false)
               
               <button
                 type="button"
-                onClick={async () => {
-                setShowAttachMenu(false)
-                setBizFormLoading(true)
-                try {
-                  const res = await fetch('/api/business-profile')
-                  const data = await res.json()
-                  if (data.isComplete) {
-                    sendMessage('Generate a content pack for my week - give me 5-7 varied posts I can use across my social media this week.')
-                  } else {
-                    setBizFormData(data.profile)
-                    setShowBizForm(true)
-                  }
-                } catch {
-                  sendMessage('Generate a content pack for my week - give me 5-7 varied posts I can use across my social media this week.')
-                } finally {
-                  setBizFormLoading(false)
-                }
-              }}
+                onClick={() => {
+                  setShowAttachMenu(false)
+                  setShowBusinessManager(true)
+                }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-continuum-accent/10 transition border-t border-continuum-border/50"
               >
-                <span className="text-base">\uD83D\uDCE6</span>
+                <span className="text-base">📦</span>
                 <span>Content Pack</span>
               </button>
 </div>

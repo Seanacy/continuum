@@ -34,6 +34,16 @@ interface AdRecord {
   facebookAccount?: { fbPageName: string | null }
 }
 
+interface AccountHealth {
+  id: string
+  fbPageName: string | null
+  adAccountId: string | null
+  igAccountId: string | null
+  status: string
+  daysUntilExpiry: number
+  health: 'good' | 'warning' | 'expired' | 'disconnected'
+}
+
 function getMetric(m: AdMetrics | null | undefined, key: string, fallback: string = '0'): string {
   if (!m) return fallback
   return (m as any)[key] || fallback
@@ -59,6 +69,7 @@ function formatPercent(n: string | number): string {
 
 export default function AdsView() {
   const [ads, setAds] = useState<AdRecord[]>([])
+  const [accounts, setAccounts] = useState<AccountHealth[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
@@ -78,7 +89,20 @@ export default function AdsView() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchAds() }, [fetchAds])
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ads/accounts')
+      if (res.ok) {
+        const data = await res.json()
+        setAccounts(data.accounts || [])
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    fetchAds()
+    fetchAccounts()
+  }, [fetchAds, fetchAccounts])
 
   async function refreshMetrics() {
     setRefreshing(true)
@@ -145,6 +169,11 @@ export default function AdsView() {
   const totalReach = ads.reduce((s, a) => s + parseFloat(getMetric(a.metrics, 'reach')), 0)
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
 
+  // Account health alerts
+  const expiredAccounts = accounts.filter(a => a.health === 'expired')
+  const warningAccounts = accounts.filter(a => a.health === 'warning')
+  const disconnectedAccounts = accounts.filter(a => a.health === 'disconnected')
+
   function statusBadge(status: string) {
     const colors: Record<string, string> = {
       active: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
@@ -168,6 +197,72 @@ export default function AdsView() {
     return map[obj] || obj
   }
 
+  // Account health banner component
+  function AccountHealthBanners() {
+    if (expiredAccounts.length === 0 && warningAccounts.length === 0 && disconnectedAccounts.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="space-y-2 mb-4">
+        {expiredAccounts.map(acc => (
+          <div key={acc.id} className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400 flex-shrink-0">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span className="text-sm text-red-400">
+                <strong>{acc.fbPageName || 'Facebook Account'}</strong> — Token expired. Reconnect to keep ads running.
+              </span>
+            </div>
+            <a
+              href="/api/meta/connect"
+              className="px-3 py-1.5 rounded-lg text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 transition font-medium flex-shrink-0"
+            >
+              Reconnect
+            </a>
+          </div>
+        ))}
+        {disconnectedAccounts.map(acc => (
+          <div key={acc.id} className="p-3 rounded-xl bg-gray-500/10 border border-gray-500/30 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 flex-shrink-0">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+              </svg>
+              <span className="text-sm text-gray-400">
+                <strong>{acc.fbPageName || 'Facebook Account'}</strong> — Disconnected. Reconnect to resume.
+              </span>
+            </div>
+            <a
+              href="/api/meta/connect"
+              className="px-3 py-1.5 rounded-lg text-xs bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 transition font-medium flex-shrink-0"
+            >
+              Reconnect
+            </a>
+          </div>
+        ))}
+        {warningAccounts.map(acc => (
+          <div key={acc.id} className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400 flex-shrink-0">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span className="text-sm text-amber-400">
+                <strong>{acc.fbPageName || 'Facebook Account'}</strong> — Token expires in {acc.daysUntilExpiry} day{acc.daysUntilExpiry !== 1 ? 's' : ''}. Reconnect soon to avoid interruption.
+              </span>
+            </div>
+            <a
+              href="/api/meta/connect"
+              className="px-3 py-1.5 rounded-lg text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition font-medium flex-shrink-0"
+            >
+              Refresh Token
+            </a>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-continuum-muted">
@@ -181,6 +276,8 @@ export default function AdsView() {
     const m = selectedAd.metrics || {}
     return (
       <div className="h-full overflow-y-auto px-4 py-4">
+        <AccountHealthBanners />
+
         <button
           onClick={() => setSelectedAd(null)}
           className="flex items-center gap-1 text-sm text-continuum-muted hover:text-white mb-4 transition"
@@ -364,6 +461,8 @@ export default function AdsView() {
         </div>
       )}
 
+      <AccountHealthBanners />
+
       {/* Summary stats */}
       {ads.length > 0 && (
         <div className="grid grid-cols-5 gap-3 mb-4">
@@ -425,7 +524,7 @@ export default function AdsView() {
                     </div>
                     <p className="text-xs text-continuum-muted truncate">
                       {objectiveLabel(ad.objective)}
-                      {ad.facebookAccount?.fbPageName ? ' · ' + ad.facebookAccount.fbPageName : ''}
+                      {ad.facebookAccount?.fbPageName ? ' \u00b7 ' + ad.facebookAccount.fbPageName : ''}
                     </p>
                   </div>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-continuum-muted flex-shrink-0 mt-1">

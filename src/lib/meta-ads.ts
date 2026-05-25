@@ -1,4 +1,4 @@
-import { prisma } from './prisma';
+import { db } from './db';
 import { getDecryptedToken, refreshTokenIfNeeded } from './meta-auth';
 
 const GRAPH_API_VERSION = 'v21.0';

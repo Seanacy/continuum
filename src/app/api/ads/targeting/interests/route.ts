@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { searchInterests } from '@/lib/meta-ads';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const fbAccount = await prisma.facebookAccount.findFirst({
+    const fbAccount = await db.facebookAccount.findFirst({
       where: { id: facebookAccountId, userId: user.id, status: 'active' },
     });
 

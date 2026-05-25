@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, GENERATE_CONTENT_TOOL, IMAGE_GENERATION_TOOL, OPEN_CHARACTER_BUILDER_TOOL, ToolResultMessage } from '@/lib/llm'
+import { callLLM, LLMMessage, LLMContentBlock, WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL, SET_REMINDER_TOOL, GENERATE_CONTENT_TOOL, IMAGE_GENERATION_TOOL, OPEN_CHARACTER_BUILDER_TOOL, GENERATE_CONTENT_PACK_TOOL, ToolResultMessage } from '@/lib/llm'
 import { buildSystemPrompt } from '@/lib/prompt-engine'
 import { extractMemories } from '@/lib/memory-engine'
 import { updateUserEnergy } from '@/lib/energy-matcher'
@@ -157,11 +157,13 @@ export async function POST(req: NextRequest) {
     let generatedContent: { contentType: string; platform?: string; topic: string; content: string; hashtags?: string[]; priceCents: number } | null = null
     let openCharacterBuilder: { suggestion?: string } | null = null
     let generatedImage: { url: string; prompt: string; width?: number; height?: number; priceCents: number } | null = null
+    let contentPack: { pieces: any[]; weekTheme: string; totalPriceCents: number } | null = null
     const tools = [
       SET_REMINDER_TOOL,
       GENERATE_CONTENT_TOOL,
       IMAGE_GENERATION_TOOL,
       OPEN_CHARACTER_BUILDER_TOOL,
+      GENERATE_CONTENT_PACK_TOOL,
       ...(process.env.TAVILY_API_KEY ? [WEB_SEARCH_TOOL, IMAGE_SEARCH_TOOL] : []),
     ]
 
@@ -307,7 +309,44 @@ export async function POST(req: NextRequest) {
           toolResultText = 'The character builder will open for the user. A button will appear in the chat for them to click. Confirm this naturally â tell them you\'re opening the character builder and they can customize their new AI there.'
         }
 
-        // --- UNKNOWN TOOL (shouldn't happen) ---
+        // --- CONTENT PACK TOOL ---
+            else if (toolName === 'generate_content_pack') {
+              const input = response.toolUse.input as Record<string, any>
+              const pieces = input.pieces as any[]
+              const weekTheme = input.week_theme as string
+              const piecePriceCents = 15 // $0.15 per piece
+              const totalPriceCents = pieces.length * piecePriceCents
+
+              console.log('[ContentPack] Generating ' + pieces.length + ' pieces, theme: "' + weekTheme + '" - charging ' + totalPriceCents + ' cents')
+
+              const charge = await chargeAmount(
+                user.id,
+                totalPriceCents,
+                'Content pack: ' + pieces.length + ' pieces',
+                { weekTheme, pieceCount: pieces.length }
+              )
+
+              if (charge.allowed) {
+                contentPack = {
+                  pieces: pieces.map((p: any) => ({
+                    contentType: p.content_type,
+                    platform: p.platform,
+                    content: p.content,
+                    hashtags: p.hashtags || [],
+                    needsUserPhoto: p.needs_user_photo || false,
+                    photoSuggestion: p.photo_suggestion || null,
+                    daySuggestion: p.day_suggestion || null,
+                  })),
+                  weekTheme,
+                  totalPriceCents,
+                }
+                toolResultText = 'Content pack generated successfully with ' + pieces.length + ' pieces. Charged $' + (totalPriceCents / 100).toFixed(2) + '. Remaining balance: $' + (charge.remaining / 100).toFixed(2) + '. The content pack will display as cards the user can swipe through. Give a brief natural confirmation and mention the week theme. Do NOT repeat the content back.'
+              } else {
+                toolResultText = 'The user does not have enough funds for this content pack. They need $' + (totalPriceCents / 100).toFixed(2) + ' but only have $' + (charge.remaining / 100).toFixed(2) + '. Let them know they need to add funds.'
+              }
+            }
+
+            // --- UNKNOWN TOOL (shouldn't happen) ---
         else {
           toolResultText = `Unknown tool: ${toolName}`
         }
@@ -444,6 +483,7 @@ export async function POST(req: NextRequest) {
       generatedContent,
       generatedImage,
       openCharacterBuilder,
+      contentPack,
       dailyRemaining: remaining - 1,
       dailyLimit: DAILY_MESSAGE_LIMIT,
     })

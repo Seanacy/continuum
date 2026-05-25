@@ -8,10 +8,16 @@ import { getImageTier, recordImageGeneration, recordFailedGeneration } from '@/l
 import { db } from '@/lib/db'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+let _supabase: ReturnType<typeof createClient> | null = null
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    )
+  }
+  return _supabase
+}
 
 // Input for scene recreation
 export interface SceneRecreationInput {
@@ -115,7 +121,7 @@ export async function recreateScene(
     const filePath = input.userId + '/scenes/' + fileName
     const imageBuffer = Buffer.from(result.imageBase64, 'base64')
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await getSupabase().storage
       .from('character-images')
       .upload(filePath, imageBuffer, {
         contentType: result.mimeType || 'image/png',
@@ -146,7 +152,7 @@ export async function recreateScene(
     }
 
     // Get the public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = getSupabase().storage
       .from('character-images')
       .getPublicUrl(filePath)
 

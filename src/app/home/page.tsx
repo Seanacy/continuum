@@ -13,6 +13,12 @@ import AdsView from '@/components/AdsView'
 import AdPublisher from '@/components/AdPublisher'
 import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
 
+// Only these emails can see the Ads tab and ad features
+const ADS_ALLOWED_EMAILS = [
+  '247ggtms@gmail.com',
+  'testpersoni2026@gmail.com',
+]
+
 type View = 'chat' | 'feed' | 'threads' | 'create' | 'ads' | 'settings'
 
 export default function HomePage() {
@@ -25,6 +31,9 @@ export default function HomePage() {
   const { messages } = useChat()
   const { characters, reload: reloadCharacters } = useCharacters()
   const [activeCharacterId, setActiveCharacterId] = useState<string | undefined>(undefined)
+
+  // Check if current user is allowed to see ads features
+  const isAdsAllowed = user?.email ? ADS_ALLOWED_EMAILS.includes(user.email) : false
 
   // Auto-select active character (prefer isActive, fallback to first)
   useEffect(() => {
@@ -102,6 +111,7 @@ export default function HomePage() {
       onViewChange={handleViewChange}
       partnerMode={partnerMode}
       onPartnerModeToggle={() => setPartnerMode(!partnerMode)}
+      showAds={isAdsAllowed}
     >
       {activeView === 'chat' && (
         <ChatView
@@ -111,24 +121,24 @@ export default function HomePage() {
           characters={characters}
           onCharacterChange={setActiveCharacterId}
           onGoToCreate={() => handleViewChange('create')}
-          onPublishAsAd={(piece: any) => setAdPiece(piece)}
+          onPublishAsAd={isAdsAllowed ? (piece: any) => setAdPiece(piece) : undefined}
         />
       )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
       {activeView === 'create' && <CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} />}
-      {activeView === 'ads' && <AdsView />}
-        {activeView === 'settings' && <SettingsView />}
-    {adPiece && (
-          <AdPublisher
-            piece={adPiece}
-            onClose={() => setAdPiece(null)}
-            onPublished={() => {
-              setAdPiece(null)
-              handleViewChange('ads')
-            }}
-          />
-        )}
-      </AppShell>
+      {isAdsAllowed && activeView === 'ads' && <AdsView />}
+      {activeView === 'settings' && <SettingsView />}
+      {isAdsAllowed && adPiece && (
+        <AdPublisher
+          piece={adPiece}
+          onClose={() => setAdPiece(null)}
+          onPublished={() => {
+            setAdPiece(null)
+            handleViewChange('ads')
+          }}
+        />
+      )}
+    </AppShell>
   )
 }

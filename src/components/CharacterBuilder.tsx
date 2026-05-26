@@ -1448,6 +1448,8 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             .catch(() => {})
         }}
         onBack={() => setStep('review')}
+        mode={pendingAiMode || undefined}
+        specs={autoSpecs || undefined}
       />
     )
   }

@@ -363,127 +363,46 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                       {templateType && (
                         <p className="text-xs text-continuum-accent/70 mt-0.5">{templateType}</p>
                       )}
-                      <p className="text-xs text-continuum-muted">
-                        {traitCount} traits selected{c.nicheType ? ` — ${c.nicheType}` : ''}
-                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-continuum-muted mb-4">
-                    <span>Traits: <strong className="text-continuum-accent">{traitCount}/{totalCategories}</strong></span>
-                  </div>
-
-                  {/* Profile Picture Gallery */}
-                  {(() => {
-                    const typeOrder = ['head_front', 'head_right', 'head_left', 'body_front', 'body_right', 'body_left'] as const
-                    const typeLabels: Record<string, string> = {
-                      head_front: 'Front Face Profile',
-                      head_right: 'Right Face Profile',
-                      head_left: 'Left Face Profile',
-                      body_front: 'Front Body Profile',
-                      body_right: 'Right Body Profile',
-           body_left: 'Left Body Profile'
-                    }
-                    const imageMap = new Map(c.characterImages?.map((img: any) => [img.imageType, img.imageUrl]) || [])
-                    return (
-                      <div className="grid grid-cols-3 gap-2 mt-3">
-                        {typeOrder.map(t => {
-                          const url = imageMap.get(t) as string | undefined
-                          return (
-                            <div key={t} className="flex flex-col items-center gap-1">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                ref={el => { fileInputRefs.current[c.id + '_' + t] = el }}
-                                onChange={e => {
-                                  const file = e.target.files?.[0]
-                                  if (file) handleImageUpload(c.id, t, file)
-                                  e.target.value = ''
-                                }}
-                              />
-                              <div
-                                className="w-full aspect-square rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-continuum-accent/50 transition-all relative group"
-                                onClick={() => fileInputRefs.current[c.id + '_' + t]?.click()}
-                              >
-                                {url ? (
-                                  <img src={url} alt={typeLabels[t] || ''} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full bg-continuum-glass/30 flex items-center justify-center">
-                                    <span className="text-continuum-muted/40 text-lg">+</span>
-                                  </div>
-                                )}
-                                {uploadingSlot === t ? (
-                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                  </div>
-                                ) : (
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all">
-                                    <span className="text-white/0 group-hover:text-white/80 text-xs font-medium transition-all">
-                                      {url ? 'Change' : 'Upload'}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <span className="text-[9px] text-continuum-muted/60 text-center leading-tight">{typeLabels[t]}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                })()}
-
-                  <div className="space-y-2">
-                    {activeCharacterId === c.id ? (
-                      <div className="w-full py-2 rounded-lg text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30 text-center">
-                        Active AI
-                      </div>
-                    ) : (
-                      <button
-                        onClick={async () => {
-                          if (onActivateCharacter) {
-                            try {
-                              await fetch('/api/characters/activate', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ characterId: c.id })
-                              })
-                              onActivateCharacter?.(c.id)
-                            } catch (e) {
-                              console.error('Failed to activate character', e)
-                            }
-                          }
-                        }}
-                        className="w-full py-2 rounded-lg text-xs font-semibold bg-continuum-accent text-black hover:bg-continuum-accent/80 transition-all"
-                      >
-                        Use This AI
-                      </button>
-                    )}
+                  <div className="flex items-center justify-between mt-1 mb-4">
+                    <span className="text-xs text-continuum-muted">
+                      {traitCount} traits{c.nicheType ? ` · ${c.nicheType}` : ''}
+                    </span>
                     <button
                       onClick={() => loadCharacter(c)}
-                      className="w-full py-2 rounded-lg text-xs font-semibold bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/30 transition-all"
+                      className="text-xs text-continuum-accent hover:text-continuum-accent/80 transition"
                     >
-                      ✏️ Edit Character
-                    </button>
-                    <button
-                      onClick={() => { loadCharacter(c); setStep('visual') }}
-                      className="w-full py-2 rounded-lg text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
-                    >
-                      🎨 Create Their Look
-                    </button>
-                    <button
-                      onClick={() => { loadCharacter(c); setStep('content') }}
-                      className="w-full py-2 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
-                    >
-                      🏭 Content Factory
-                    </button>
-                    <button
-                      onClick={() => { loadCharacter(c); setStep('reminders') }}
-                      className="w-full py-2 rounded-lg text-xs font-semibold bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all"
-                    >
-                      🔔 Reminders
+                      Edit
                     </button>
                   </div>
+
+                  {activeCharacterId === c.id ? (
+                    <div className="w-full py-2.5 rounded-lg text-sm font-semibold bg-green-500/20 text-green-400 border border-green-500/30 text-center">
+                      Active AI
+                    </div>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        if (onActivateCharacter) {
+                          try {
+                            await fetch('/api/characters/activate', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ characterId: c.id })
+                            })
+                            onActivateCharacter?.(c.id)
+                          } catch (e) {
+                            console.error('Failed to activate character', e)
+                          }
+                        }
+                      }}
+                      className="w-full py-2.5 rounded-lg text-sm font-semibold bg-continuum-accent text-black hover:bg-continuum-accent/80 transition-all"
+                    >
+                      Use This AI
+                    </button>
+                  )}
                 </div>
               )
             })}

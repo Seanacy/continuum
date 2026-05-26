@@ -17,9 +17,12 @@ interface Business {
 interface BusinessManagerProps {
   onClose: () => void;
   onSelectBusiness?: (business: Business) => void;
+  mode?: 'auto' | 'guided';
+  specs?: string;
+  characterName?: string;
 }
 
-export default function BusinessManager({ onClose, onSelectBusiness }: BusinessManagerProps) {
+export default function BusinessManager({ onClose, onSelectBusiness, mode, specs, characterName }: BusinessManagerProps) {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -37,8 +40,43 @@ export default function BusinessManager({ onClose, onSelectBusiness }: BusinessM
   const [location, setLocation] = useState('');
   const [brandVoice, setBrandVoice] = useState('');
   const [socialLinks, setSocialLinks] = useState<{ platform: string; url: string }[]>([]);
+  const [autoLoading, setAutoLoading] = useState(mode === 'auto');
 
   useEffect(() => { fetchBusinesses(); }, []);
+
+  // Auto mode: AI generates business profile and saves
+  useEffect(() => {
+    if (mode !== 'auto') return;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/characters/ai-create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            step: 'generate-business',
+            characterName: characterName || '',
+            specs: specs || '',
+          }),
+        });
+        const data = await res.json();
+        if (data.name) {
+          // Save directly via API
+          const saveRes = await fetch('/api/businesses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const saved = await saveRes.json();
+          if (saved.id) {
+            fetchBusinesses();
+            if (onSelectBusiness) onSelectBusiness(saved);
+          }
+        }
+      } catch (e) { console.error('Auto business failed:', e); }
+      setAutoLoading(false);
+    };
+    run();
+  }, [mode]);
 
   async function fetchBusinesses() {
     try {
@@ -127,7 +165,20 @@ export default function BusinessManager({ onClose, onSelectBusiness }: BusinessM
     fetchBusinesses();
   }
 
-  // Card list view
+  // Auto-loading screen
+  if (autoLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <div className="text-4xl animate-bounce">🏢</div>
+          <p className="text-white font-bold text-lg">AI is building your business profile...</p>
+          <p className="text-continuum-muted text-sm">Generating details and saving automatically</p>
+        </div>
+      </div>
+    );
+  }
+
+    // Card list view
   if (!showForm) {
     return (
       <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">

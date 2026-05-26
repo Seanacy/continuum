@@ -51,7 +51,7 @@ async function getUserContext(userId: string) {
         business.targetAudience && `Target audience: ${business.targetAudience}`,
         business.location && `Location: ${business.location}`,
         business.brandVoice && `Brand voice: ${business.brandVoice}`,
-        business.website && `Website: ${business.website}`,
+        business.websiteUrl && `Website: ${business.websiteUrl}`,
       ].filter(Boolean).join('\n')
     : 'No business info available yet.'
 
@@ -342,7 +342,7 @@ Pick bundles that MATCH the user's industry, brand voice, and audience. Be opini
       const traitDesc = Object.entries(character.selections as Record<string, string>)
         .map(([cat, bundleId]) => {
           const bundle = BUNDLES.find((b) => b.id === bundleId)
-          return bundle ? `${cat}: ${bundle.name} -- ${bundle.desc}` : null
+          return bundle ? `${cat}: ${bundle.name} — ${bundle.desc}` : null
         })
         .filter(Boolean)
         .join('\n')

@@ -92,10 +92,10 @@ const TYPE_LABELS: Record<string, string> = {
   thread_update: 'Thread',
   prompt: 'Prompt',
   social_pick: 'Found for you',
-  creative_writing: 'Emily wrote this',
+  creative_writing: 'Written for you',
   daily_brief: 'Your Day',
-  curated_find: 'Emily found this',
-  video_script: 'Emily imagined this',
+  curated_find: 'Found for you',
+  video_script: 'Imagined for you',
   echo_connection: 'Echo Match',
 }
 
@@ -700,7 +700,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
     >
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-teal-400">{'🔍'} Emily found this</span>
+          <span className="text-xs font-medium text-teal-400">{'🔍'} Found for you</span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
         {data.title && (

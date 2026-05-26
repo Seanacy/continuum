@@ -557,6 +557,37 @@ User specs: ${specs || 'None provided — use your best judgment'}`
       return NextResponse.json(result)
     }
 
+    // ============================================
+    // GENERATE BUSINESS PROFILE (auto mode)
+    // ============================================
+    if (step === 'generate-business') {
+      const { characterName, specs } = body;
+      const sysPrompt = `You are an AI business profile generator for a character/brand named "${characterName || 'My Brand'}".
+Based on the character name and any user specs, generate a complete business profile.
+
+Return ONLY valid JSON with these fields:
+{
+  "name": "Business name",
+  "websiteUrl": "https://example.com (or empty string)",
+  "businessType": "e.g. E-commerce, SaaS, Content Creator, Agency, etc.",
+  "productsServices": "Brief description of products/services",
+  "targetAudience": "Who the business serves",
+  "location": "City, State or Online",
+  "brandVoice": "2-3 words describing tone, e.g. Professional, Friendly, Bold"
+}`;
+      const userMsg = specs
+        ? `Create a business profile for "${characterName}". User specifications: ${specs}`
+        : `Create a business profile for "${characterName}". Make reasonable assumptions based on the name.`;
+      const res = await callLLM(sysPrompt, [{ role: 'user', content: userMsg }], { temperature: 0.7 });
+      const resText = String(res.content);
+      const jsonMatch = resText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return NextResponse.json({ error: 'Failed to parse business JSON' }, { status: 500 });
+      }
+      const result = JSON.parse(jsonMatch[0]);
+      return NextResponse.json(result);
+    }
+
     return NextResponse.json({ error: 'Unknown step' }, { status: 400 })
 
   } catch (err: any) {

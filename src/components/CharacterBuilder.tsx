@@ -22,6 +22,7 @@ import RemindersPanel from './RemindersPanel'
 import BuildAssistant from './BuildAssistant'
 import ImageCarousel from './ImageCarousel'
 import TalkingProfileBuilder from './TalkingProfileBuilder'
+import AiCharacterCreator from './AiCharacterCreator'
 
 // ============================================
 // TYPES
@@ -68,6 +69,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   const [loadingCharacter, setLoadingCharacter] = useState(true)
   const [editingNameId, setEditingNameId] = useState<string | null>(null)
   const [editingNameValue, setEditingNameValue] = useState('')
+  const [aiCreatorMode, setAiCreatorMode] = useState<'auto' | 'guided' | null>(null)
 
     // Image upload handler
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null)
@@ -272,6 +274,30 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
     } finally {
       setSaving(false)
     }
+  }
+
+  // ============================================
+  // AI CHARACTER CREATOR (auto or guided mode)
+  // ============================================
+  if (aiCreatorMode) {
+    return (
+      <AiCharacterCreator
+        mode={aiCreatorMode}
+        onComplete={(characterId) => {
+          setAiCreatorMode(null)
+          // Refresh characters and activate the new one
+          fetch('/api/characters/mine')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.characters) setAllCharacters(d.characters) })
+            .catch(() => {})
+          if (characterId && onActivateCharacter) {
+            onActivateCharacter(characterId)
+          }
+          if (onGoToChat) onGoToChat()
+        }}
+        onCancel={() => setAiCreatorMode(null)}
+      />
+    )
   }
 
   // ============================================
@@ -587,6 +613,79 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           <p className="text-sm text-continuum-muted text-center mb-8">
             Pick your speed. You can always go deeper later.
           </p>
+
+          {/* AI-powered creation modes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {/* AI Does Everything */}
+            <button
+              onClick={() => setAiCreatorMode('auto')}
+              className="relative rounded-xl border border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-continuum-surface p-6 text-left hover:border-emerald-400/70 transition-all"
+            >
+              <span className="absolute -top-3 left-4 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
+                NEW
+              </span>
+              <span className="text-4xl mb-3 block">&#x1F916;</span>
+              <span className="text-sm text-emerald-400 font-medium mb-2 block">~3 min</span>
+              <h3 className="text-lg font-bold text-white mb-2">AI Does Everything</h3>
+              <p className="text-sm text-continuum-muted mb-4">
+                One click. AI picks the name, personality, look, and generates a full content pack + images. Done.
+              </p>
+              <div className="text-left space-y-2 mb-4">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-emerald-400 mt-0.5">&#10003;</span>
+                  <span>Character + personality auto-built</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-emerald-400 mt-0.5">&#10003;</span>
+                  <span>Content pack generated</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-emerald-400 mt-0.5">&#10003;</span>
+                  <span>Images + video created</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-emerald-500/20">
+                <span className="text-sm font-semibold text-emerald-400">Let AI Handle It &rarr;</span>
+              </div>
+            </button>
+
+            {/* AI Guides You */}
+            <button
+              onClick={() => setAiCreatorMode('guided')}
+              className="relative rounded-xl border border-sky-500/50 bg-gradient-to-br from-sky-500/10 to-continuum-surface p-6 text-left hover:border-sky-400/70 transition-all"
+            >
+              <span className="absolute -top-3 left-4 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full">
+                NEW
+              </span>
+              <span className="text-4xl mb-3 block">&#x2728;</span>
+              <span className="text-sm text-sky-400 font-medium mb-2 block">~5 min</span>
+              <h3 className="text-lg font-bold text-white mb-2">AI Guides You</h3>
+              <p className="text-sm text-continuum-muted mb-4">
+                AI creates 3 options for each step. You pick what fits. Then it builds everything for you.
+              </p>
+              <div className="text-left space-y-2 mb-4">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-sky-400 mt-0.5">&#10003;</span>
+                  <span>Pick from AI-curated options</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-sky-400 mt-0.5">&#10003;</span>
+                  <span>Choose name, personality, look</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-sky-400 mt-0.5">&#10003;</span>
+                  <span>AI builds the rest automatically</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-sky-500/20">
+                <span className="text-sm font-semibold text-sky-400">Guide Me Through It &rarr;</span>
+              </div>
+            </button>
+          </div>
+
+          <div className="text-center mb-6">
+            <span className="text-xs text-continuum-muted uppercase tracking-widest">or build manually</span>
+          </div>
 
           {/* 3-column mode cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">

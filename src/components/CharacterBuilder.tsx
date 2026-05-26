@@ -72,7 +72,6 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   const [editingNameValue, setEditingNameValue] = useState('')
   const [aiCreatorMode, setAiCreatorMode] = useState<'auto' | 'guided' | null>(null)
   const [aiCreatorScope, setAiCreatorScope] = useState<'character' | 'full' | null>(null)
-  const [pendingAiMode, setPendingAiMode] = useState<'auto' | 'guided' | null>(null)
   const [autoSpecs, setAutoSpecs] = useState('')
   const [autoSpecsCollected, setAutoSpecsCollected] = useState(false)
   const [pendingAiMode, setPendingAiMode] = useState<'auto' | 'guided' | null>(null)

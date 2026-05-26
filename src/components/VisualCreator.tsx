@@ -779,7 +779,7 @@ export default function VisualCreator({
   if (autoLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="text-4xl animate-bounce">\u{1F3A8}</div>
+        <div className="text-4xl animate-bounce">🎨</div>
         <p className="text-white font-bold text-lg">AI is designing your look...</p>
         <p className="text-continuum-muted text-sm">Picking traits and generating prompts</p>
       </div>

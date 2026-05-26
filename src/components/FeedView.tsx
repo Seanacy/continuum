@@ -196,10 +196,32 @@ export default function FeedView() {
     )
   }
 
+  // Filter out internal AI types that aren't meant for users
+  const INTERNAL_TYPES = ['reflection', 'memory_echo', 'state_report', 'thread_update', 'prompt']
+  const userItems = items.filter((item) => !INTERNAL_TYPES.includes(item.type))
+
+  if (userItems.length === 0) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="px-4 pt-4">
+          <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
+        </div>
+        <div className="flex items-center justify-center flex-1 text-continuum-muted px-8 text-center">
+          <div>
+            <p className="text-lg">Nothing here yet.</p>
+            <p className="text-sm mt-1">
+              Your feed builds over time as your AI learns about you.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full overflow-y-auto px-4 py-4 space-y-3">
       <CookingButton count={cookingCount} onClick={() => setShowCooking(true)} />
-      {items.map((item) => {
+      {userItems.map((item) => {
         switch (item.type) {
           case 'social_pick':
             return <SocialCard key={item.id} item={item} />
@@ -250,7 +272,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
         rel="noopener noreferrer"
         className="block text-center text-[10px] text-orange-400/60 hover:text-orange-300 transition"
       >
-        Share the public cooking page
+        Share the public content page
       </a>
     </div>
   )
@@ -285,7 +307,7 @@ function WhatsCookingView({ onBack }: { onBack: () => void }) {
         </button>
         <div className="flex items-center gap-2">
           <span className="text-lg">{'🍳'}</span>
-          <h2 className="text-lg font-semibold text-continuum-text">What&apos;s Cooking</h2>
+          <h2 className="text-lg font-semibold text-continuum-text">Your Content</h2>
         </div>
       </div>
 

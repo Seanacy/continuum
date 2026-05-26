@@ -12,6 +12,8 @@ interface TalkingProfileBuilderProps {
   }
   onSave: (profile: { profileId: string; sliders: { energy: number; formality: number; pace: number; warmth: number; humor: number } }) => void
   onBack: () => void
+  mode?: 'auto' | 'guided'
+  specs?: string
 }
 
 const SLIDER_LABELS: Record<string, { label: string; low: string; high: string; icon: string }> = {
@@ -28,6 +30,8 @@ export default function TalkingProfileBuilder({
   initialProfile,
   onSave,
   onBack,
+  mode,
+  specs,
 }: TalkingProfileBuilderProps) {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(initialProfile?.profileId || null)
   const [sliders, setSliders] = useState<Record<string, number>>({
@@ -40,6 +44,7 @@ export default function TalkingProfileBuilder({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [showSliders, setShowSliders] = useState(!!initialProfile?.profileId)
+  const [autoLoading, setAutoLoading] = useState(mode === 'auto')
 
   // When a profile is selected, set sliders to its defaults
   const selectProfile = (profile: TalkingProfile) => {
@@ -64,6 +69,58 @@ export default function TalkingProfileBuilder({
       }
     }
   }, [initialProfile])
+
+  // ============================================
+  // AUTO MODE — AI picks profile + sliders, then saves
+  // ============================================
+  useEffect(() => {
+    if (mode !== 'auto') return
+    const run = async () => {
+      try {
+        const res = await fetch('/api/characters/ai-create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            step: 'generate-talking-profile',
+            characterId,
+            characterName,
+            specs: specs || '',
+          }),
+        })
+        const data = await res.json()
+        if (data.profileId && data.sliders) {
+          const profile = TALKING_PROFILES.find(p => p.id === data.profileId)
+          if (profile) {
+            setSelectedProfileId(data.profileId)
+            setSliders({
+              energy: data.sliders.energy ?? profile.defaults.energy,
+              formality: data.sliders.formality ?? profile.defaults.formality,
+              pace: data.sliders.pace ?? profile.defaults.pace,
+              warmth: data.sliders.warmth ?? profile.defaults.warmth,
+              humor: data.sliders.humor ?? profile.defaults.humor,
+            })
+            setShowSliders(true)
+            // Auto-save
+            await onSave({
+              profileId: data.profileId,
+              sliders: {
+                energy: data.sliders.energy ?? profile.defaults.energy,
+                formality: data.sliders.formality ?? profile.defaults.formality,
+                pace: data.sliders.pace ?? profile.defaults.pace,
+                warmth: data.sliders.warmth ?? profile.defaults.warmth,
+                humor: data.sliders.humor ?? profile.defaults.humor,
+              },
+            })
+            setSaved(true)
+          }
+        }
+      } catch (e) {
+        console.error('Auto talking profile failed:', e)
+      }
+      setAutoLoading(false)
+    }
+    run()
+  }, [mode])
 
   const handleSliderChange = (key: string, value: number) => {
     setSliders(prev => ({ ...prev, [key]: value }))
@@ -92,6 +149,20 @@ export default function TalkingProfileBuilder({
   }
 
   const selectedProfile = selectedProfileId ? TALKING_PROFILES.find(p => p.id === selectedProfileId) : null
+
+
+  // ============================================
+  // AUTO MODE LOADING SCREEN
+  // ============================================
+  if (autoLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="text-4xl animate-bounce">🎤</div>
+        <p className="text-white font-bold text-lg">AI is crafting the voice...</p>
+        <p className="text-continuum-muted text-sm">Picking a talking style and tuning the sliders</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-continuum-bg to-continuum-card text-white px-4 py-8 max-w-2xl mx-auto">

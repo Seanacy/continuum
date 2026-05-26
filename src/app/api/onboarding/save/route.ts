@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { addFunds } from '@/lib/credit-system'
+
+const ONBOARDING_BONUS_CENTS = 100 // $1.00 free to explore after onboarding
 
 export async function POST(req: Request) {
   try {
@@ -8,6 +11,9 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
     const { aiName, business, personal } = await req.json()
+
+    // Check if this is the first onboarding (not a Settings link scan)
+    const isFirstOnboarding = aiName && !(user as any).onboardingComplete
 
     // 1. Update user profile — AI name + personal info + mark onboarding complete
     const userUpdate: Record<string, any> = {
@@ -21,6 +27,17 @@ export async function POST(req: Request) {
       where: { id: user.id },
       data: userUpdate,
     })
+
+    // 1b. Give new users a free $1.00 to explore content generation
+    if (isFirstOnboarding) {
+      try {
+        await addFunds(user.id, ONBOARDING_BONUS_CENTS, {
+          reason: 'Welcome bonus — free credits for completing onboarding',
+        })
+      } catch {
+        // Non-critical — don't block onboarding if this fails
+      }
+    }
 
     // 2. Create business if we have business data
     if (business?.name) {

@@ -446,8 +446,10 @@ Rules:
         generateImage(user.id, `${prompt}, different angle, different expression`, { imageSize: 'square_hd' }),
       ])
 
+      const imageTypes = ['head_front', 'body_front']
       const images: { url: string; prompt: string }[] = []
-      for (const result of results) {
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i]
         if (result.status === 'fulfilled' && result.value.success && result.value.imageUrl) {
           images.push({ url: result.value.imageUrl, prompt: result.value.prompt || prompt })
 
@@ -455,10 +457,9 @@ Rules:
           await db.characterImage.create({
             data: {
               characterId,
-              userId: user.id,
+              imageType: imageTypes[i] || `extra_${i}`,
               imageUrl: result.value.imageUrl,
-              prompt: result.value.prompt || prompt,
-              slot: images.length - 1,
+              position: images.length - 1,
             },
           })
         }

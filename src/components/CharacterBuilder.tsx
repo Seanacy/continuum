@@ -1153,7 +1153,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={() => setStep('content')}
                   className="py-3 rounded-xl text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
                 >
-                  🏭 Content Factory
+                  Make Content
                 </button>
                 <button
                   onClick={() => setStep('reminders')}

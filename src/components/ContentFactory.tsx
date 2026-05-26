@@ -41,7 +41,7 @@ export default function ContentFactory({ character, onBack }: Props) {
           ← Back to Character
         </button>
         <h2 className="text-xl font-bold">
-          🏭 Content Factory
+          Make Content
         </h2>
         <p className="text-sm text-continuum-muted mt-1">
           AI-powered content ideas, scheduling, and management for {character.name}
@@ -229,7 +229,7 @@ function InspirationTab({ character }: { character: CharacterData }) {
     <div>
       <p className="text-xs text-continuum-muted mb-3">
         Upload reference and inspiration photos for AI content generation.
-        These help the Content Factory create on-brand visuals.
+        These help create on-brand visuals.
       </p>
 
       {/* Upload Button */}

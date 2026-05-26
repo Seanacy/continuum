@@ -84,7 +84,7 @@ export default function CookingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">
             <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-              What's Cooking
+              Your Content
             </span>
           </h1>
           <p className="text-gray-400 text-sm">

@@ -222,7 +222,7 @@ export default function FeedView() {
 }
 
 // ============================================
-// What's Cooking Button — shows at top of feed
+// Your Content Button — shows at top of feed
 // ============================================
 function CookingButton({ count, onClick }: { count: number; onClick: () => void }) {
   return (
@@ -234,7 +234,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
         <div className="flex items-center gap-2">
           <span className="text-lg">{'🍳'}</span>
           <span className="text-sm font-medium text-orange-300 group-hover:text-orange-200 transition">
-            What&apos;s Cooking
+            Your Content
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -257,7 +257,7 @@ function CookingButton({ count, onClick }: { count: number; onClick: () => void 
 }
 
 // ============================================
-// What's Cooking View — shows active collabs with voting
+// Your Content View — shows active collabs with voting
 // ============================================
 function WhatsCookingView({ onBack }: { onBack: () => void }) {
   const [collabs, setCollabs] = useState<CollabProposal[]>([])

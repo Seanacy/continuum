@@ -669,7 +669,7 @@ export default function VisualCreator({
             {character.name}&apos;s Look is Complete!
           </h3>
           <p className="text-sm text-continuum-muted max-w-md mx-auto">
-            All 6 profile images are uploaded. These will be used by the Content Factory to generate on-brand content.
+            All 6 profile images are uploaded. These will be used to generate on-brand content.
           </p>
         </div>
 

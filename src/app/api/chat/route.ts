@@ -9,7 +9,7 @@ import { shouldCreateThread, createThread, updateThreadSummary } from '@/lib/thr
 import { messageSchema } from '@/lib/validations'
 import { searchWeb, searchImages } from '@/lib/tavily'
 import { detectAndMarkReveals } from '@/lib/reveal-engine'
-import { detectDiscoveryInResponse, checkForDiscoveryAnswer } from '@/lib/discovery-engine'
+// Discovery questions removed — replaced by link-based scraping (Fix #4)
 import { chargeAmount } from '@/lib/credit-system'
 import { generateImage } from '@/lib/image-engine'
 import { logUsage } from '@/lib/usage-tracker'
@@ -509,9 +509,7 @@ export async function POST(req: NextRequest) {
     // 11. Detect capability reveals in the response (fire-and-forget)
     detectAndMarkReveals(user.id, finalContent).catch(console.error)
 
-    // 12. Discovery system
-    detectDiscoveryInResponse(user.id, finalContent).catch(console.error)
-    checkForDiscoveryAnswer(user.id, content).catch(console.error)
+    // 12. Discovery system — removed, replaced by link-based scraping (Fix #4)
 
     // 13. Update thread summary
     if (threadId) {

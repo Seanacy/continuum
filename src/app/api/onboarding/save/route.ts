@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       await db.memory.create({
         data: {
           userId: user.id,
-          content: `[Onboarding] What I learned about this person from their links:\n${personalFacts.join('\n')}`,
+          content: `[Link Scan] What I learned about this person from their links:\n${personalFacts.join('\n')}`,
           type: 'insight',
           weight: 8,
         },
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       await db.memory.create({
         data: {
           userId: user.id,
-          content: `[Onboarding] What I learned about their business from their links:\n${bizFacts.join('\n')}`,
+          content: `[Link Scan] What I learned about their business from their links:\n${bizFacts.join('\n')}`,
           type: 'insight',
           weight: 9,
         },

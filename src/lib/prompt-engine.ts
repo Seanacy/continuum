@@ -7,7 +7,7 @@ import { getMemoryContext } from './memory-engine'
 import { getRecentSocialPicks } from './social-engine'
 import { computeEngagement, formatEngagementForPrompt } from './engagement-engine'
 import { getRevealBlock } from './reveal-engine'
-import { getDiscoveryPromptBlock } from './discovery-engine'
+// Discovery questions replaced by link-based scraping (Fix #4)
 import { computeContinuity, formatContinuityForPrompt } from './continuity-engine'
 import { buildTalkingProfilePrompt, getAnimalPrompt, type AnimalMode } from './bundles'
 
@@ -165,13 +165,9 @@ ${socialPicks.map((p) => `- "${p.title}" (${p.source}) â ${p.commentary}`).
     // Reveal system is optional â don't break the prompt if it fails
   }
 
-  // Get discovery question block (one question per day, slipped into convo)
-  let discoveryBlock = ''
-  try {
-    discoveryBlock = await getDiscoveryPromptBlock(ctx.userId)
-  } catch {
-    // Discovery is optional â don't break the prompt if it fails
-  }
+  // Discovery questions removed - replaced by link-based scraping (Fix #4)
+  const discoveryBlock = ''
+
 
   // Partner mode â creative content partner override
   let partnerModeBlock = ''

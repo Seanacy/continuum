@@ -215,9 +215,10 @@ interface ChatViewProps {
   onCharacterChange?: (id: string) => void
   onGoToCreate?: () => void
   onPublishAsAd?: (piece: any) => void
+  onGoToThreads?: () => void
 }
 
-export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate, onPublishAsAd }: ChatViewProps) {
+export default function ChatView({ threadId, partnerMode, characterId, characters, onCharacterChange, onGoToCreate, onPublishAsAd, onGoToThreads }: ChatViewProps) {
   const { messages, loading, sending, searching, dailyRemaining, dailyLimitReached, sendMessage } = useChat(threadId, characterId)
   const [input, setInput] = useState('')
   const [showCamera, setShowCamera] = useState(false)
@@ -338,31 +339,40 @@ const [showBusinessManager, setShowBusinessManager] = useState(false)
         />
       )}
 
-      {/* Character Tabs */}
-      {characters && characters.length > 1 && (
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-continuum-border overflow-x-auto">
-          {characters.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => onCharacterChange?.(c.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
-                c.id === characterId
-                  ? 'bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/40'
-                  : 'bg-continuum-surface text-continuum-muted border border-continuum-border hover:border-continuum-accent/40'
-              }`}
-            >
-              {c.imageUrls?.[0] ? (
-                <img src={c.imageUrls[0]} alt="" className="w-4 h-4 rounded-full object-cover" />
-              ) : (
-                <span className="w-4 h-4 rounded-full bg-continuum-accent/30 flex items-center justify-center text-[10px]">
-                  {c.name[0]}
-                </span>
-              )}
-              {c.name}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Character Tabs + Threads button */}
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-continuum-border overflow-x-auto">
+        {characters && characters.length > 1 && characters.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => onCharacterChange?.(c.id)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              c.id === characterId
+                ? 'bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/40'
+                : 'bg-continuum-surface text-continuum-muted border border-continuum-border hover:border-continuum-accent/40'
+            }`}
+          >
+            {c.imageUrls?.[0] ? (
+              <img src={c.imageUrls[0]} alt="" className="w-4 h-4 rounded-full object-cover" />
+            ) : (
+              <span className="w-4 h-4 rounded-full bg-continuum-accent/30 flex items-center justify-center text-[10px]">
+                {c.name[0]}
+              </span>
+            )}
+            {c.name}
+          </button>
+        ))}
+        {onGoToThreads && (
+          <button
+            onClick={onGoToThreads}
+            className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap bg-continuum-surface text-continuum-muted border border-continuum-border hover:border-continuum-accent/40 transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Threads
+          </button>
+        )}
+      </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">

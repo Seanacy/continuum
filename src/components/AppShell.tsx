@@ -56,29 +56,46 @@ export default function AppShell({
         >
           Continuum
         </span>
-        <button
-          onClick={() => setShowNotifs(!showNotifs)}
-          className="relative p-2 rounded-lg hover:bg-continuum-surface transition"
-        >
-          <svg
-            className="w-5 h-5 text-continuum-muted"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex items-center gap-1">
+          {/* Settings gear icon */}
+          <button
+            onClick={() => onViewChange('settings')}
+            className={`p-2 rounded-lg transition ${
+              activeView === 'settings'
+                ? 'bg-continuum-accent/20 text-continuum-accent'
+                : 'hover:bg-continuum-surface text-continuum-muted'
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center text-[10px] rounded-full bg-continuum-accent text-white">
-              {unreadCount}
-            </span>
-          )}
-        </button>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          {/* Notification bell */}
+          <button
+            onClick={() => setShowNotifs(!showNotifs)}
+            className="relative p-2 rounded-lg hover:bg-continuum-surface transition"
+          >
+            <svg
+              className="w-5 h-5 text-continuum-muted"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center text-[10px] rounded-full bg-continuum-accent text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Notification panel */}
@@ -87,7 +104,7 @@ export default function AppShell({
       {/* Content */}
       <main className="flex-1 overflow-hidden">{children}</main>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — 3 tabs only */}
       <nav className="flex border-t border-continuum-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <NavButton
           label="Chat"
@@ -100,26 +117,9 @@ export default function AppShell({
           onClick={() => onViewChange('feed')}
         />
         <NavButton
-          label="Threads"
-          active={activeView === 'threads'}
-          onClick={() => onViewChange('threads')}
-        />
-        <NavButton
-          label="My AI"
+          label="Characters"
           active={activeView === 'create'}
           onClick={() => onViewChange('create')}
-        />
-        {showAds && (
-          <NavButton
-            label="Ads"
-            active={activeView === 'ads'}
-            onClick={() => onViewChange('ads')}
-          />
-        )}
-        <NavButton
-          label="Settings"
-          active={activeView === 'settings'}
-          onClick={() => onViewChange('settings')}
         />
       </nav>
     </div>

@@ -123,11 +123,35 @@ export default function HomePage() {
           onCharacterChange={setActiveCharacterId}
           onGoToCreate={() => handleViewChange('create')}
           onPublishAsAd={isAdsAllowed ? (piece: any) => setAdPiece(piece) : undefined}
+          onGoToThreads={() => handleViewChange('threads')}
         />
       )}
       {activeView === 'feed' && <FeedView />}
       {activeView === 'threads' && <ThreadsView onOpenThread={handleOpenThread} />}
-      {activeView === 'create' && <><PointBucket /><CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} /></>}
+      {activeView === 'create' && (
+        <>
+          <PointBucket />
+          <CharacterBuilder onGoToChat={() => handleViewChange('chat')} activeCharacterId={activeCharacterId} onActivateCharacter={setActiveCharacterId} />
+          {isAdsAllowed && (
+            <div className="px-4 pb-4">
+              <button
+                onClick={() => handleViewChange('ads')}
+                className="w-full py-3 px-4 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent/40 transition flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-continuum-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                  </svg>
+                  <span className="text-sm font-medium text-continuum-text">Your Ads</span>
+                </div>
+                <svg className="w-4 h-4 text-continuum-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </>
+      )}
       {isAdsAllowed && activeView === 'ads' && <AdsView />}
       {activeView === 'settings' && <SettingsView />}
       {isAdsAllowed && adPiece && (

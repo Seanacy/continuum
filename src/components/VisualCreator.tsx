@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   TRAIT_CATEGORIES,
   countFilledTraits,
@@ -37,10 +37,14 @@ export default function VisualCreator({
   character,
   onUpdate,
   onBack,
+  mode,
+  specs,
 }: {
   character: CharacterData
   onUpdate?: () => void
   onBack?: () => void
+  mode?: 'auto' | 'guided'
+  specs?: string
 }) {
   // State
   const [currentStep, setCurrentStep] = useState<VisualStep>('description')
@@ -70,7 +74,57 @@ export default function VisualCreator({
   const uploadedCount = Object.keys(uploadedImages).length
   const prompts = generatePrompts(traits, character.name, character.nicheType)
 
+  
   // ============================================
+  // AUTO MODE — AI generates all visual traits automatically
+  // ============================================
+  const [autoLoading, setAutoLoading] = useState(false)
+
+  useEffect(() => {
+    if (mode !== 'auto') return
+    setAutoLoading(true)
+    const run = async () => {
+      try {
+        const res = await fetch('/api/characters/ai-create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            step: 'generate-visuals',
+            characterId: character.id,
+            characterName: character.name,
+            nicheType: character.nicheType || '',
+            specs: specs || '',
+          }),
+        })
+        const data = await res.json()
+        if (data.traits) {
+          setTraits(data.traits)
+          setDescription(data.traits.description || '')
+          // Save immediately
+          await fetch('/api/characters/build', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              characterId: character.id,
+              name: character.name,
+              selections: character.selections,
+              customizations: character.customizations,
+              visualTraits: data.traits,
+            }),
+          })
+          setCurrentStep('prompts')
+        }
+      } catch (e) {
+        console.error('Auto visual generation failed:', e)
+        // Fall back to guided mode
+      } finally {
+        setAutoLoading(false)
+      }
+    }
+    run()
+  }, [mode])
+
+// ============================================
   // HANDLERS
   // ============================================
   function updateTrait(key: keyof VisualTraits, value: string) {
@@ -721,6 +775,17 @@ export default function VisualCreator({
   // ============================================
   // MAIN RENDER
   // ============================================
+  // Auto mode loading screen
+  if (autoLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="text-4xl animate-bounce">\u{1F3A8}</div>
+        <p className="text-white font-bold text-lg">AI is designing your look...</p>
+        <p className="text-continuum-muted text-sm">Picking traits and generating prompts</p>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full overflow-y-auto p-4 pb-8">
       <div className="max-w-lg mx-auto">

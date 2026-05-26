@@ -272,7 +272,7 @@ export default function SettingsView() {
       <div className="mb-8">
         <h3 className="text-sm font-medium text-continuum-text mb-1">Your Location</h3>
         <p className="text-xs text-continuum-muted mb-3">
-          Tell Emily where you are so she can be aware of your time, weather, and season.
+          Tell your AI where you are so it can be aware of your time, weather, and season.
         </p>
         <div className="flex gap-2">
           <input
@@ -301,7 +301,7 @@ export default function SettingsView() {
         <div className="mb-8">
           <h3 className="text-sm font-medium text-continuum-text mb-1">Push Notifications</h3>
           <p className="text-xs text-continuum-muted mb-3">
-            Let Emily reach you even when you&apos;re not on the site — reminders, thoughts, and nudges.
+            Let your AI reach you even when you&apos;re not on the site — reminders, thoughts, and nudges.
           </p>
           <button
             onClick={togglePush}
@@ -326,7 +326,7 @@ export default function SettingsView() {
       <div className="mb-8">
         <h3 className="text-sm font-medium text-continuum-text mb-1">Emily&apos;s Voice</h3>
         <p className="text-xs text-continuum-muted mb-4">
-          Pick a voice for Emily. Tap the play button to preview, tap the row to select.
+          Pick a voice for your AI. Tap the play button to preview, tap the row to select.
         </p>
 
         {voices.length === 0 ? (

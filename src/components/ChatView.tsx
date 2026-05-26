@@ -5,7 +5,7 @@ import { useChat, CharacterSummary } from '@/lib/hooks'
 import BusinessManager from './BusinessManager'
 
 // ============================================
-// Voice Output â Text-to-Speech
+// Voice Output â Text-to-Speech
 // ============================================
 function useSpeech() {
   const [speaking, setSpeaking] = useState(false)
@@ -53,7 +53,7 @@ function useSpeech() {
 }
 
 // ============================================
-// Voice Input â Speech-to-Text
+// Voice Input â Speech-to-Text
 // ============================================
 function useVoiceInput(onResult: (text: string) => void) {
   const [listening, setListening] = useState(false)
@@ -431,7 +431,7 @@ const [showBusinessManager, setShowBusinessManager] = useState(false)
                     {msg.generatedContent.hashtags && msg.generatedContent.hashtags.length > 0 && (
                       <p className="mt-2 text-xs text-continuum-accent">{msg.generatedContent.hashtags.map(h => h.startsWith('#') ? h : `#${h}`).join(' ')}</p>
                     )}
-                    <span className="block mt-2 text-[10px] text-continuum-muted">Charged ${(msg.generatedContent.priceCents / 100).toFixed(2)}</span>
+                    <span className="block mt-2 text-[10px] text-continuum-muted/50">${(msg.generatedContent.priceCents / 100).toFixed(2)} used</span>
                   </div>
                 )}
                 {msg.role === 'assistant' && msg.generatedImage && (
@@ -456,7 +456,7 @@ const [showBusinessManager, setShowBusinessManager] = useState(false)
                       Couldn&#39;t load image
                     </div>
                     <div className="px-3 py-2 bg-continuum-surface flex items-center justify-between">
-                      <span className="text-[10px] text-continuum-muted">AI Generated Â· Charged $0.10</span>
+                      <span className="text-[10px] text-continuum-muted/50">AI Generated</span>
                       <a
                         href={msg.generatedImage.url}
                         target="_blank"
@@ -534,12 +534,12 @@ const [showBusinessManager, setShowBusinessManager] = useState(false)
                         </div>
                       ))}
                     </div>
-                    <span className="block text-sm text-continuum-muted">Charged ${(msg.contentPack.totalPriceCents / 100).toFixed(2)}</span>
+                    <span className="block text-xs text-continuum-muted/50">${(msg.contentPack.totalPriceCents / 100).toFixed(2)} used</span>
                   </div>
                 )}
                 {msg.content.startsWith('[Sent an image]') ? (
                   <>
-                    <span className="text-xs opacity-60 block mb-1">ð· Image sent</span>
+                    <span className="text-xs opacity-60 block mb-1">ð· Image sent</span>
                     <span>{msg.content.replace('[Sent an image] ', '')}</span>
                   </>
                 ) : (

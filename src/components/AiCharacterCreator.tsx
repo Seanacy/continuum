@@ -68,8 +68,11 @@ interface CharacterProfile {
 // ============================================
 // PROPS
 // ============================================
+type Scope = 'character' | 'full'
+
 interface AiCharacterCreatorProps {
   mode: Mode
+  scope: Scope
   onComplete?: (characterId: string) => void
   onCancel?: () => void
 }
@@ -89,13 +92,16 @@ const STEP_LABELS: Record<PipelineStep, string> = {
   error: 'Something went wrong',
 }
 
-const STEP_ORDER: PipelineStep[] = ['profile', 'saving', 'content', 'images', 'video', 'done']
-const GUIDED_STEP_ORDER: PipelineStep[] = ['options', 'profile', 'saving', 'content', 'images', 'video', 'done']
+const STEP_ORDER_FULL: PipelineStep[] = ['profile', 'saving', 'content', 'images', 'video', 'done']
+const STEP_ORDER_CHAR: PipelineStep[] = ['profile', 'saving', 'done']
+const GUIDED_STEP_ORDER_FULL: PipelineStep[] = ['options', 'profile', 'saving', 'content', 'images', 'video', 'done']
+const GUIDED_STEP_ORDER_CHAR: PipelineStep[] = ['options', 'profile', 'saving', 'done']
 
 // ============================================
 // MAIN COMPONENT
 // ============================================
-export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCharacterCreatorProps) {
+export default function AiCharacterCreator({ mode, scope, onComplete, onCancel }: AiCharacterCreatorProps) {
+  const isCharOnly = scope === 'character'
   // Pipeline state
   const [currentStep, setCurrentStep] = useState<PipelineStep>('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -131,7 +137,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   }, [])
 
   // ============================================
-  // AUTO MODE -- run full pipeline
+  // AUTO MODE â run full pipeline
   // ============================================
   const runAutoPipeline = useCallback(async () => {
     try {
@@ -145,28 +151,31 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
       const { character } = await callApi({ step: 'save-character', profile: gen })
       setCharacterId(character.id)
 
-      // Step 3: Content pack
-      setCurrentStep('content')
-      const { contentPack: pack } = await callApi({ step: 'content-pack', characterId: character.id })
-      setContentPack(pack)
+      // Character-only mode stops here
+      if (!isCharOnly) {
+        // Step 3: Content pack
+        setCurrentStep('content')
+        const { contentPack: pack } = await callApi({ step: 'content-pack', characterId: character.id })
+        setContentPack(pack)
 
-      // Step 4: Images
-      setCurrentStep('images')
-      const { images: imgs } = await callApi({
-        step: 'generate-images',
-        characterId: character.id,
-        imagePrompt: gen.imagePrompt,
-      })
-      setImages(imgs || [])
+        // Step 4: Images
+        setCurrentStep('images')
+        const { images: imgs } = await callApi({
+          step: 'generate-images',
+          characterId: character.id,
+          imagePrompt: gen.imagePrompt,
+        })
+        setImages(imgs || [])
 
-      // Step 5: Video
-      setCurrentStep('video')
-      try {
-        await callApi({ step: 'start-video', characterId: character.id })
-        setVideoStarted(true)
-      } catch {
-        // Video is optional -- don't fail the whole pipeline
-        setVideoStarted(false)
+        // Step 5: Video
+        setCurrentStep('video')
+        try {
+          await callApi({ step: 'start-video', characterId: character.id })
+          setVideoStarted(true)
+        } catch {
+          // Video is optional â don't fail the whole pipeline
+          setVideoStarted(false)
+        }
       }
 
       setCurrentStep('done')
@@ -174,10 +183,10 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
       setErrorMessage(err.message || 'Something went wrong')
       setCurrentStep('error')
     }
-  }, [callApi])
+  }, [callApi, isCharOnly])
 
   // ============================================
-  // GUIDED MODE -- step 1: get options
+  // GUIDED MODE â step 1: get options
   // ============================================
   const fetchGuidedOptions = useCallback(async () => {
     try {
@@ -193,7 +202,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   }, [callApi])
 
   // ============================================
-  // GUIDED MODE -- step 2: run pipeline with picks
+  // GUIDED MODE â step 2: run pipeline with picks
   // ============================================
   const runGuidedPipeline = useCallback(async () => {
     if (!guidedOptions || selectedName === null || selectedPersonality === null || selectedAppearance === null) return
@@ -221,27 +230,30 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
       const { character } = await callApi({ step: 'save-character', profile: gen })
       setCharacterId(character.id)
 
-      // Step 3: Content
-      setCurrentStep('content')
-      const { contentPack: pack } = await callApi({ step: 'content-pack', characterId: character.id })
-      setContentPack(pack)
+      // Character-only mode stops here
+      if (!isCharOnly) {
+        // Step 3: Content
+        setCurrentStep('content')
+        const { contentPack: pack } = await callApi({ step: 'content-pack', characterId: character.id })
+        setContentPack(pack)
 
-      // Step 4: Images
-      setCurrentStep('images')
-      const { images: imgs } = await callApi({
-        step: 'generate-images',
-        characterId: character.id,
-        imagePrompt: imagePrompt || gen.imagePrompt,
-      })
-      setImages(imgs || [])
+        // Step 4: Images
+        setCurrentStep('images')
+        const { images: imgs } = await callApi({
+          step: 'generate-images',
+          characterId: character.id,
+          imagePrompt: imagePrompt || gen.imagePrompt,
+        })
+        setImages(imgs || [])
 
-      // Step 5: Video
-      setCurrentStep('video')
-      try {
-        await callApi({ step: 'start-video', characterId: character.id })
-        setVideoStarted(true)
-      } catch {
-        setVideoStarted(false)
+        // Step 5: Video
+        setCurrentStep('video')
+        try {
+          await callApi({ step: 'start-video', characterId: character.id })
+          setVideoStarted(true)
+        } catch {
+          setVideoStarted(false)
+        }
       }
 
       setCurrentStep('done')
@@ -249,7 +261,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
       setErrorMessage(err.message || 'Something went wrong')
       setCurrentStep('error')
     }
-  }, [callApi, guidedOptions, selectedName, selectedPersonality, selectedAppearance])
+  }, [callApi, isCharOnly, guidedOptions, selectedName, selectedPersonality, selectedAppearance])
 
   // ============================================
   // AUTO-START for auto mode
@@ -267,7 +279,9 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   // ============================================
   // PROGRESS BAR
   // ============================================
-  const stepOrder = mode === 'guided' ? GUIDED_STEP_ORDER : STEP_ORDER
+  const stepOrder = mode === 'guided'
+    ? (isCharOnly ? GUIDED_STEP_ORDER_CHAR : GUIDED_STEP_ORDER_FULL)
+    : (isCharOnly ? STEP_ORDER_CHAR : STEP_ORDER_FULL)
   const currentIndex = stepOrder.indexOf(currentStep)
   const progressPercent = currentStep === 'done'
     ? 100
@@ -278,7 +292,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
     : 0
 
   // ============================================
-  // RENDER -- DONE STATE
+  // RENDER â DONE STATE
   // ============================================
   if (currentStep === 'done') {
     return (
@@ -287,8 +301,10 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
           <div className="text-6xl mb-4">&#10024;</div>
           <h2 className="text-3xl font-bold text-white mb-2">Your AI is Ready!</h2>
           <p className="text-continuum-muted mb-8">
-            {profile?.name} has been created with a full personality, content pack, and images.
-            {videoStarted ? ' A video is being generated in the background.' : ''}
+            {isCharOnly
+              ? `${profile?.name} has been created with a full personality. You can start chatting right away!`
+              : `${profile?.name} has been created with a full personality, content pack, and images.${videoStarted ? ' A video is being generated in the background.' : ''}`
+            }
           </p>
 
           {/* Character summary card */}
@@ -411,7 +427,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   }
 
   // ============================================
-  // RENDER -- ERROR STATE
+  // RENDER â ERROR STATE
   // ============================================
   if (currentStep === 'error') {
     return (
@@ -446,7 +462,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   }
 
   // ============================================
-  // RENDER -- GUIDED MODE: PICKING OPTIONS
+  // RENDER â GUIDED MODE: PICKING OPTIONS
   // ============================================
   if (mode === 'guided' && guidedOptions && guidedStep === 'picking') {
     const allPicked = selectedName !== null && selectedPersonality !== null && selectedAppearance !== null
@@ -558,7 +574,7 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
   }
 
   // ============================================
-  // RENDER -- PIPELINE RUNNING (auto or guided-running)
+  // RENDER â PIPELINE RUNNING (auto or guided-running)
   // ============================================
   return (
     <div className="h-full flex items-center justify-center p-4">
@@ -582,7 +598,9 @@ export default function AiCharacterCreator({ mode, onComplete, onCancel }: AiCha
         </div>
 
         <h2 className="text-2xl font-bold text-white mb-2">
-          {mode === 'auto' ? 'AI Is Building Everything' : 'Building Your Character'}
+          {isCharOnly
+            ? 'Creating Your Character'
+            : mode === 'auto' ? 'AI Is Building Everything' : 'Building Your Character'}
         </h2>
         <p className="text-continuum-muted mb-8">{STEP_LABELS[currentStep]}</p>
 

@@ -516,7 +516,7 @@ Return ONLY valid JSON with this structure:
 }`
 
       const res = await callLLM(sysPrompt, [{ role: 'user', content: 'Generate the visual traits now.' }], { temperature: 0.9 })
-      const text = typeof res.content === 'string' ? res.content : res.content.map((b: any) => b.text || '').join('')
+      const text = String(res.content)
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) return NextResponse.json({ error: 'Failed to parse visual traits' }, { status: 500 })
       const traits = JSON.parse(jsonMatch[0])

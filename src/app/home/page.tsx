@@ -56,12 +56,12 @@ export default function HomePage() {
     }
   }, [user])
 
-  // Show onboarding if user has zero messages
+  // Show onboarding if user hasn't completed it
   useEffect(() => {
-    if (user && messages.length === 0) {
+    if (user && !(user as any).onboardingComplete) {
       setShowOnboarding(true)
     }
-  }, [user, messages.length])
+  }, [user])
 
   // If loading finished and no user, clear session and redirect to login
   useEffect(() => {

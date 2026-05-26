@@ -83,6 +83,7 @@ export async function getCurrentUser() {
       name: true,
       aiName: true,
       createdAt: true,
+      onboardingComplete: true,
     },
   })
 

@@ -56,6 +56,7 @@ model User {
   freeMessages    Int    @default(0) @map("free_messages")     // DEPRECATED — default 0, no freebies
   personiCharId   String? @map("personi_char_id")              // linked Personi character ID
   mission         String? @map("mission")                     // user's WHY — why they created the AI, what they need it to do
+  onboardingComplete Boolean @default(false) @map("onboarding_complete") // true after finishing new onboarding flow
 
   // Business profile — required for Content Pack
   businessType     String?  @map("business_type")

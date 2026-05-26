@@ -398,6 +398,25 @@ export default function SettingsView() {
             })}
           </div>
         )}
+        
+
+      {/* Log Out */}
+      <div className="mb-8 pt-4 border-t border-continuum-border">
+        <button
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' })
+            window.location.href = '/login'
+          }}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition w-full"
+        >
+          <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span className="text-sm font-medium text-red-400">Log Out</span>
+        </button>
+      </div>
       </div>
     </div>
   )

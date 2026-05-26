@@ -204,7 +204,9 @@ Return ONLY valid JSON:
 }`
       } else {
         // Auto mode — AI decides everything
+        const userSpecs = body.specs ? `\n\nThe user gave these specifications:\n"${body.specs}"\nHonor these specs heavily in your design choices.\n` : ''
         systemPrompt = `You are a character design expert. Create the PERFECT AI character for this user's brand. Make every decision yourself.
+${userSpecs}
 
 Here is everything you know about them:
 ${ctx.businessText}

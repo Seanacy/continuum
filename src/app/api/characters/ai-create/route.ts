@@ -306,7 +306,6 @@ Pick bundles that MATCH the user's industry, brand voice, and audience. Be opini
           uniqueEdge: profile.uniqueEdge || null,
           contentPillars: JSON.parse(JSON.stringify(profile.contentPillars || [])),
           visualTraits: JSON.parse(JSON.stringify({})),
-          talkingProfile: JSON.parse(JSON.stringify({})),
           isActive: true,
         },
       })

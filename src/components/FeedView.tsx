@@ -1,8 +1,89 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, ReactNode } from 'react'
 import { useFeed } from '@/lib/hooks'
 import { trackInteraction } from '@/lib/interaction-tracker'
+
+// ============================================
+// Simple markdown renderer — handles **bold**, *italic*, newlines, and bullet lists
+// ============================================
+function renderMarkdown(text: string): ReactNode {
+  if (!text) return null
+
+  const lines = text.split('\n')
+  const elements: ReactNode[] = []
+  let listItems: ReactNode[] = []
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-0.5 my-1">
+          {listItems}
+        </ul>
+      )
+      listItems = []
+    }
+  }
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      flushList()
+      return
+    }
+
+    // Check if it's a bullet line
+    const bulletMatch = trimmed.match(/^[-•*]\s+(.*)/)
+    if (bulletMatch) {
+      listItems.push(<li key={`li-${i}`}>{formatInline(bulletMatch[1])}</li>)
+    } else {
+      flushList()
+      elements.push(
+        <span key={`p-${i}`}>
+          {i > 0 && elements.length > 0 ? <br /> : null}
+          {formatInline(trimmed)}
+        </span>
+      )
+    }
+  })
+
+  flushList()
+  return <>{elements}</>
+}
+
+function formatInline(text: string): ReactNode {
+  // Split on **bold** and *italic* patterns
+  const parts: ReactNode[] = []
+  let remaining = text
+  let key = 0
+
+  while (remaining.length > 0) {
+    // Bold: **text**
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/)
+    // Italic: *text* (but not **)
+    const italicMatch = remaining.match(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/)
+
+    const boldIdx = boldMatch ? remaining.indexOf(boldMatch[0]) : Infinity
+    const italicIdx = italicMatch ? remaining.indexOf(italicMatch[0]) : Infinity
+
+    if (boldIdx === Infinity && italicIdx === Infinity) {
+      parts.push(<span key={key++}>{remaining}</span>)
+      break
+    }
+
+    if (boldIdx <= italicIdx && boldMatch) {
+      if (boldIdx > 0) parts.push(<span key={key++}>{remaining.slice(0, boldIdx)}</span>)
+      parts.push(<strong key={key++} className="font-semibold">{boldMatch[1]}</strong>)
+      remaining = remaining.slice(boldIdx + boldMatch[0].length)
+    } else if (italicMatch) {
+      if (italicIdx > 0) parts.push(<span key={key++}>{remaining.slice(0, italicIdx)}</span>)
+      parts.push(<em key={key++}>{italicMatch[1]}</em>)
+      remaining = remaining.slice(italicIdx + italicMatch[0].length)
+    }
+  }
+
+  return <>{parts}</>
+}
 
 const TYPE_LABELS: Record<string, string> = {
   reflection: 'Reflection',
@@ -463,7 +544,7 @@ function FeedCard({
         </span>
         <span className="text-xs text-continuum-muted">{timeAgo}</span>
       </div>
-      <p className="text-sm text-continuum-text leading-relaxed">{item.content}</p>
+      <div className="text-sm text-continuum-text leading-relaxed">{renderMarkdown(item.content)}</div>
     </div>
   )
 }
@@ -516,7 +597,7 @@ function CreativeWritingCard({ item }: { item: FeedItem }) {
         )}
       </div>
       <div className="px-4 pb-2">
-        <p className="text-sm text-continuum-text leading-relaxed whitespace-pre-line">{data.body}</p>
+        <div className="text-sm text-continuum-text leading-relaxed">{renderMarkdown(data.body)}</div>
       </div>
       {data.reason && (
         <div className="px-4 pb-3 pt-1 border-t border-continuum-border/50">
@@ -563,8 +644,8 @@ function DailyBriefCard({ item }: { item: FeedItem }) {
         <div className="space-y-1.5">
           {lines.map((line, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <span className="text-amber-400/60 text-xs mt-0.5">{'\u203A'}</span>
-              <p className="text-sm text-continuum-text leading-relaxed">{line}</p>
+              <span className="text-amber-400/60 text-xs mt-0.5">{'›'}</span>
+              <span className="text-sm text-continuum-text leading-relaxed">{formatInline(line)}</span>
             </div>
           ))}
         </div>
@@ -603,7 +684,7 @@ function CuratedFindCard({ item }: { item: FeedItem }) {
         {data.title && (
           <p className="text-sm font-semibold text-continuum-text mb-1">{data.title}</p>
         )}
-        <p className="text-sm text-continuum-text leading-relaxed">{data.body}</p>
+        <div className="text-sm text-continuum-text leading-relaxed">{renderMarkdown(data.body)}</div>
       </div>
       {data.reason && (
         <div className="px-4 pb-3 pt-1 border-t border-continuum-border/50">

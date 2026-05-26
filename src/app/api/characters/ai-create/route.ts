@@ -6,6 +6,7 @@ import { BUNDLES, CATEGORIES, TEMPLATES } from '@/lib/bundles'
 import { generateImage } from '@/lib/image-engine'
 import { startVideoGeneration } from '@/lib/video-pipeline'
 import { chargeAmount } from '@/lib/credit-system'
+import { TRAIT_CATEGORIES } from '@/lib/visual-traits'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -482,6 +483,44 @@ Rules:
 
       const result = await startVideoGeneration(user.id, characterId)
       return NextResponse.json(result)
+    }
+
+    // ============================================
+    // STEP: generate-visuals — AI picks all visual traits
+    // ============================================
+    if (step === 'generate-visuals') {
+      const { characterName, nicheType, specs } = body
+      const traitCategories = TRAIT_CATEGORIES.map(c => `${c.label}: [${c.options.join(', ')}]`).join('\n')
+      const userSpecs = specs ? `\nUser specifications: "${specs}"\nHonor these specs in your visual choices.\n` : ''
+
+      const sysPrompt = `You are a character visual design expert. Pick the perfect visual traits for this AI character.
+Character name: ${characterName || 'Unknown'}
+Niche: ${nicheType || 'general'}
+${userSpecs}
+Available trait categories and options:
+${traitCategories}
+
+Return ONLY valid JSON with this structure:
+{
+  "description": "A vivid 2-3 sentence description of what this character looks like",
+  "bodyType": "one of the body type options",
+  "skinTone": "one of the skin tone options",
+  "hairStyle": "one of the hair style options",
+  "hairColor": "one of the hair color options",
+  "eyeColor": "one of the eye color options",
+  "facialHair": "one of the facial hair options or empty string",
+  "clothing": "one of the clothing options",
+  "accessories": "one of the accessories options or empty string",
+  "expression": "one of the expression options",
+  "background": "one of the background options"
+}`
+
+      const res = await callLLM(sysPrompt, [{ role: 'user', content: 'Generate the visual traits now.' }], { temperature: 0.9 })
+      const text = typeof res.content === 'string' ? res.content : res.content.map((b: any) => b.text || '').join('')
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) return NextResponse.json({ error: 'Failed to parse visual traits' }, { status: 500 })
+      const traits = JSON.parse(jsonMatch[0])
+      return NextResponse.json({ traits })
     }
 
     return NextResponse.json({ error: 'Unknown step' }, { status: 400 })

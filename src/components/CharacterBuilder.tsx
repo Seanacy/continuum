@@ -70,6 +70,8 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   const [editingNameId, setEditingNameId] = useState<string | null>(null)
   const [editingNameValue, setEditingNameValue] = useState('')
   const [aiCreatorMode, setAiCreatorMode] = useState<'auto' | 'guided' | null>(null)
+  const [aiCreatorScope, setAiCreatorScope] = useState<'character' | 'full' | null>(null)
+  const [pendingAiMode, setPendingAiMode] = useState<'auto' | 'guided' | null>(null)
 
     // Image upload handler
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null)
@@ -277,14 +279,109 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
+  // SCOPE PICKER (character-only vs full package)
+  // ============================================
+  if (pendingAiMode && !aiCreatorMode) {
+    return (
+      <div className="min-h-screen bg-continuum-bg flex items-center justify-center p-4">
+        <div className="max-w-lg w-full">
+          <button
+            onClick={() => setPendingAiMode(null)}
+            className="mb-6 text-sm text-continuum-muted hover:text-white transition-colors flex items-center gap-1"
+          >
+            &larr; Back
+          </button>
+          <h2 className="text-2xl font-bold text-white text-center mb-2">
+            What do you want to create?
+          </h2>
+          <p className="text-sm text-continuum-muted text-center mb-8">
+            {pendingAiMode === 'auto' ? 'AI Does Everything' : 'AI Guides You'} &mdash; pick your scope
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Character Only */}
+            <button
+              onClick={() => {
+                setAiCreatorScope('character')
+                setAiCreatorMode(pendingAiMode)
+                setPendingAiMode(null)
+              }}
+              className="rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-continuum-surface p-6 text-left hover:border-violet-400/70 transition-all"
+            >
+              <span className="text-4xl mb-3 block">&#x1F9D1;</span>
+              <span className="text-sm text-violet-400 font-medium mb-2 block">~1 min</span>
+              <h3 className="text-lg font-bold text-white mb-2">Just the Character</h3>
+              <p className="text-sm text-continuum-muted mb-4">
+                Create the personality and profile only. No content pack, images, or video.
+              </p>
+              <div className="text-left space-y-2 mb-4">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-violet-400 mt-0.5">&#10003;</span>
+                  <span>Name &amp; personality</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-violet-400 mt-0.5">&#10003;</span>
+                  <span>Bio &amp; communication style</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-continuum-muted/40 mt-0.5">&#10007;</span>
+                  <span className="line-through opacity-50">Content, images, video</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-violet-500/20">
+                <span className="text-sm font-semibold text-violet-400">Quick Start &rarr;</span>
+              </div>
+            </button>
+
+            {/* Full Package */}
+            <button
+              onClick={() => {
+                setAiCreatorScope('full')
+                setAiCreatorMode(pendingAiMode)
+                setPendingAiMode(null)
+              }}
+              className="rounded-xl border border-amber-500/50 bg-gradient-to-br from-amber-500/10 to-continuum-surface p-6 text-left hover:border-amber-400/70 transition-all"
+            >
+              <span className="text-4xl mb-3 block">&#x1F4E6;</span>
+              <span className="text-sm text-amber-400 font-medium mb-2 block">~3-5 min</span>
+              <h3 className="text-lg font-bold text-white mb-2">Full Package</h3>
+              <p className="text-sm text-continuum-muted mb-4">
+                Character + content pack + AI images + intro video. Everything ready to go.
+              </p>
+              <div className="text-left space-y-2 mb-4">
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-amber-400 mt-0.5">&#10003;</span>
+                  <span>Name &amp; personality</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-amber-400 mt-0.5">&#10003;</span>
+                  <span>Content pack generated</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm text-continuum-muted">
+                  <span className="text-amber-400 mt-0.5">&#10003;</span>
+                  <span>Images + video created</span>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-amber-500/20">
+                <span className="text-sm font-semibold text-amber-400">The Works &rarr;</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
   // AI CHARACTER CREATOR (auto or guided mode)
   // ============================================
   if (aiCreatorMode) {
     return (
       <AiCharacterCreator
         mode={aiCreatorMode}
+        scope={aiCreatorScope || 'full'}
         onComplete={(characterId) => {
           setAiCreatorMode(null)
+          setAiCreatorScope(null)
           // Refresh characters and activate the new one
           fetch('/api/characters/mine')
             .then(r => r.ok ? r.json() : null)
@@ -295,7 +392,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           }
           if (onGoToChat) onGoToChat()
         }}
-        onCancel={() => setAiCreatorMode(null)}
+        onCancel={() => { setAiCreatorMode(null); setAiCreatorScope(null) }}
       />
     )
   }
@@ -312,7 +409,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // CHARACTER LIST — dashboard-style persona cards
+  // CHARACTER LIST â dashboard-style persona cards
   // ============================================
   if (step === 'list') {
     return (
@@ -362,13 +459,13 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                             onClick={() => renameCharacter(c.id, editingNameValue)}
                             className="text-green-400 hover:text-green-300 text-sm font-semibold"
                           >
-                            ✓
+                            â
                           </button>
                           <button
                             onClick={() => setEditingNameId(null)}
                             className="text-continuum-muted hover:text-white text-sm"
                           >
-                            ✕
+                            â
                           </button>
                         </div>
                       ) : (
@@ -394,7 +491,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
 
                   <div className="flex items-center justify-between mt-1 mb-4">
                     <span className="text-xs text-continuum-muted">
-                      {traitCount} traits{c.nicheType ? ` · ${c.nicheType}` : ''}
+                      {traitCount} traits{c.nicheType ? ` Â· ${c.nicheType}` : ''}
                     </span>
                     <button
                       onClick={() => loadCharacter(c)}
@@ -455,7 +552,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // TYPE PICKER — Human vs Animal
+  // TYPE PICKER â Human vs Animal
   // ============================================
   if (step === 'type') {
     return (
@@ -494,7 +591,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
     // ============================================
-  // ANIMAL PICKER — Species + Mode
+  // ANIMAL PICKER â Species + Mode
   // ============================================
   if (step === 'animal') {
     const selectedSpecies = selectedAnimal ? getAnimalSpecies(selectedAnimal) : null
@@ -526,7 +623,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             ))}
           </div>
 
-          {/* Mode Picker — only show when species is selected */}
+          {/* Mode Picker â only show when species is selected */}
           {selectedSpecies && (
             <div className="mb-8">
               <h3 className="text-lg font-bold text-white mb-3">Choose a Mode</h3>
@@ -594,7 +691,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
     // ============================================
-  // MODE PICKER — 3-column Personi-style layout
+  // MODE PICKER â 3-column Personi-style layout
   // ============================================
   if (step === 'mode') {
     return (
@@ -603,7 +700,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           {/* Back button for existing characters */}
           {allCharacters.length > 0 && (
             <button onClick={() => setStep('list')} className="text-sm text-continuum-muted mb-6 hover:text-white transition">
-              ← My Characters
+              â My Characters
             </button>
           )}
 
@@ -618,7 +715,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {/* AI Does Everything */}
             <button
-              onClick={() => setAiCreatorMode('auto')}
+              onClick={() => setPendingAiMode('auto')}
               className="relative rounded-xl border border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-continuum-surface p-6 text-left hover:border-emerald-400/70 transition-all"
             >
               <span className="absolute -top-3 left-4 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
@@ -651,7 +748,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
 
             {/* AI Guides You */}
             <button
-              onClick={() => setAiCreatorMode('guided')}
+              onClick={() => setPendingAiMode('guided')}
               className="relative rounded-xl border border-sky-500/50 bg-gradient-to-br from-sky-500/10 to-continuum-surface p-6 text-left hover:border-sky-400/70 transition-all"
             >
               <span className="absolute -top-3 left-4 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full">
@@ -694,7 +791,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               onClick={() => { setBuildMode('instant'); setStep('template') }}
               className="relative rounded-xl border border-continuum-border bg-continuum-surface p-6 text-center hover:border-continuum-accent/50 transition-all flex flex-col items-center"
             >
-              <span className="text-4xl mb-3">⚡</span>
+              <span className="text-4xl mb-3">â¡</span>
               <span className="text-sm text-continuum-accent font-medium mb-2">~2 min</span>
               <h3 className="text-lg font-bold text-white mb-3 leading-tight">Instant<br />Character</h3>
               <p className="text-sm text-continuum-muted mb-5">
@@ -702,24 +799,24 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               </p>
               <div className="text-left w-full space-y-2 mb-5">
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Auto-filled traits</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Ready to chat immediately</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Edit anytime</span>
                 </div>
               </div>
               <div className="mt-auto pt-4 border-t border-continuum-border w-full">
-                <span className="text-sm font-semibold text-continuum-accent">Start Instantly →</span>
+                <span className="text-sm font-semibold text-continuum-accent">Start Instantly â</span>
               </div>
             </button>
 
-            {/* Custom Character — Most Popular */}
+            {/* Custom Character â Most Popular */}
             <button
               onClick={() => { setBuildMode('custom'); setCurrentCategoryIndex(0); setStep('category') }}
               className="relative rounded-xl border border-purple-500/50 bg-continuum-surface p-6 text-center hover:border-purple-400/70 transition-all flex flex-col items-center"
@@ -727,7 +824,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-continuum-accent text-white text-xs font-bold rounded-full">
                 Most Popular
               </span>
-              <span className="text-4xl mb-3">🎯</span>
+              <span className="text-4xl mb-3">ð¯</span>
               <span className="text-sm text-continuum-accent font-medium mb-2">~15 min</span>
               <h3 className="text-lg font-bold text-white mb-3 leading-tight">Custom<br />Character</h3>
               <p className="text-sm text-continuum-muted mb-5">
@@ -735,20 +832,20 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               </p>
               <div className="text-left w-full space-y-2 mb-5">
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Step-by-step wizard</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Pick from 190+ bundles</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Optional customization</span>
                 </div>
               </div>
               <div className="mt-auto pt-4 border-t border-continuum-border w-full">
-                <span className="text-sm font-semibold text-continuum-accent">Start Building →</span>
+                <span className="text-sm font-semibold text-continuum-accent">Start Building â</span>
               </div>
             </button>
 
@@ -757,7 +854,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               onClick={() => { setBuildMode('premium'); setCurrentCategoryIndex(0); setStep('category') }}
               className="relative rounded-xl border border-continuum-border bg-continuum-surface p-6 text-center hover:border-continuum-accent/50 transition-all flex flex-col items-center"
             >
-              <span className="text-4xl mb-3">💎</span>
+              <span className="text-4xl mb-3">ð</span>
               <span className="text-sm text-continuum-accent font-medium mb-2">~45 min</span>
               <h3 className="text-lg font-bold text-white mb-3 leading-tight">Premium<br />Character</h3>
               <p className="text-sm text-continuum-muted mb-5">
@@ -765,20 +862,20 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               </p>
               <div className="text-left w-full space-y-2 mb-5">
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Deep customization on every trait</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Backstory &amp; speech patterns</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-continuum-accent mt-0.5">✓</span>
+                  <span className="text-continuum-accent mt-0.5">â</span>
                   <span>Maximum personality depth</span>
                 </div>
               </div>
               <div className="mt-auto pt-4 border-t border-continuum-border w-full">
-                <span className="text-sm font-semibold text-continuum-accent">Go Deep →</span>
+                <span className="text-sm font-semibold text-continuum-accent">Go Deep â</span>
               </div>
             </button>
           </div>
@@ -808,25 +905,25 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={() => setStep('review')}
                   className="py-3 rounded-xl text-xs font-semibold bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30 hover:bg-continuum-accent/30 transition-all"
                 >
-                  ✏️ Quick Edit
+                  âï¸ Quick Edit
                 </button>
                 <button
                   onClick={() => setStep('visual')}
                   className="py-3 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
                 >
-                  🎨 Create Look
+                  ð¨ Create Look
                 </button>
                 <button
                   onClick={() => setStep('content')}
                   className="py-3 rounded-xl text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
                 >
-                  🏭 Content
+                  ð­ Content
                 </button>
                 <button
                   onClick={() => setStep('reminders')}
                   className="py-3 rounded-xl text-xs font-semibold bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all"
                 >
-                  🔔 Reminders
+                  ð Reminders
                 </button>
               </div>
             </div>
@@ -837,14 +934,14 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // TEMPLATE PICKER — Personi-style 2-column cards
+  // TEMPLATE PICKER â Personi-style 2-column cards
   // ============================================
   if (step === 'template') {
     return (
       <div className="h-full overflow-y-auto p-4 pb-8">
         <div className="max-w-4xl mx-auto">
           <button onClick={() => setStep('mode')} className="text-sm text-continuum-muted mb-6 hover:text-white transition">
-            ← Back
+            â Back
           </button>
 
           <h2 className="text-3xl font-bold text-white text-center mb-2">Pick a Template</h2>
@@ -863,7 +960,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 <h3 className="text-base font-bold text-white mb-1">{t.name}</h3>
                 <p className="text-sm text-continuum-muted leading-snug">{t.desc}</p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-continuum-accent">
-                  <span>✓</span>
+                  <span>â</span>
                   <span>11 traits pre-filled</span>
                 </div>
               </button>
@@ -879,7 +976,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // CATEGORY BUILDER — Personi-style 2-column card grid
+  // CATEGORY BUILDER â Personi-style 2-column card grid
   // ============================================
   if (step === 'category' && currentCategory) {
     const selectedBundleId = selections[currentCategory.key]
@@ -905,7 +1002,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             Pick one that fits your character (or skip)
           </p>
 
-          {/* Search — only show if many bundles */}
+          {/* Search â only show if many bundles */}
           {categoryBundles.length > 8 && (
             <div className="relative mb-6 max-w-md mx-auto">
               <input
@@ -920,7 +1017,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-continuum-muted hover:text-white"
                 >
-                  ✕
+                  â
                 </button>
               )}
             </div>
@@ -956,7 +1053,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             ))}
           </div>
 
-          {/* Custom text — expanded for premium mode */}
+          {/* Custom text â expanded for premium mode */}
           {buildMode === 'premium' && (
             <div className="mb-6 max-w-xl mx-auto">
               <label className="text-xs text-continuum-muted block mb-1">
@@ -972,14 +1069,14 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             </div>
           )}
 
-          {/* Bottom navigation — Back / Skip / Next */}
+          {/* Bottom navigation â Back / Skip / Next */}
           <div className="border-t border-continuum-border pt-5 mt-4">
             <div className="flex items-center justify-between">
               <button
                 onClick={prevCategory}
                 className="px-5 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white hover:border-continuum-accent/30 transition"
               >
-                ← Back
+                â Back
               </button>
               <button
                 onClick={nextCategory}
@@ -995,7 +1092,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                     : 'bg-continuum-accent/50 text-white/70'
                 }`}
               >
-                {currentCategoryIndex === totalCategories - 1 ? 'Review Build' : 'Next →'}
+                {currentCategoryIndex === totalCategories - 1 ? 'Review Build' : 'Next â'}
               </button>
             </div>
           </div>
@@ -1005,7 +1102,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // REVIEW — Personi-style 4-column trait grid + save
+  // REVIEW â Personi-style 4-column trait grid + save
   // ============================================
   if (step === 'review') {
     // Animal character review
@@ -1033,10 +1130,10 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 </div>
                 <p className="text-sm text-continuum-muted mb-4">{species.modes[animalMode].personality}</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-continuum-muted">Diet:</span> <span className="text-white">{species.species.diet.split(' — ')[0]}</span></div>
-                  <div><span className="text-continuum-muted">Habitat:</span> <span className="text-white">{species.species.habitat.split(' — ')[0]}</span></div>
+                  <div><span className="text-continuum-muted">Diet:</span> <span className="text-white">{species.species.diet.split(' â ')[0]}</span></div>
+                  <div><span className="text-continuum-muted">Habitat:</span> <span className="text-white">{species.species.habitat.split(' â ')[0]}</span></div>
                   <div><span className="text-continuum-muted">Lifespan:</span> <span className="text-white">{species.species.lifespan}</span></div>
-                  <div><span className="text-continuum-muted">Social:</span> <span className="text-white">{species.species.socialStructure.split(' — ')[0]}</span></div>
+                  <div><span className="text-continuum-muted">Social:</span> <span className="text-white">{species.species.socialStructure.split(' â ')[0]}</span></div>
                 </div>
               </div>
 
@@ -1082,7 +1179,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           {/* Header */}
           <h2 className="text-3xl font-bold text-white text-center mb-2">Review Your Character</h2>
           <p className="text-sm text-continuum-muted text-center mb-8">
-            {selectionCount} traits selected — tap any to change it
+            {selectionCount} traits selected â tap any to change it
           </p>
 
           {/* 4-column trait card grid */}
@@ -1110,7 +1207,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 >
                   <p className="text-xs text-continuum-accent font-medium mb-1">{cat.icon}{cat.label}</p>
                   <span className="text-2xl block mb-1">
-                    {bundle ? bundle.emoji : '❓'}
+                    {bundle ? bundle.emoji : 'â'}
                   </span>
                   <p className="text-sm font-bold text-white leading-tight">
                     {bundle ? bundle.name : custom ? 'Custom' : 'Not Set'}
@@ -1120,7 +1217,310 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             })}
           </div>
 
-          {/* Niche Details — collapsible section */}
+          {/* Niche Details â collapsible section */}
+          <div className="rounded-xl border border-continuum-border bg-continuum-surface p-5 mb-6">
+            <h3 className="text-base font-bold text-white mb-4">Niche Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-continuum-muted block mb-1">Niche / Industry</label>
+                <input
+                  type="text"
+                  value={nicheType}
+                  onChange={e => setNicheType(e.target.value)}
+                  placeholder="e.g. Fitness, Beauty, Tech..."
+                  className="w-full px-3 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-continuum-muted block mb-1">Target Audience</label>
+                <input
+                  type="text"
+                  value={nicheAudience}
+                  onChange={e => setNicheAudience(e.target.value)}
+                  placeholder="Who is your character speaking to?"
+                  className="w-full px-3 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-continuum-muted block mb-1">Mission Statement</label>
+                <textarea
+                  value={missionStatement}
+                  onChange={e => setMissionStatement(e.target.value)}
+                  placeholder="What is your character's purpose?"
+                  rows={2}
+                  className="w-full px-3 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-continuum-muted block mb-1">Unique Edge</label>
+                <input
+                  type="text"
+                  value={uniqueEdge}
+                  onChange={e => setUniqueEdge(e.target.value)}
+                  placeholder="What makes them stand out?"
+                  classN     >
+                <span className="text-3xl block mb-2">{t.emoji}</span>
+                <h3 className="text-base font-bold text-white mb-1">{t.name}</h3>
+                <p className="text-sm text-continuum-muted leading-snug">{t.desc}</p>
+                <div className="mt-3 flex items-center gap-2 text-xs text-continuum-accent">
+                  <span>â</span>
+                  <span>11 traits pre-filled</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="border-t border-continuum-border pt-5 mt-8 text-center">
+            <p className="text-sm text-continuum-muted">Or go back and choose a different build mode</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
+  // CATEGORY BUILDER â Personi-style 2-column card grid
+  // ============================================
+  if (step === 'category' && currentCategory) {
+    const selectedBundleId = selections[currentCategory.key]
+    const customText = customizations[`${currentCategory.key}_custom`] || ''
+    const displayBundles = searchQuery.length >= 2
+      ? fuzzySearch(searchQuery, currentCategory.key)
+      : categoryBundles
+
+    return (
+      <div className="h-full overflow-y-auto p-4 pb-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Step counter */}
+          <p className="text-sm font-bold text-continuum-accent text-center mb-4 tracking-wide">
+            STEP {currentCategoryIndex + 1} OF {totalCategories}
+          </p>
+
+          {/* Category icon + name */}
+          <div className="text-center mb-2">
+            <span className="text-5xl">{currentCategory.icon}</span>
+            <h2 className="text-3xl font-bold text-white mt-2">{currentCategory.label}</h2>
+          </div>
+          <p className="text-sm text-continuum-muted text-center mb-8">
+            Pick one that fits your character (or skip)
+          </p>
+
+          {/* Search â only show if many bundles */}
+          {categoryBundles.length > 8 && (
+            <div className="relative mb-6 max-w-md mx-auto">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={`Search ${currentCategory.label.toLowerCase()}...`}
+                className="w-full px-4 py-2.5 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-continuum-muted hover:text-white"
+                >
+                  â
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 2-column bundle card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {displayBundles.map(bundle => (
+              <button
+                key={bundle.id}
+                onClick={() => selectBundle(currentCategory.key, bundle.id)}
+                className={`text-left p-5 rounded-xl border transition-all ${
+                  selectedBundleId === bundle.id
+                    ? 'border-continuum-accent bg-continuum-accent/10'
+                    : 'border-continuum-border bg-continuum-surface hover:border-continuum-accent/30'
+                }`}
+              >
+                <span className="text-3xl block mb-2">{bundle.emoji}</span>
+                <h3 className={`text-base font-bold mb-1 ${
+                  selectedBundleId === bundle.id ? 'text-continuum-accent' : 'text-white'
+                }`}>
+                  {bundle.name}
+                </h3>
+                <p className="text-sm text-continuum-muted leading-snug">{bundle.desc}</p>
+                {bundle.tag && (
+                  <div className="mt-3">
+                    <span className="text-xs px-2 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                      {bundle.tag}
+                    </span>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom text â expanded for premium mode */}
+          {buildMode === 'premium' && (
+            <div className="mb-6 max-w-xl mx-auto">
+              <label className="text-xs text-continuum-muted block mb-1">
+                Write your own (optional):
+              </label>
+              <textarea
+                value={customText}
+                onChange={e => setCustomText(currentCategory.key, e.target.value)}
+                placeholder={`Describe your character's ${currentCategory.label.toLowerCase()} in your own words...`}
+                rows={4}
+                className="w-full px-3 py-2 bg-continuum-bg border border-continuum-border rounded-lg text-sm text-white placeholder-continuum-muted focus:border-continuum-accent focus:outline-none resize-none"
+              />
+            </div>
+          )}
+
+          {/* Bottom navigation â Back / Skip / Next */}
+          <div className="border-t border-continuum-border pt-5 mt-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={prevCategory}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white hover:border-continuum-accent/30 transition"
+              >
+                â Back
+              </button>
+              <button
+                onClick={nextCategory}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-continuum-muted border border-continuum-border hover:text-white transition"
+              >
+                Skip
+              </button>
+              <button
+                onClick={nextCategory}
+                className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition ${
+                  selectedBundleId || customText
+                    ? 'bg-continuum-accent text-white hover:bg-continuum-accent/80'
+                    : 'bg-continuum-accent/50 text-white/70'
+                }`}
+              >
+                {currentCategoryIndex === totalCategories - 1 ? 'Review Build' : 'Next â'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
+  // REVIEW â Personi-style 4-column trait grid + save
+  // ============================================
+  if (step === 'review') {
+    // Animal character review
+    if (characterType === 'animal' && selectedAnimal) {
+      const species = getAnimalSpecies(selectedAnimal)
+      if (species) {
+        return (
+          <div className="h-full overflow-y-auto p-4 pb-8">
+            <div className="max-w-3xl mx-auto">
+              <button onClick={() => setStep('animal')} className="text-sm text-continuum-muted mb-6 hover:text-white transition">
+                &larr; Back to Species
+              </button>
+              <h2 className="text-3xl font-bold text-white text-center mb-2">Review Your Animal Character</h2>
+              <p className="text-sm text-continuum-muted text-center mb-8">{species.emoji} {species.name} in {animalMode} mode</p>
+
+              {/* Species Card */}
+              <div className="bg-continuum-overlay/60 border border-emerald-500/30 rounded-2xl p-6 mb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-5xl">{species.emoji}</span>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{characterName || species.name}</h3>
+                    <p className="text-sm text-continuum-muted italic">{species.scientificName}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">{animalMode}</span>
+                  </div>
+                </div>
+                <p className="text-sm text-continuum-muted mb-4">{species.modes[animalMode].personality}</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-continuum-muted">Diet:</span> <span className="text-white">{species.species.diet.split(' â ')[0]}</span></div>
+                  <div><span className="text-continuum-muted">Habitat:</span> <span className="text-white">{species.species.habitat.split(' â ')[0]}</span></div>
+                  <div><span className="text-continuum-muted">Lifespan:</span> <span className="text-white">{species.species.lifespan}</span></div>
+                  <div><span className="text-continuum-muted">Social:</span> <span className="text-white">{species.species.socialStructure.split(' â ')[0]}</span></div>
+                </div>
+              </div>
+
+              {/* Name Input */}
+              <div className="mb-6">
+                <label className="text-sm text-continuum-muted mb-1 block">Character Name</label>
+                <input
+                  type="text"
+                  value={characterName}
+                  onChange={(e) => setCharacterName(e.target.value)}
+                  placeholder={species.name}
+                  className="w-full bg-continuum-overlay/60 border border-continuum-border rounded-xl px-4 py-3 text-white placeholder-continuum-muted/50 focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Save + Continue */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    if (!characterName.trim()) setCharacterName(species.name)
+                    saveCharacter()
+                  }}
+                  disabled={saving}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-continuum-muted text-white font-semibold py-3 rounded-xl transition"
+                >
+                  {saving ? 'Saving...' : saved ? 'Saved!' : existingCharacter ? 'Update Character' : 'Save Character'}
+                </button>
+                {existingCharacter && (
+                  <button onClick={() => setStep('visual')} className="px-6 py-3 bg-continuum-overlay/60 border border-continuum-border rounded-xl text-white hover:border-emerald-500/40 transition">
+                    Add Photos
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      }
+    }
+
+    return (
+      <div className="h-full overflow-y-auto p-4 pb-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <h2 className="text-3xl font-bold text-white text-center mb-2">Review Your Character</h2>
+          <p className="text-sm text-continuum-muted text-center mb-8">
+            {selectionCount} traits selected â tap any to change it
+          </p>
+
+          {/* 4-column trait card grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+            {CATEGORIES.map(cat => {
+              const bundleId = selections[cat.key]
+              const bundle = bundleId ? getBundle(cat.key, bundleId) : null
+              const custom = customizations[`${cat.key}_custom`]
+              const hasValue = bundle || custom
+
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => {
+                    const idx = CATEGORIES.findIndex(c => c.key === cat.key)
+                    setCurrentCategoryIndex(idx)
+                    setBuildMode('custom')
+                    setStep('category')
+                  }}
+                  className={`p-4 rounded-xl border text-center transition-all ${
+                    hasValue
+                      ? 'border-continuum-accent/40 bg-continuum-accent/5'
+                      : 'border-continuum-border bg-continuum-surface hover:border-continuum-accent/30'
+                  }`}
+                >
+                  <p className="text-xs text-continuum-accent font-medium mb-1">{cat.icon}{cat.label}</p>
+                  <span className="text-2xl block mb-1">
+                    {bundle ? bundle.emoji : 'â'}
+                  </span>
+                  <p className="text-sm font-bold text-white leading-tight">
+                    {bundle ? bundle.name : custom ? 'Custom' : 'Not Set'}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Niche Details â collapsible section */}
           <div className="rounded-xl border border-continuum-border bg-continuum-surface p-5 mb-6">
             <h3 className="text-base font-bold text-white mb-4">Niche Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1184,7 +1584,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             </div>
           )}
 
-          {/* Name Your Character — centered */}
+          {/* Name Your Character â centered */}
           <div className="text-center mb-6">
             <h3 className="text-base font-bold text-white mb-3">Name Your Character</h3>
             <input
@@ -1196,7 +1596,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             />
           </div>
 
-          {/* Save button — big and centered */}
+          {/* Save button â big and centered */}
           <div className="text-center">
             <button
               onClick={saveCharacter}
@@ -1214,7 +1614,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               {saving
                 ? 'Saving...'
                 : saved
-                  ? '✓ Character Saved!'
+                  ? 'â Character Saved!'
                   : existingCharacter
                     ? `Update Character (${selectionCount}/${totalCategories} traits)`
                     : `Save Character (${selectionCount}/${totalCategories} traits)`
@@ -1232,13 +1632,13 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={onGoToChat}
                   className="px-8 py-3 rounded-xl text-sm font-semibold bg-continuum-accent text-white hover:bg-continuum-accent/80 transition-all"
                 >
-                  Back to Chat →
+                  Back to Chat â
                 </button>
               )}
             </div>
           )}
 
-          {/* Feature buttons — matching Personi's dashboard card style */}
+          {/* Feature buttons â matching Personi's dashboard card style */}
           {existingCharacter && (
             <div className="border-t border-continuum-border pt-6 mt-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1246,7 +1646,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={() => setStep('visual')}
                   className="py-3 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
                 >
-                  🎨 Create Their Look
+                  ð¨ Create Their Look
                 </button>
                 <button
                   onClick={() => setStep('content')}
@@ -1258,13 +1658,13 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   onClick={() => setStep('reminders')}
                   className="py-3 rounded-xl text-xs font-semibold bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all"
                 >
-                  🔔 Reminders
+                  ð Reminders
                 </button>
                 <button
                   onClick={() => setStep('assistant')}
                   className="py-3 rounded-xl text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-all"
                 >
-                  🤖 Build Assistant
+                  ð¤ Build Assistant
                 </button>
               </div>
             </div>
@@ -1282,7 +1682,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               }}
               className="text-sm text-continuum-muted hover:text-white transition border border-continuum-border rounded-lg px-5 py-2.5"
             >
-              ← Back to Builder
+              â Back to Builder
             </button>
           </div>
         </div>
@@ -1291,7 +1691,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // VISUAL CREATOR — Create Their Look
+  // VISUAL CREATOR â Create Their Look
   // ============================================
   if (step === 'visual' && existingCharacter) {
     return (
@@ -1330,7 +1730,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // CONTENT FACTORY — AI content management
+  // CONTENT FACTORY â AI content management
   // ============================================
   if (step === 'content' && existingCharacter) {
     return (
@@ -1350,7 +1750,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // REMINDERS — Personality trait reminders
+  // REMINDERS â Personality trait reminders
   // ============================================
   if (step === 'reminders' && existingCharacter) {
     return (
@@ -1369,7 +1769,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
-  // BUILD ASSISTANT — System prompt compiler
+  // BUILD ASSISTANT â System prompt compiler
   // ============================================
   if (step === 'voice' && existingCharacter ) {
     return (

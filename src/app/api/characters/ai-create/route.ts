@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { callLLM } from '@/lib/llm'
-import { BUNDLES, CATEGORIES, TEMPLATES } from '@/lib/bundles'
+import { BUNDLES, CATEGORIES, TEMPLATES, TALKING_PROFILES } from '@/lib/bundles'
 import { generateImage } from '@/lib/image-engine'
 import { startVideoGeneration } from '@/lib/video-pipeline'
 import { chargeAmount } from '@/lib/credit-system'
@@ -521,6 +521,40 @@ Return ONLY valid JSON with this structure:
       if (!jsonMatch) return NextResponse.json({ error: 'Failed to parse visual traits' }, { status: 500 })
       const traits = JSON.parse(jsonMatch[0])
       return NextResponse.json({ traits })
+    }
+
+    // ============================================
+    // STEP: generate-talking-profile
+    // ============================================
+    if (step === 'generate-talking-profile') {
+      const { characterName, specs } = body
+
+      const profileList = TALKING_PROFILES.map(p => 
+        `- id: "${p.id}", name: "${p.name}", desc: "${p.desc}", tag: "${p.tag}", defaults: energy=${p.defaults.energy} formality=${p.defaults.formality} pace=${p.defaults.pace} warmth=${p.defaults.warmth} humor=${p.defaults.humor}`
+      ).join('\n')
+
+      const sysPrompt = `You are an AI voice personality matcher. Given a character and optional user specs, pick the best talking profile and fine-tune the slider values.
+
+Available profiles:
+${profileList}
+
+Return ONLY valid JSON with this exact structure:
+{
+  "profileId": "tp-X",
+  "sliders": { "energy": 0-100, "formality": 0-100, "pace": 0-100, "warmth": 0-100, "humor": 0-100 }
+}
+
+Pick the profile that best matches the character's personality. Adjust sliders from the defaults to better fit. If user specs mention voice preferences, prioritize those.`
+
+      const userMsg = `Character: ${characterName || 'Unknown'}
+User specs: ${specs || 'None provided — use your best judgment'}`
+
+      const res = await callLLM(sysPrompt, [{ role: 'user', content: userMsg }], { temperature: 0.7 })
+      const text = String(res.content)
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) return NextResponse.json({ error: 'Failed to parse talking profile' }, { status: 500 })
+      const result = JSON.parse(jsonMatch[0])
+      return NextResponse.json(result)
     }
 
     return NextResponse.json({ error: 'Unknown step' }, { status: 400 })

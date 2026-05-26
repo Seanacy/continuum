@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           userId: user.id,
           content: `[Onboarding] What I learned about this person from their links:\n${personalFacts.join('\n')}`,
           type: 'insight',
-          importance: 8,
+          weight: 8,
         },
       })
     }
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
           userId: user.id,
           content: `[Onboarding] What I learned about their business from their links:\n${bizFacts.join('\n')}`,
           type: 'insight',
-          importance: 9,
+          weight: 9,
         },
       })
     }

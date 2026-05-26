@@ -27,6 +27,8 @@ interface AdPublisherProps {
   piece: ContentPiece
   onClose: () => void
   onPublished: () => void
+  mode?: 'auto' | 'guided'
+  specs?: string
 }
 
 // ============================================
@@ -57,7 +59,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 // ============================================
 // Main AdPublisher Component
 // ============================================
-export default function AdPublisher({ piece, onClose, onPublished }: AdPublisherProps) {
+export default function AdPublisher({ piece, onClose, onPublished, mode, specs }: AdPublisherProps) {
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -91,6 +93,70 @@ export default function AdPublisher({ piece, onClose, onPublished }: AdPublisher
   // Publishing state
   const [publishing, setPublishing] = useState(false)
   const [publishResult, setPublishResult] = useState<any>(null)
+  const [autoLoading, setAutoLoading] = useState(mode === 'auto');
+
+  // Quick Publish: auto-fill smart defaults and publish immediately
+  useEffect(() => {
+    if (mode !== 'auto') return;
+    const quickPublish = async () => {
+      try {
+        // Fetch accounts first
+        const accRes = await fetch('/api/ads/accounts');
+        const accData = await accRes.json();
+        if (accData.accounts && accData.accounts.length > 0) {
+          const acct = accData.accounts[0];
+          setSelectedAccount(acct.id);
+          // Smart defaults
+          setHeadline(piece.contentType === 'post' ? 'Check This Out' : 'Learn More');
+          setPrimaryText(piece.content);
+          setObjective('OUTCOME_AWARENESS');
+          setCallToAction('LEARN_MORE');
+          setBudgetType('daily');
+          setBudgetAmount('5');
+          // Now publish
+          const res = await fetch('/api/ads/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              facebookAccountId: acct.id,
+              contentType: piece.contentType,
+              content: piece.content,
+              headline: piece.contentType === 'post' ? 'Check This Out' : 'Learn More',
+              callToAction: 'LEARN_MORE',
+              objective: 'OUTCOME_AWARENESS',
+              adFormat: 'image',
+              targeting: {
+                ageMin: 18,
+                ageMax: 65,
+                genders: [0],
+                geoLocations: { countries: ['US'] },
+                interests: [],
+              },
+              budget: {
+                type: 'daily',
+                amount: 500,
+                currency: 'USD',
+              },
+              schedule: { startImmediate: true },
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setPublishResult(data);
+            setStep(4);
+            onPublished();
+          } else {
+            setError(data.error || 'Quick publish failed');
+          }
+        } else {
+          setError('No Facebook account connected. Please connect one first.');
+        }
+      } catch (e) { console.error('Quick publish failed:', e); setError('Quick publish failed'); }
+      setAutoLoading(false);
+    };
+    quickPublish();
+  }, [mode]);
+
 
   // Load connected Facebook accounts
   useEffect(() => {
@@ -194,6 +260,19 @@ export default function AdPublisher({ piece, onClose, onPublished }: AdPublisher
   }
 
   const steps = ['Connect', 'Content', 'Targeting', 'Budget', 'Done']
+
+  // Quick Publish auto-loading screen
+  if (autoLoading) {
+    return (
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <div className="text-4xl animate-bounce">📢</div>
+          <p className="text-white font-bold text-lg">Quick publishing your ad...</p>
+          <p className="text-continuum-muted text-sm">Using smart defaults to get your ad live fast</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">

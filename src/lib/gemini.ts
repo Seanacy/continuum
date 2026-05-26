@@ -65,7 +65,7 @@ export async function generateImage(options: GeminiImageOptions): Promise<Gemini
     parts.push({ text: prompt })
 
     const response = await fetch(
-      `${GEMINI_API_BASE}/models/gemini-2.0-flash-exp:generateContent?key=${key}`,
+      `${GEMINI_API_BASE}/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${key}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

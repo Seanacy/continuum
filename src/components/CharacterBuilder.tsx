@@ -1519,6 +1519,8 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             }
           }}
           onBack={() => setStep('reminders')}
+          mode={pendingAiMode || undefined}
+          specs={autoSpecs || undefined}
         />
       )
   }

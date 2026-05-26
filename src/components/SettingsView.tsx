@@ -32,11 +32,14 @@ export default function SettingsView() {
   const loadVoices = useCallback(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return
     const available = window.speechSynthesis.getVoices()
-    // Filter to English voices for cleaner list
+        // Curated voice list — best quality across devices
+    const PREFERRED = ['samantha','daniel','karen','google us english','google uk english male','microsoft zira','microsoft david']
     const english = available.filter(
       (v) => v.lang.startsWith('en') || v.lang.startsWith('EN')
     )
-    setVoices(english.length > 0 ? english : available)
+    const pool = english.length > 0 ? english : available
+    const curated = pool.filter((v) => PREFERRED.some((p) => v.name.toLowerCase().includes(p)))
+    setVoices(curated.length >= 2 ? curated : pool)
   }, [])
 
   useEffect(() => {

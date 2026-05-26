@@ -73,6 +73,7 @@ type Scope = 'character' | 'full'
 interface AiCharacterCreatorProps {
   mode: Mode
   scope: Scope
+  specs?: string
   onComplete?: (characterId: string) => void
   onCancel?: () => void
 }
@@ -100,7 +101,7 @@ const GUIDED_STEP_ORDER_CHAR: PipelineStep[] = ['options', 'profile', 'saving', 
 // ============================================
 // MAIN COMPONENT
 // ============================================
-export default function AiCharacterCreator({ mode, scope, onComplete, onCancel }: AiCharacterCreatorProps) {
+export default function AiCharacterCreator({ mode, scope, specs, onComplete, onCancel }: AiCharacterCreatorProps) {
   const isCharOnly = scope === 'character'
   // Pipeline state
   const [currentStep, setCurrentStep] = useState<PipelineStep>('idle')
@@ -143,7 +144,7 @@ export default function AiCharacterCreator({ mode, scope, onComplete, onCancel }
     try {
       // Step 1: Generate profile
       setCurrentStep('profile')
-      const { profile: gen } = await callApi({ step: 'generate-profile', mode: 'auto' })
+      const { profile: gen } = await callApi({ step: 'generate-profile', mode: 'auto', ...(specs ? { specs } : {}) })
       setProfile(gen)
 
       // Step 2: Save character

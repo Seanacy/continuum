@@ -12,6 +12,7 @@ export function useUser() {
     email: string
     name: string | null
     aiName: string | null
+    onboardingComplete: boolean
   } | null>(null)
   const [loading, setLoading] = useState(true)
 

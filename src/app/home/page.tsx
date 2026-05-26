@@ -58,7 +58,7 @@ export default function HomePage() {
 
   // Show onboarding if user hasn't completed it
   useEffect(() => {
-    if (user && !(user as any).onboardingComplete) {
+    if (user && !user.onboardingComplete) {
       setShowOnboarding(true)
     }
   }, [user])

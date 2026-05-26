@@ -23,6 +23,7 @@ import BuildAssistant from './BuildAssistant'
 import ImageCarousel from './ImageCarousel'
 import TalkingProfileBuilder from './TalkingProfileBuilder'
 import AiCharacterCreator from './AiCharacterCreator'
+import AutoSpecsPrompt from './AutoSpecsPrompt'
 
 // ============================================
 // TYPES
@@ -71,6 +72,9 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   const [editingNameValue, setEditingNameValue] = useState('')
   const [aiCreatorMode, setAiCreatorMode] = useState<'auto' | 'guided' | null>(null)
   const [aiCreatorScope, setAiCreatorScope] = useState<'character' | 'full' | null>(null)
+  const [pendingAiMode, setPendingAiMode] = useState<'auto' | 'guided' | null>(null)
+  const [autoSpecs, setAutoSpecs] = useState('')
+  const [autoSpecsCollected, setAutoSpecsCollected] = useState(false)
   const [pendingAiMode, setPendingAiMode] = useState<'auto' | 'guided' | null>(null)
 
     // Image upload handler
@@ -279,6 +283,28 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
   }
 
   // ============================================
+  // AUTO SPECS PROMPT (shown before scope picker for auto mode)
+  // ============================================
+  if (pendingAiMode === 'auto' && !autoSpecsCollected) {
+    return (
+      <AutoSpecsPrompt
+        title="Any specifications?"
+        subtitle="Describe what you want and the AI will handle the rest. Or skip and let it surprise you."
+        placeholder='e.g. "A bold fitness coach who uses humor and speaks to busy moms"'
+        emoji="\u2728"
+        onSubmit={(specs) => {
+          setAutoSpecs(specs)
+          setAutoSpecsCollected(true)
+        }}
+        onSkip={() => {
+          setAutoSpecs('')
+          setAutoSpecsCollected(true)
+        }}
+      />
+    )
+  }
+
+    // ============================================
   // SCOPE PICKER (character-only vs full package)
   // ============================================
   if (pendingAiMode && !aiCreatorMode) {
@@ -379,6 +405,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
       <AiCharacterCreator
         mode={aiCreatorMode}
         scope={aiCreatorScope || 'full'}
+        specs={autoSpecs}
         onComplete={(characterId) => {
           setAiCreatorMode(null)
           setAiCreatorScope(null)
@@ -392,7 +419,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           }
           if (onGoToChat) onGoToChat()
         }}
-        onCancel={() => { setAiCreatorMode(null); setAiCreatorScope(null) }}
+        onCancel={() => { setAiCreatorMode(null); setAiCreatorScope(null); setPendingAiMode(null); setAutoSpecs(''); setAutoSpecsCollected(false) }}
       />
     )
   }

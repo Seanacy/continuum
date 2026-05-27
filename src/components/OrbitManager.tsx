@@ -1475,7 +1475,7 @@ return (
       {/* CAMPAIGN MANAGER */}
       <OrbitCampaignManager
         projectId={selectedProject.id}
-        characters={selectedProject.characters}
+        characters={selectedProject.characters.map((c: any) => ({ id: c.id, name: c.name, role: c.roleType }))}
       />
       </div>
     )

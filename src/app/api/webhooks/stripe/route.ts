@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+export const dynamic = 'force-dynamic';
 
-// Price ID to tier mapping — must match your Stripe price IDs
 const PRICE_TO_TIER: Record<string, string> = {
   [process.env.STRIPE_PRICE_CREATOR!]: 'creator',
   [process.env.STRIPE_PRICE_STUDIO!]: 'studio',
 };
 
-// Wallet top-up amounts in cents
 const WALLET_PRICES: Record<string, number> = {
   [process.env.STRIPE_PRICE_WALLET_5!]: 500,
   [process.env.STRIPE_PRICE_WALLET_10!]: 1000,
@@ -21,6 +18,9 @@ const WALLET_PRICES: Record<string, number> = {
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get('stripe-signature')!;
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
   let event: Stripe.Event;
   try {
@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
         if (!userId) break;
 
         if (session.mode === 'subscription') {
-          // Subscription checkout — update tier
           const sub = await stripe.subscriptions.retrieve(session.subscription as string);
           const priceId = sub.items.data[0]?.price.id;
           const tier = PRICE_TO_TIER[priceId] || 'free';
@@ -52,58 +51,47 @@ export async function POST(req: NextRequest) {
             },
           });
 
-          // Track in subscriptions table
           const cuid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
           await db.$executeRawUnsafe(
-            `INSERT INTO subscriptions (id, user_id, stripe_sub_id, stripe_price_id, tier, status, current_period_start, current_period_end, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7), to_timestamp($8), NOW(), NOW())
-             ON CONFLICT (stripe_sub_id) DO UPDATE SET status = $6, tier = $5, current_period_start = to_timestamp($7), current_period_end = to_timestamp($8), updated_at = NOW()`,
+            `INSERT INTO subscriptions (id, user_id, stripe_sub_id, stripe_price_id, tier, status, current_period_start, current_period_end)
+             VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7), to_timestamp($8))
+             ON CONFLICT (stripe_sub_id) DO UPDATE SET
+               tier = $5, status = $6, current_period_start = to_timestamp($7), current_period_end = to_timestamp($8)`,
             cuid(), userId, sub.id, priceId, tier, sub.status,
             (sub as any).current_period_start, (sub as any).current_period_end
           );
         } else {
-          // One-time payment — wallet top-up
+          // Wallet top-up
+          const priceId = session.metadata?.priceKey;
           const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-          const priceId = lineItems.data[0]?.price?.id;
-          if (priceId && WALLET_PRICES[priceId]) {
-            const amountCents = WALLET_PRICES[priceId];
-            const user = await db.user.findUnique({ where: { id: userId } });
-            if (user) {
-              const newBalance = user.walletBalance + amountCents;
-              await db.user.update({
-                where: { id: userId },
-                data: { walletBalance: newBalance },
-              });
-              await db.creditTransaction.create({
-                data: {
-                  userId,
-                  type: 'deposit',
-                  amountCents,
-                  balanceAfterCents: newBalance,
-                  description: `Wallet top-up: $${(amountCents / 100).toFixed(2)}`,
-                },
-              });
-            }
+          const itemPriceId = lineItems.data[0]?.price?.id;
+          const amount = WALLET_PRICES[itemPriceId || ''] || 0;
+
+          if (amount > 0) {
+            await db.user.update({
+              where: { id: userId },
+              data: {
+                walletBalance: { increment: amount },
+                stripeCustomerId: session.customer as string,
+              },
+            });
           }
         }
         break;
       }
 
       case 'invoice.paid': {
-        // Recurring subscription payment succeeded — keep tier active
         const invoice = event.data.object as any;
+        if (!invoice.subscription) break;
         const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
         const priceId = sub.items.data[0]?.price.id;
         const tier = PRICE_TO_TIER[priceId] || 'free';
-        const customerId = invoice.customer as string;
 
-        const user = await db.user.findFirst({
-          where: { stripeCustomerId: customerId },
-        });
-
-        if (user) {
+        // Find user by stripeSubId and update tier
+        const users = await db.user.findMany({ where: { stripeSubId: sub.id } });
+        if (users.length > 0) {
           await db.user.update({
-            where: { id: user.id },
+            where: { id: users[0].id },
             data: { tier },
           });
         }
@@ -111,26 +99,17 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        // Subscription canceled — downgrade to free
         const sub = event.data.object as any;
-        const customerId = sub.customer as string;
-
-        const user = await db.user.findFirst({
-          where: { stripeCustomerId: customerId },
-        });
-
-        if (user) {
+        // Downgrade to free
+        const users = await db.user.findMany({ where: { stripeSubId: sub.id } });
+        if (users.length > 0) {
           await db.user.update({
-            where: { id: user.id },
+            where: { id: users[0].id },
             data: { tier: 'free', stripeSubId: null },
           });
         }
         break;
       }
-
-      default:
-        // Unhandled event type — ignore
-        break;
     }
 
     return NextResponse.json({ received: true });
@@ -139,6 +118,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
-// Disable body parsing — Stripe needs the raw body for signature verification
-export const dynamic = 'force-dynamic';

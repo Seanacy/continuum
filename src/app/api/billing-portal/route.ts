@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+export const dynamic = 'force-dynamic';
 
 // POST /api/billing-portal — opens Stripe Customer Portal
 export async function POST() {
@@ -22,6 +22,7 @@ export async function POST() {
       return NextResponse.json({ error: 'No billing account found' }, { status: 400 });
     }
 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: dbUser.stripeCustomerId,
       return_url: process.env.NEXTAUTH_URL || 'https://continuum-app.vercel.app',
@@ -29,9 +30,6 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (err: any) {
-    console.error('Billing portal error:', err);
-    return NextResponse.json({ error: 'Failed to create portal session' }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export const dynamic = 'force-dynamic';

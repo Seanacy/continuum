@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import OrbitAutomationPanel from '@/components/OrbitAutomationPanel'
+import OrbitContentFeed from '@/components/OrbitContentFeed'
 
 // ============================================
 // TYPES
@@ -1460,6 +1461,12 @@ return (
 
         {/* AUTOMATION ENGINE */}
         <OrbitAutomationPanel
+          projectId={selectedProject.id}
+          characters={selectedProject.characters}
+        />
+
+        {/* CONTENT FEED & POST MANAGEMENT */}
+        <OrbitContentFeed
           projectId={selectedProject.id}
           characters={selectedProject.characters}
         />

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push-client'
 import BusinessManager from './BusinessManager'
+import OrbitManager from './OrbitManager'
 
 export default function SettingsView() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
@@ -15,6 +16,7 @@ export default function SettingsView() {
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
   const [showBusinessManager, setShowBusinessManager] = useState(false)
+  const [showOrbitManager, setShowOrbitManager] = useState(false)
 
 
   // Mission state
@@ -217,6 +219,28 @@ export default function SettingsView() {
       {showBusinessManager && (
         <BusinessManager onClose={() => setShowBusinessManager(false)} />
       )}
+
+      {showOrbitManager && (
+        <OrbitManager onClose={() => setShowOrbitManager(false)} />
+      )}
+
+      {/* Orbit Network */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-continuum-text mb-1">Orbit Network</h3>
+        <p className="text-xs text-continuum-muted mb-3">
+          Build a network of AI influencers that work together to grow your brand.
+        </p>
+        <button
+          onClick={() => setShowOrbitManager(true)}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-continuum-surface border border-continuum-border hover:border-continuum-accent/50 transition w-full"
+        >
+          <span className="text-base">🌍</span>
+          <span className="text-sm text-continuum-text">Manage Orbit</span>
+          <svg className="ml-auto w-4 h-4 text-continuum-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
 
       {/* User Mission — Your WHY */}
       <div className="mb-8">

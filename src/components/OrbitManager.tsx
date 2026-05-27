@@ -110,6 +110,13 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [networkLoading, setNetworkLoading] = useState(false)
   const [editingRelationship, setEditingRelationship] = useState<string | null>(null)
 
+  // Strategy state
+  const [strategyData, setStrategyData] = useState<any>(null)
+  const [strategyLoading, setStrategyLoading] = useState(false)
+  const [strategySuggestions, setStrategySuggestions] = useState<any[]>([])
+  const [suggestingStrategy, setSuggestingStrategy] = useState(false)
+  const [editingStrategy, setEditingStrategy] = useState<string | null>(null)
+
   // ============================================
   // NETWORK GRAPH
   // ============================================
@@ -144,6 +151,75 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
     }
   }
 
+  // ============================================
+  // STRATEGY BUILDER
+  // ============================================
+
+  const fetchStrategy = async (projectId: string) => {
+    setStrategyLoading(true)
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/strategy`)
+      if (!res.ok) throw new Error('Failed to fetch strategy')
+      const data = await res.json()
+      setStrategyData(data)
+    } catch (err) {
+      console.error('Strategy fetch error:', err)
+    } finally {
+      setStrategyLoading(false)
+    }
+  }
+
+  const requestSuggestions = async (projectId: string) => {
+    setSuggestingStrategy(true)
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/strategy`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest' }),
+      })
+      if (!res.ok) throw new Error('Failed to get suggestions')
+      const data = await res.json()
+      setStrategySuggestions(data.suggestions || [])
+    } catch (err) {
+      console.error('Strategy suggestion error:', err)
+    } finally {
+      setSuggestingStrategy(false)
+    }
+  }
+
+  const applySuggestions = async (projectId: string) => {
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/strategy`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'apply_suggestions', suggestions: strategySuggestions }),
+      })
+      if (!res.ok) throw new Error('Failed to apply suggestions')
+      const data = await res.json()
+      setStrategyData(data)
+      setStrategySuggestions([])
+    } catch (err) {
+      console.error('Apply suggestions error:', err)
+    }
+  }
+
+  const updateCharStrategy = async (characterId: string, updates: any) => {
+    if (!selectedProject) return
+    try {
+      const res = await fetch(`/api/orbit/${selectedProject.id}/strategy`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterId, updates }),
+      })
+      if (!res.ok) throw new Error('Failed to update character strategy')
+      const data = await res.json()
+      setStrategyData(data)
+      setEditingStrategy(null)
+    } catch (err) {
+      console.error('Character strategy update error:', err)
+    }
+  }
+
 
 
 
@@ -173,6 +249,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
       await loadContent(id)
       fetchInteractions(id)
       fetchNetwork(id)
+      fetchStrategy(id)
     } catch {
       setError('Failed to load project detail')
     }
@@ -1089,6 +1166,96 @@ return (
             )}
           </div>
         )}
+
+        {/* Strategy Builder */}
+        <div className="mt-6 bg-continuum-surface border border-continuum-border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-continuum-text">Strategy Builder</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => selectedProject && fetchStrategy(selectedProject.id)}
+                disabled={strategyLoading}
+                className="px-3 py-1.5 text-xs bg-continuum-border text-continuum-text rounded hover:bg-continuum-muted/30 transition-colors"
+              >
+                {strategyLoading ? 'Loading...' : 'Refresh'}
+              </button>
+              <button
+                onClick={() => selectedProject && requestSuggestions(selectedProject.id)}
+                disabled={suggestingStrategy}
+                className="px-3 py-1.5 text-xs bg-continuum-accent text-white rounded hover:bg-continuum-accent-dim transition-colors"
+              >
+                {suggestingStrategy ? 'Thinking...' : 'AI Suggest'}
+              </button>
+            </div>
+          </div>
+
+          {/* AI Suggestions Banner */}
+          {strategySuggestions.length > 0 && (
+            <div className="mb-4 p-3 bg-continuum-accent/10 border border-continuum-accent/30 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-continuum-accent">AI Strategy Suggestions Ready</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setStrategySuggestions([])}
+                    className="px-2 py-1 text-xs text-continuum-muted hover:text-continuum-text"
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    onClick={() => selectedProject && applySuggestions(selectedProject.id)}
+                    className="px-3 py-1 text-xs bg-continuum-accent text-white rounded hover:bg-continuum-accent-dim"
+                  >
+                    Apply All
+                  </button>
+                </div>
+              </div>
+              {strategySuggestions.map((s: any) => (
+                <div key={s.characterId} className="mt-2 p-2 bg-continuum-bg/50 rounded text-xs">
+                  <span className="text-continuum-accent font-medium">{s.suggestions?.contentAngle}</span>
+                  <span className="text-continuum-muted ml-2">{s.suggestions?.reasoning}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Strategy Cards */}
+          {strategyData?.entries?.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {strategyData.entries.map((entry: any) => (
+                <div key={entry.characterId} className="bg-continuum-bg border border-continuum-border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="text-sm font-medium text-continuum-text">{entry.characterName}</span>
+                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-continuum-accent/20 text-continuum-accent">{entry.role}</span>
+                    </div>
+                    <button
+                      onClick={() => setEditingStrategy(editingStrategy === entry.characterId ? null : entry.characterId)}
+                      className="text-xs text-continuum-muted hover:text-continuum-text"
+                    >
+                      {editingStrategy === entry.characterId ? 'Done' : 'Edit'}
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    <div><span className="text-continuum-muted">Angle:</span> <span className="text-continuum-text">{entry.contentAngle || 'Not set'}</span></div>
+                    <div><span className="text-continuum-muted">Goal:</span> <span className="text-continuum-text">{entry.goal || 'Not set'}</span></div>
+                    <div><span className="text-continuum-muted">Frequency:</span> <span className="text-continuum-text">{entry.postingFrequency?.replace(/_/g, ' ') || 'daily'}</span></div>
+                    {entry.contentThemes?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {entry.contentThemes.map((theme: string, i: number) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-continuum-border rounded text-continuum-muted">{theme}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-continuum-muted text-sm">
+              {strategyLoading ? 'Loading strategy...' : 'Click Refresh to load strategy data'}
+            </div>
+          )}
+        </div>
 {/* Cross-Character Interactions */}
         <div>
           <div className="flex items-center justify-between mb-3">

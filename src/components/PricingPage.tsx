@@ -139,9 +139,9 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
       {onClose && (
         <button onClick={onClose} style={{
           position: 'fixed', top: 16, right: 20, zIndex: 10000,
-          background: 'rgba(255,255,255,0.1)', border: 'none',
-          color: '#fff', fontSize: 24, borderRadius: '50%',
-          width: 40, height: 40, cursor: 'pointer',
+          background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+          color: '#fff', fontSize: 28, borderRadius: '50%',
+          width: 48, height: 48, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>×</button>
       )}
@@ -238,10 +238,10 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
                     ? 'rgba(255,255,255,0.4)'
                     : '#fff',
                   transition: 'opacity 0.2s',
-                  opacity: loading === tier.priceId ? 0.6 : 1,
+                  opacity: (loading !== null && loading === tier.priceId) ? 0.6 : 1,
                 }}
               >
-                {loading === tier.priceId ? 'Loading...'
+                {(loading !== null && loading === tier.priceId) ? 'Loading...'
                   : isCurrentTier ? '✓ Current Plan'
                   : tier.cta}
               </button>
@@ -275,7 +275,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
                 borderRadius: 12, padding: '20px 32px',
                 cursor: currentTier === 'free' ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
-                opacity: loading === opt.priceKey ? 0.6 : 1,
+                opacity: currentTier === 'free' ? 0.3 : (loading !== null && loading === opt.priceKey) ? 0.6 : 1,
               }}
             >
               <div style={{ color: '#fff', fontSize: 28, fontWeight: 800 }}>{opt.display}</div>

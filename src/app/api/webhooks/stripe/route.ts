@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           const priceId = sub.items.data[0]?.price.id;
           const tier = PRICE_TO_TIER[priceId] || 'free';
 
-          await prisma.user.update({
+          await db.user.update({
             where: { id: userId },
             data: {
               tier,
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
           // Track in subscriptions table
           const cuid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-          await prisma.$executeRawUnsafe(
+          await db.$executeRawUnsafe(
             `INSERT INTO subscriptions (id, user_id, stripe_sub_id, stripe_price_id, tier, status, current_period_start, current_period_end, created_at, updated_at)
              VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7), to_timestamp($8), NOW(), NOW())
              ON CONFLICT (stripe_sub_id) DO UPDATE SET status = $6, tier = $5, current_period_start = to_timestamp($7), current_period_end = to_timestamp($8), updated_at = NOW()`,
@@ -67,14 +67,14 @@ export async function POST(req: NextRequest) {
           const priceId = lineItems.data[0]?.price?.id;
           if (priceId && WALLET_PRICES[priceId]) {
             const amountCents = WALLET_PRICES[priceId];
-            const user = await prisma.user.findUnique({ where: { id: userId } });
+            const user = await db.user.findUnique({ where: { id: userId } });
             if (user) {
               const newBalance = user.walletBalance + amountCents;
-              await prisma.user.update({
+              await db.user.update({
                 where: { id: userId },
                 data: { walletBalance: newBalance },
               });
-              await prisma.creditTransaction.create({
+              await db.creditTransaction.create({
                 data: {
                   userId,
                   type: 'deposit',
@@ -97,12 +97,12 @@ export async function POST(req: NextRequest) {
         const tier = PRICE_TO_TIER[priceId] || 'free';
         const customerId = invoice.customer as string;
 
-        const user = await prisma.user.findFirst({
+        const user = await db.user.findFirst({
           where: { stripeCustomerId: customerId },
         });
 
         if (user) {
-          await prisma.user.update({
+          await db.user.update({
             where: { id: user.id },
             data: { tier },
           });
@@ -115,12 +115,12 @@ export async function POST(req: NextRequest) {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
 
-        const user = await prisma.user.findFirst({
+        const user = await db.user.findFirst({
           where: { stripeCustomerId: customerId },
         });
 
         if (user) {
-          await prisma.user.update({
+          await db.user.update({
             where: { id: user.id },
             data: { tier: 'free', stripeSubId: null },
           });

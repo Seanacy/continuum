@@ -253,33 +253,19 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
             Current balance: ${(walletBalance / 100).toFixed(2)}
           </p>
 
-          {currentTier === 'free' ? (
-            <div style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 12, padding: '24px 20px',
-            }}>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: '0 0 4px 0' }}>
-                Wallet top-ups require a paid plan.
-              </p>
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: 0 }}>
-                Upgrade to Creator or Studio above, then come back to add funds.
-              </p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               {WALLET_OPTIONS.map((opt) => (
                 <button
                   key={opt.priceKey}
                   onClick={() => handleCheckout(opt.priceKey)}
-                  disabled={loading !== null}
+                  disabled={currentTier === 'free' || loading !== null}
                   style={{
                     background: 'rgba(255,255,255,0.08)',
                     border: '1px solid rgba(255,255,255,0.15)',
                     borderRadius: 12, padding: '20px 32px',
-                    cursor: 'pointer',
+                    cursor: currentTier === 'free' ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
-                    opacity: (loading !== null && loading === opt.priceKey) ? 0.6 : 1,
+                    opacity: currentTier === 'free' ? 0.4 : (loading !== null && loading === opt.priceKey) ? 0.6 : 1,
                   }}
                 >
                   <div style={{ color: '#fff', fontSize: 28, fontWeight: 800 }}>{opt.display}</div>
@@ -289,7 +275,11 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
                 </button>
               ))}
             </div>
-          )}
+            {currentTier === 'free' && (
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 12 }}>
+                Upgrade to a paid plan to enable wallet top-ups
+              </p>
+            )}
         </div>
 
         {currentTier !== 'free' && (

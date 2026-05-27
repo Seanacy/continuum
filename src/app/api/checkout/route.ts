@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { getCurrentUser } from '@/lib/auth';
 
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Stripe Price IDs — set these in your Vercel env vars
 const PRICE_MAP: Record<string, string> = {

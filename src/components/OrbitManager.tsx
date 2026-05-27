@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import OrbitAutomationPanel from '@/components/OrbitAutomationPanel'
 
 // ============================================
 // TYPES
@@ -1455,6 +1456,13 @@ return (
             </div>
           </div>
         )}
+
+
+        {/* AUTOMATION ENGINE */}
+        <OrbitAutomationPanel
+          projectId={selectedProject.id}
+          characters={selectedProject.characters}
+        />
       </div>
     )
   }

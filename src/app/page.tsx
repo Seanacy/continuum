@@ -43,9 +43,9 @@ function OrbCanvas() {
       const cy = canvas.height * 0.35
 
       const outerGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 300)
-      outerGlow.addColorStop(0, 'rgba(139, 92, 246, 0.08)')
-      outerGlow.addColorStop(0.5, 'rgba(139, 92, 246, 0.03)')
-      outerGlow.addColorStop(1, 'rgba(139, 92, 246, 0)')
+      outerGlow.addColorStop(0, 'rgba(99, 102, 241, 0.08)')
+      outerGlow.addColorStop(0.5, 'rgba(99, 102, 241, 0.03)')
+      outerGlow.addColorStop(1, 'rgba(99, 102, 241, 0)')
       ctx.fillStyle = outerGlow
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -53,26 +53,26 @@ function OrbCanvas() {
       const orbRadius = 60 * breathe
 
       const ringGlow = ctx.createRadialGradient(cx, cy, orbRadius * 0.8, cx, cy, orbRadius * 2.5)
-      ringGlow.addColorStop(0, 'rgba(139, 92, 246, 0.12)')
-      ringGlow.addColorStop(0.4, 'rgba(139, 92, 246, 0.05)')
-      ringGlow.addColorStop(1, 'rgba(139, 92, 246, 0)')
+      ringGlow.addColorStop(0, 'rgba(99, 102, 241, 0.12)')
+      ringGlow.addColorStop(0.4, 'rgba(99, 102, 241, 0.05)')
+      ringGlow.addColorStop(1, 'rgba(99, 102, 241, 0)')
       ctx.beginPath()
       ctx.arc(cx, cy, orbRadius * 2.5, 0, Math.PI * 2)
       ctx.fillStyle = ringGlow
       ctx.fill()
 
       const orbGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, orbRadius)
-      orbGrad.addColorStop(0, `rgba(139, 92, 246, ${0.35 + Math.sin(time * 3) * 0.1})`)
-      orbGrad.addColorStop(0.6, `rgba(139, 92, 246, ${0.15 + Math.sin(time * 2) * 0.05})`)
-      orbGrad.addColorStop(1, 'rgba(139, 92, 246, 0)')
+      orbGrad.addColorStop(0, `rgba(99, 102, 241, ${0.35 + Math.sin(time * 3) * 0.1})`)
+      orbGrad.addColorStop(0.6, `rgba(99, 102, 241, ${0.15 + Math.sin(time * 2) * 0.05})`)
+      orbGrad.addColorStop(1, 'rgba(99, 102, 241, 0)')
       ctx.beginPath()
       ctx.arc(cx, cy, orbRadius, 0, Math.PI * 2)
       ctx.fillStyle = orbGrad
       ctx.fill()
 
       const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, orbRadius * 0.3)
-      coreGrad.addColorStop(0, `rgba(200, 180, 255, ${0.4 + Math.sin(time * 4) * 0.1})`)
-      coreGrad.addColorStop(1, 'rgba(139, 92, 246, 0)')
+      coreGrad.addColorStop(0, `rgba(129, 140, 248, ${0.4 + Math.sin(time * 4) * 0.1})`)
+      coreGrad.addColorStop(1, 'rgba(99, 102, 241, 0)')
       ctx.beginPath()
       ctx.arc(cx, cy, orbRadius * 0.3, 0, Math.PI * 2)
       ctx.fillStyle = coreGrad
@@ -98,7 +98,7 @@ function OrbCanvas() {
         const particleOpacity = p.opacity * (0.7 + Math.sin(time * 3 + p.x * 0.01) * 0.3)
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(139, 92, 246, ${particleOpacity})`
+        ctx.fillStyle = `rgba(99, 102, 241, ${particleOpacity})`
         ctx.fill()
 
         particles.forEach((p2) => {
@@ -107,7 +107,7 @@ function OrbCanvas() {
             ctx.beginPath()
             ctx.moveTo(p.x, p.y)
             ctx.lineTo(p2.x, p2.y)
-            ctx.strokeStyle = `rgba(139, 92, 246, ${0.03 * (1 - d / 100)})`
+            ctx.strokeStyle = `rgba(99, 102, 241, ${0.03 * (1 - d / 100)})`
             ctx.lineWidth = 0.5
             ctx.stroke()
           }

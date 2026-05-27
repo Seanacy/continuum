@@ -170,7 +170,7 @@ async function generateForCharacter(
     CONTENT_ROTATION[character.roleType] || CONTENT_ROTATION.thought_leader;
 
   // Get existing scheduled posts to avoid duplicates
-  const existingPosts = await (db as any).orbitPost.count({
+  const existingPosts = await db.orbitPost.count({
     where: {
       characterId: character.id,
       status: { in: ['draft', 'scheduled', 'pending_approval'] },
@@ -234,7 +234,7 @@ async function generateForCharacter(
           : 'draft'
         : 'pending_approval';
 
-      await (db as any).orbitPost.create({
+      await db.orbitPost.create({
         data: {
           characterId: character.id,
           projectId: project.id,
@@ -354,7 +354,7 @@ export async function getPublishingQueue(
     where.status = { in: ['draft', 'scheduled', 'pending_approval'] };
   }
 
-  const posts = await (db as any).orbitPost.findMany({
+  const posts = await db.orbitPost.findMany({
     where,
     include: { character: { select: { name: true } } },
     orderBy: [{ scheduledFor: 'asc' }, { createdAt: 'desc' }],
@@ -383,7 +383,7 @@ export async function approveQueueItem(
   action: 'approve' | 'reject' | 'reschedule',
   scheduledFor?: Date
 ): Promise<void> {
-  const post = await (db as any).orbitPost.findFirst({
+  const post = await db.orbitPost.findFirst({
     where: { id: postId },
     include: { project: { select: { userId: true } } },
   });
@@ -393,7 +393,7 @@ export async function approveQueueItem(
   }
 
   if (action === 'approve') {
-    await (db as any).orbitPost.update({
+    await db.orbitPost.update({
       where: { id: postId },
       data: {
         status: scheduledFor ? 'scheduled' : 'draft',
@@ -401,12 +401,12 @@ export async function approveQueueItem(
       },
     });
   } else if (action === 'reject') {
-    await (db as any).orbitPost.update({
+    await db.orbitPost.update({
       where: { id: postId },
       data: { status: 'rejected' },
     });
   } else if (action === 'reschedule' && scheduledFor) {
-    await (db as any).orbitPost.update({
+    await db.orbitPost.update({
       where: { id: postId },
       data: { status: 'scheduled', scheduledFor },
     });
@@ -426,7 +426,7 @@ export async function bulkApprove(
   });
   if (!project) throw new Error('Project not found');
 
-  const result = await (db as any).orbitPost.updateMany({
+  const result = await db.orbitPost.updateMany({
     where: {
       projectId,
       status: 'pending_approval',
@@ -462,10 +462,10 @@ export async function getAutomationStatus(
   const automatedCount = strategy.filter((s: any) => s.automationEnabled).length;
 
   const [drafts, scheduled, pending, nextPost] = await Promise.all([
-    (db as any).orbitPost.count({ where: { projectId, status: 'draft' } }),
-    (db as any).orbitPost.count({ where: { projectId, status: 'scheduled' } }),
-    (db as any).orbitPost.count({ where: { projectId, status: 'pending_approval' } }),
-    (db as any).orbitPost.findFirst({
+    db.orbitPost.count({ where: { projectId, status: 'draft' } }),
+    db.orbitPost.count({ where: { projectId, status: 'scheduled' } }),
+    db.orbitPost.count({ where: { projectId, status: 'pending_approval' } }),
+    db.orbitPost.findFirst({
       where: { projectId, status: 'scheduled', scheduledFor: { gte: new Date() } },
       orderBy: { scheduledFor: 'asc' },
       select: { scheduledFor: true },

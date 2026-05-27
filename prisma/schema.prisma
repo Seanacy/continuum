@@ -16,7 +16,7 @@ model User {
   aiName    String?  @map("ai_name")
   location  String?  // city or area, e.g. "Los Angeles, CA"
   timezone  String?  // IANA timezone, e.g. "America/Los_Angeles"
-  tier      String   @default("free") // "free" or "pro"
+  tier      String   @default("free") // "free", "creator", or "studio"
   stripeCustomerId String? @unique @map("stripe_customer_id")
   stripeSubId      String? @map("stripe_sub_id")
   isAdmin   Boolean  @default(false) @map("is_admin")
@@ -49,6 +49,7 @@ model User {
   facebookAccounts   FacebookAccount[]
   adCampaigns        AdCampaign[]
   orbitProjects      OrbitProject[]
+  subscriptions  Subscription[]
 
   // Wallet system — dollar balance stored in cents ($5.00 = 500)
   walletBalance   Int    @default(0) @map("wallet_balance")    // balance in cents
@@ -713,4 +714,27 @@ model OrbitPost {
   @@index([status])
   @@index([scheduledFor])
   @@map("orbit_posts")
+}
+
+// ============================================
+// STRIPE SUBSCRIPTION TRACKING
+// ============================================
+model Subscription {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSubId        String   @unique @map("stripe_sub_id")
+  stripePriceId      String   @map("stripe_price_id")
+  tier               String   // "creator" or "studio"
+  status             String   @default("active") // "active", "canceled", "past_due", "incomplete"
+  currentPeriodStart DateTime @map("current_period_start")
+  currentPeriodEnd   DateTime @map("current_period_end")
+  canceledAt         DateTime? @map("canceled_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([stripeSubId])
+  @@index([status])
+  @@map("subscriptions")
 }

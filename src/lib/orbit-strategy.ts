@@ -279,7 +279,7 @@ For each character, suggest an optimized content strategy. Return a JSON array w
 
 Consider how the characters can play off each other based on their relationships. Make suggestions specific and actionable, not generic. Return ONLY the JSON array, no other text.`;
 
-  const response = await callLLM(prompt, {
+  const response = await callLLM(prompt, [{ role: 'user', content: 'Generate strategy suggestions based on the above context.' }], {
     maxTokens: 2000,
     temperature: 0.7,
   });

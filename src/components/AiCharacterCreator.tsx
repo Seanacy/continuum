@@ -121,6 +121,12 @@ export default function AiCharacterCreator({ mode, scope, specs, onComplete, onC
   const [selectedAppearance, setSelectedAppearance] = useState<number | null>(null)
   const [guidedStep, setGuidedStep] = useState<'picking' | 'running'>('picking')
 
+  // Delete + Generate Look state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [generatingLook, setGeneratingLook] = useState(false)
+  const [lookImages, setLookImages] = useState<GeneratedImage[]>([])
+
   // ============================================
   // API CALL HELPER
   // ============================================
@@ -265,6 +271,47 @@ export default function AiCharacterCreator({ mode, scope, specs, onComplete, onC
   }, [callApi, isCharOnly, guidedOptions, selectedName, selectedPersonality, selectedAppearance])
 
   // ============================================
+  // DELETE CHARACTER
+  // ============================================
+  const handleDelete = useCallback(async () => {
+    if (!characterId) return
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/characters/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterId }),
+      })
+      if (!res.ok) throw new Error('Failed to delete')
+      onCancel?.()
+    } catch (err: any) {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }, [characterId, onCancel])
+
+  // ============================================
+  // GENERATE LOOK
+  // ============================================
+  const handleGenerateLook = useCallback(async () => {
+    if (!characterId || !profile) return
+    setGeneratingLook(true)
+    try {
+      const { images: imgs } = await callApi({
+        step: 'generate-images',
+        characterId,
+        imagePrompt: profile.imagePrompt,
+      })
+      setLookImages(imgs || [])
+      if (imgs?.length) setImages(imgs)
+    } catch (err: any) {
+      console.error('Generate look error:', err)
+    } finally {
+      setGeneratingLook(false)
+    }
+  }, [characterId, profile, callApi])
+
+  // ============================================
   // AUTO-START for auto mode
   // ============================================
   useEffect(() => {
@@ -407,8 +454,42 @@ export default function AiCharacterCreator({ mode, scope, specs, onComplete, onC
             </div>
           )}
 
+          {/* Generate Look */}
+          {generatingLook ? (
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <span className="w-5 h-5 rounded-full border-2 border-continuum-accent border-t-transparent animate-spin" />
+              <span className="text-sm text-continuum-muted">Generating new look...</span>
+            </div>
+          ) : lookImages.length > 0 ? (
+            <div className="mb-4">
+              <p className="text-xs text-green-400 text-center mb-2">New look generated!</p>
+            </div>
+          ) : null}
+
+          {/* Delete confirmation */}
+          {showDeleteConfirm && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 mb-4">
+              <p className="text-sm text-white mb-3">Are you sure you want to delete {profile?.name}? This can&apos;t be undone.</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Yes, Delete'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 rounded-lg border border-continuum-border text-continuum-muted text-sm hover:text-white transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Action buttons */}
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center">
             <button
               onClick={() => onComplete?.(characterId || '')}
               className="px-6 py-3 rounded-xl bg-continuum-accent hover:bg-continuum-accent/90 text-white font-semibold transition"
@@ -416,10 +497,23 @@ export default function AiCharacterCreator({ mode, scope, specs, onComplete, onC
               Start Chatting with {profile?.name}
             </button>
             <button
+              onClick={handleGenerateLook}
+              disabled={generatingLook}
+              className="px-6 py-3 rounded-xl border border-continuum-accent text-continuum-accent hover:bg-continuum-accent/10 font-semibold transition disabled:opacity-50"
+            >
+              {generatingLook ? 'Generating...' : 'Generate Look'}
+            </button>
+            <button
               onClick={onCancel}
               className="px-6 py-3 rounded-xl border border-continuum-border text-continuum-muted hover:text-white transition"
             >
               Back to Characters
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-6 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
+            >
+              Delete Character
             </button>
           </div>
         </div>

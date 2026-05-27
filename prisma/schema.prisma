@@ -637,6 +637,7 @@ model OrbitProject {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   characters      OrbitCharacter[]
+  posts            OrbitPost[]
 
   @@index([userId])
   @@index([status])
@@ -664,6 +665,7 @@ model OrbitCharacter {
 
   relationshipsAsA OrbitRelationship[] @relation("orbitRelA")
   relationshipsAsB OrbitRelationship[] @relation("orbitRelB")
+  posts            OrbitPost[]
 
   @@index([projectId])
   @@index([roleType])
@@ -686,4 +688,29 @@ model OrbitRelationship {
   @@index([characterAId])
   @@index([characterBId])
   @@map("orbit_relationships")
+}
+
+model OrbitPost {
+  id              String    @id @default(cuid())
+  projectId       String    @map("project_id")
+  project         OrbitProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  characterId     String    @map("character_id")
+  character       OrbitCharacter @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  content         String    @db.Text
+  contentType     String    @map("content_type") // tweet, caption, thread, story, reel_script, blog_post
+  platform        String    // twitter, instagram, tiktok, youtube, linkedin
+  status          String    @default("draft") // draft, scheduled, pending_approval, approved, published, rejected
+  scheduledFor    DateTime? @map("scheduled_for")
+  publishedAt     DateTime? @map("published_at")
+  approvedAt      DateTime? @map("approved_at")
+  approvedBy      String?   @map("approved_by")
+  metadata        Json      @default("{}") // engagement metrics, generation params, etc.
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@index([characterId])
+  @@index([status])
+  @@index([scheduledFor])
+  @@map("orbit_posts")
 }

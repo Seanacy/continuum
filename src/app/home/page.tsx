@@ -11,6 +11,7 @@ import CharacterBuilder from '@/components/CharacterBuilder'
 import OnboardingFlow from '@/components/OnboardingFlow'
 import AdsView from '@/components/AdsView'
 import AdPublisher from '@/components/AdPublisher'
+import PricingPage from '@/components/PricingPage'
 import { startSession, trackTabSwitch, trackInteraction } from '@/lib/interaction-tracker'
 // import PointBucket from '@/components/PointBucket' // Hidden until relevant (Fix #8)
 
@@ -29,6 +30,7 @@ export default function HomePage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [partnerMode, setPartnerMode] = useState(false)
   const [adPiece, setAdPiece] = useState<any>(null)
+  const [showPricing, setShowPricing] = useState(false)
   const { messages } = useChat()
   const { characters, reload: reloadCharacters } = useCharacters()
   const [activeCharacterId, setActiveCharacterId] = useState<string | undefined>(undefined)
@@ -113,6 +115,7 @@ export default function HomePage() {
       partnerMode={partnerMode}
       onPartnerModeToggle={() => setPartnerMode(!partnerMode)}
       showAds={isAdsAllowed}
+      onUpgradeClick={() => setShowPricing(true)}
     >
       {activeView === 'chat' && (
         <ChatView
@@ -161,6 +164,13 @@ export default function HomePage() {
             setAdPiece(null)
             handleViewChange('ads')
           }}
+        />
+      )}
+      {showPricing && (
+        <PricingPage
+          currentTier={user.tier || 'free'}
+          walletBalance={user.walletBalance || 0}
+          onClose={() => setShowPricing(false)}
         />
       )}
     </AppShell>

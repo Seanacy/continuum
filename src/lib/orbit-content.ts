@@ -72,10 +72,10 @@ export async function generateOrbitContent(input: GenerateContentInput): Promise
   const allPosts: OrbitPost[] = []
 
   // Generate content for each active character
-  for (const character of project.characters) {
-    const personality = character.personality as any
-    const contentStrategy = character.contentStrategy as any
-    const backstory = character.backstory as any
+  for (const character of (project.characters as any[])) {
+    const personality = character.personality
+    const contentStrategy = character.contentStrategy
+    const backstory = character.backstory
 
     const systemPrompt = `You are a social media content creator AI. You are generating content AS the character described below. Write in their voice, with their personality and style.
 

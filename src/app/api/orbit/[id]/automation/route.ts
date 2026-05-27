@@ -72,7 +72,7 @@ export async function POST(
     // ----------------------------------------
     if (action === 'generate') {
       const { config } = body;
-      const result = await generateContentBatch(projectId, user.id, config);
+      const result = await generateContentBatch({ ...config, projectId, userId: user.id });
       return NextResponse.json(result);
     }
 
@@ -87,7 +87,7 @@ export async function POST(
           { status: 400 }
         );
       }
-      const item = await approveQueueItem(projectId, user.id, contentId, 'approved');
+      const item = await approveQueueItem(contentId, user.id, 'approve');
       return NextResponse.json({ item });
     }
 
@@ -102,7 +102,7 @@ export async function POST(
           { status: 400 }
         );
       }
-      const item = await approveQueueItem(projectId, user.id, contentId, 'rejected');
+      const item = await approveQueueItem(contentId, user.id, 'reject');
       return NextResponse.json({ item });
     }
 

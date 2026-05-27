@@ -10,13 +10,13 @@ const config: Config = {
     extend: {
       colors: {
         continuum: {
-          bg: '#0a0a0f',
-          surface: '#14141f',
-          border: '#1e1e2e',
-          text: '#e4e4e7',
-          muted: '#71717a',
-          accent: '#8b5cf6',
-          'accent-dim': '#6d28d9',
+          bg: '#141418',
+          surface: '#1a1b22',
+          border: '#1e2028',
+          text: '#d4dce8',
+          muted: '#6a7a8a',
+          accent: '#6366f1',
+          'accent-dim': '#4f5de6',
         },
       },
     },

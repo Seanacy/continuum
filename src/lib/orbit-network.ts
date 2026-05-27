@@ -165,13 +165,13 @@ export async function getOrbitNetwork(
     const ixCount = edgeInteractionCounts[key1] || edgeInteractionCounts[key2] || 0;
     const lastIx = edgeLastInteraction[key1] || edgeLastInteraction[key2] || null;
 
-    const baseStrength = rel.dynamic === 'allies' ? 3 :
-      rel.dynamic === 'rivals' ? 2 :
-      rel.dynamic === 'mentor_mentee' ? 3 :
-      rel.dynamic === 'collaborators' ? 4 :
-      rel.dynamic === 'frenemies' ? 2 :
-      rel.dynamic === 'complementary' ? 3 :
-      rel.dynamic === 'competitive' ? 2 : 1;
+    const baseStrength = rel.relationshipType === 'allies' ? 3 :
+      rel.relationshipType === 'rivals' ? 2 :
+      rel.relationshipType === 'mentor_mentee' ? 3 :
+      rel.relationshipType === 'collaborators' ? 4 :
+      rel.relationshipType === 'frenemies' ? 2 :
+      rel.relationshipType === 'complementary' ? 3 :
+      rel.relationshipType === 'competitive' ? 2 : 1;
 
     const interactionBonus = Math.min(ixCount * 0.5, 3);
     const strength = Math.min(baseStrength + interactionBonus, 10);
@@ -182,7 +182,7 @@ export async function getOrbitNetwork(
       target: rel.characterBId,
       sourceLabel: charMap.get(rel.characterAId) || 'Unknown',
       targetLabel: charMap.get(rel.characterBId) || 'Unknown',
-      relationshipType: rel.dynamic || 'neutral',
+      relationshipType: rel.relationshipType || 'neutral',
       strength,
       interactionCount: ixCount,
       lastInteraction: lastIx,
@@ -255,7 +255,7 @@ export async function updateOrbitRelationship(
 
   await db.orbitRelationship.update({
     where: { id: relationshipId },
-    data: { dynamic },
+    data: { relationshipType: dynamic },
   });
 
   return { success: true };

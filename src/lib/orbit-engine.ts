@@ -328,10 +328,10 @@ export async function generateOrbit(input: OrbitProjectInput): Promise<{
           roleType: char.roleType,
           name: char.name,
           username: char.username,
-          appearance: char.appearance as Record<string, unknown>,
-          personality: char.personality as Record<string, unknown>,
-          behavior: char.behavior as Record<string, unknown>,
-          contentProfile: char.contentProfile as Record<string, unknown>,
+          appearance: char.appearance as any,
+          personality: char.personality as any,
+          behavior: char.behavior as any,
+          contentProfile: char.contentProfile as any,
           imagePrompt: char.imagePrompt,
           contentAngle: char.contentAngle,
           goal: char.goal,
@@ -371,7 +371,7 @@ export async function generateOrbit(input: OrbitProjectInput): Promise<{
     await db.orbitProject.update({
       where: { id: projectId },
       data: {
-        strategyTable: strategy as unknown as Record<string, unknown>[],
+        strategyTable: strategy as unknown as any[],
         status: 'active',
         totalCostCents,
       }

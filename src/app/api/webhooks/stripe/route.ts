@@ -1,0 +1,144 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Price ID to tier mapping — must match your Stripe price IDs
+const PRICE_TO_TIER: Record<string, string> = {
+  [process.env.STRIPE_PRICE_CREATOR!]: 'creator',
+  [process.env.STRIPE_PRICE_STUDIO!]: 'studio',
+};
+
+// Wallet top-up amounts in cents
+const WALLET_PRICES: Record<string, number> = {
+  [process.env.STRIPE_PRICE_WALLET_5!]: 500,
+  [process.env.STRIPE_PRICE_WALLET_10!]: 1000,
+  [process.env.STRIPE_PRICE_WALLET_25!]: 2500,
+};
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const sig = req.headers.get('stripe-signature')!;
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+  } catch (err: any) {
+    console.error('Webhook signature verification failed:', err.message);
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const userId = session.metadata?.userId;
+        if (!userId) break;
+
+        if (session.mode === 'subscription') {
+          // Subscription checkout — update tier
+          const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+          const priceId = sub.items.data[0]?.price.id;
+          const tier = PRICE_TO_TIER[priceId] || 'free';
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              tier,
+              stripeSubId: sub.id,
+              stripeCustomerId: session.customer as string,
+            },
+          });
+
+          // Track in subscriptions table
+          const cuid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO subscriptions (id, user_id, stripe_sub_id, stripe_price_id, tier, status, current_period_start, current_period_end, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7), to_timestamp($8), NOW(), NOW())
+             ON CONFLICT (stripe_sub_id) DO UPDATE SET status = $6, tier = $5, current_period_start = to_timestamp($7), current_period_end = to_timestamp($8), updated_at = NOW()`,
+            cuid(), userId, sub.id, priceId, tier, sub.status,
+            sub.current_period_start, sub.current_period_end
+          );
+        } else {
+          // One-time payment — wallet top-up
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+          const priceId = lineItems.data[0]?.price?.id;
+          if (priceId && WALLET_PRICES[priceId]) {
+            const amountCents = WALLET_PRICES[priceId];
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user) {
+              const newBalance = user.walletBalance + amountCents;
+              await prisma.user.update({
+                where: { id: userId },
+                data: { walletBalance: newBalance },
+              });
+              await prisma.creditTransaction.create({
+                data: {
+                  userId,
+                  type: 'deposit',
+                  amountCents,
+                  balanceAfterCents: newBalance,
+                  description: `Wallet top-up: $${(amountCents / 100).toFixed(2)}`,
+                },
+              });
+            }
+          }
+        }
+        break;
+      }
+
+      case 'invoice.paid': {
+        // Recurring subscription payment succeeded — keep tier active
+        const invoice = event.data.object as Stripe.Invoice;
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const priceId = sub.items.data[0]?.price.id;
+        const tier = PRICE_TO_TIER[priceId] || 'free';
+        const customerId = invoice.customer as string;
+
+        const user = await prisma.user.findFirst({
+          where: { stripeCustomerId: customerId },
+        });
+
+        if (user) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { tier },
+          });
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        // Subscription canceled — downgrade to free
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
+
+        const user = await prisma.user.findFirst({
+          where: { stripeCustomerId: customerId },
+        });
+
+        if (user) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { tier: 'free', stripeSubId: null },
+          });
+        }
+        break;
+      }
+
+      default:
+        // Unhandled event type — ignore
+        break;
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (error: any) {
+    console.error('Webhook handler error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// Disable body parsing — Stripe needs the raw body for signature verification
+export const dynamic = 'force-dynamic';

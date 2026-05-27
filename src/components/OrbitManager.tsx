@@ -5,6 +5,7 @@ import OrbitAutomationPanel from '@/components/OrbitAutomationPanel'
 import OrbitContentFeed from '@/components/OrbitContentFeed'
 import OrbitCampaignManager from '@/components/OrbitCampaignManager'
 import OrbitAnalyticsDashboard from '@/components/OrbitAnalyticsDashboard'
+import OrbitCalendar from '@/components/OrbitCalendar'
 
 // ============================================
 // TYPES
@@ -1481,6 +1482,9 @@ return (
 
       {/* PERFORMANCE ANALYTICS */}
       <OrbitAnalyticsDashboard projectId={selectedProject.id} />
+
+      {/* CONTENT CALENDAR */}
+      <OrbitCalendar projectId={selectedProject.id} />
       </div>
     )
   }

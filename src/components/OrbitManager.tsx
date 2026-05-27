@@ -100,6 +100,9 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [contentLoading, setContentLoading] = useState(false)
   const [contentPlatform, setContentPlatform] = useState('')
   const [generatingContent, setGeneratingContent] = useState(false)
+  const [contentFilter, setContentFilter] = useState<'all' | 'draft' | 'scheduled' | 'posted'>('all')
+  const [schedulingPostId, setSchedulingPostId] = useState<string | null>(null)
+  const [scheduleDate, setScheduleDate] = useState('')
 
   useEffect(() => {
     loadProjects()
@@ -245,6 +248,46 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
       setError('Failed to delete post')
     }
   }
+  async function schedulePost(postId: string) {
+    if (!selectedProject || !scheduleDate) return
+    try {
+      await fetch('/api/orbit/' + selectedProject.id + '/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, status: 'scheduled', scheduledFor: scheduleDate }),
+      })
+      setContentPosts(prev => prev.map(p =>
+        p.id === postId ? { ...p, status: 'scheduled', scheduledFor: scheduleDate } : p
+      ))
+      setSchedulingPostId(null)
+      setScheduleDate('')
+    } catch {
+      setError('Failed to schedule post')
+    }
+  }
+
+  async function updatePostStatus(postId: string, status: string) {
+    if (!selectedProject) return
+    try {
+      await fetch('/api/orbit/' + selectedProject.id + '/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, status }),
+      })
+      setContentPosts(prev => prev.map(p =>
+        p.id === postId ? { ...p, status } : p
+      ))
+    } catch {
+      setError('Failed to update post status')
+    }
+  }
+
+  function getFilteredPosts() {
+    if (contentFilter === 'all') return contentPosts
+    return contentPosts.filter((p: any) => p.status === contentFilter)
+  }
+
+
 
   function resetForm() {
     setFormName('')
@@ -759,7 +802,20 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Generated Posts */}
-        {contentPosts.length > 0 && (
+              {contentPosts.length > 0 && (
+          <div className="flex gap-1 mb-3">
+            {(['all', 'draft', 'scheduled', 'posted'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setContentFilter(f)}
+                className={'px-3 py-1 rounded-full text-xs font-medium transition ' + (contentFilter === f ? 'bg-continuum-accent/20 text-continuum-accent border border-continuum-accent/30' : 'bg-continuum-surface text-continuum-muted border border-continuum-border hover:text-continuum-text')}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)} ({f === 'all' ? contentPosts.length : contentPosts.filter((p: any) => p.status === f).length})
+              </button>
+            ))}
+          </div>
+      )}
+{contentPosts.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-continuum-text mb-3 flex items-center gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-continuum-accent">
@@ -767,10 +823,10 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
                 <line x1="3" y1="9" x2="21" y2="9" />
                 <line x1="9" y1="21" x2="9" y2="9" />
               </svg>
-              Generated Posts ({contentPosts.length})
+              Generated Posts ({getFilteredPosts().length})
             </h3>
             <div className="space-y-3">
-              {contentPosts.map((post: any) => (
+              {getFilteredPosts().map((post: any) => (
                 <div key={post.id} className="p-3.5 rounded-xl bg-continuum-surface border border-continuum-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -781,6 +837,14 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
                         {post.platform}
                       </span>
                       <span className="text-xs text-continuum-muted/40">{post.tone}</span>
+                    {post.status && post.status !== 'draft' && (
+                      <span className={'text-xs px-2 py-0.5 rounded-full ' + (post.status === 'scheduled' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30')}>
+                        {post.status}
+                      </span>
+                    )}
+                    {post.scheduledFor && (
+                      <span className="text-xs text-continuum-muted/40">{new Date(post.scheduledFor).toLocaleDateString()}</span>
+                    )}
                     </div>
                     <button
                       onClick={() => deleteContentPost(post.id)}
@@ -803,6 +867,27 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
                   >
                     Copy to clipboard
                   </button>
+                  <div className="flex items-center gap-2 mt-2">
+                    {schedulingPostId === post.id ? (
+                      <>
+                        <input
+                          type="datetime-local"
+                          value={scheduleDate}
+                          onChange={(e) => setScheduleDate(e.target.value)}
+                          className="bg-continuum-bg border border-continuum-border rounded-lg px-2 py-1 text-xs text-continuum-text focus:outline-none focus:border-continuum-accent/50"
+                        />
+                        <button onClick={() => schedulePost(post.id)} className="text-xs text-continuum-accent hover:text-continuum-accent/80 transition">Save</button>
+                        <button onClick={() => { setSchedulingPostId(null); setScheduleDate(''); }} className="text-xs text-continuum-muted hover:text-continuum-text transition">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => setSchedulingPostId(post.id)} className="text-xs text-continuum-muted hover:text-continuum-accent transition">Schedule</button>
+                        {post.status === 'scheduled' && (
+                          <button onClick={() => updatePostStatus(post.id, 'posted')} className="text-xs text-green-400/60 hover:text-green-400 transition">Mark Posted</button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

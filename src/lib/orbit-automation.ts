@@ -100,7 +100,7 @@ export async function generateContentBatch(
   let totalScheduled = 0;
 
   // Get strategy for this project
-  const strategy = await getOrbitStrategy(config.projectId, config.userId) as any[];
+  const strategy = await getOrbitStrategy(config.projectId, config.userId) as unknown as any[];
 
   // Get project with characters
   const project = await db.orbitProject.findFirst({
@@ -458,7 +458,7 @@ export async function getAutomationStatus(
   });
   if (!project) throw new Error('Project not found');
 
-  const strategy = await getOrbitStrategy(projectId, userId) as any[];
+  const strategy = await getOrbitStrategy(projectId, userId) as unknown as any[];
   const automatedCount = strategy.filter((s: any) => s.automationEnabled).length;
 
   const [drafts, scheduled, pending, nextPost] = await Promise.all([

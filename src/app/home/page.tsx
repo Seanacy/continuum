@@ -168,8 +168,8 @@ export default function HomePage() {
       )}
       {showPricing && (
         <PricingPage
-          currentTier={user.tier || 'free'}
-          walletBalance={user.walletBalance || 0}
+          currentTier={(user as any).tier || 'free'}
+          walletBalance={(user as any).walletBalance || 0}
           onClose={() => setShowPricing(false)}
         />
       )}

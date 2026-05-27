@@ -72,7 +72,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#141418', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ opacity: 0.6 }}>Loading admin dashboard...</p>
       </div>
     )
@@ -80,14 +80,14 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#141418', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: '#f87171' }}>{error}</p>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#141418', color: '#fff', padding: '2rem' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>
           Admin Dashboard
@@ -136,7 +136,7 @@ export default function AdminPage() {
                       borderRadius: 4,
                       fontSize: '0.75rem',
                       background: u.tier === 'pro' ? '#7c3aed33' : '#333',
-                      color: u.tier === 'pro' ? '#a78bfa' : '#999',
+                      color: u.tier === 'pro' ? '#818cf8' : '#999',
                     }}>
                       {u.tier}
                     </span>

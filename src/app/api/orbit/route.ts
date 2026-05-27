@@ -100,11 +100,10 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({
-      project: result.project,
+      projectId: result.projectId,
       characters: result.characters,
-      relationships: result.relationships,
-      strategy: result.strategy,
-      tokensUsed: result.tokensUsed,
+      relationshipCount: result.relationshipCount,
+      estimatedCost: result.estimatedCost,
     })
   } catch (err) {
     console.error('POST /api/orbit error:', err)

@@ -1,38 +1,6 @@
 'use client'
 
-import { useSt              {/* Highlight Stats */}
-              {networkData.stats.mostConnected && (
-                <div className="bg-continuum-surface/50 border border-continuum-border rounded-lg p-3 mb-6 flex flex-wrap gap-4 text-sm">
-                  {networkData.stats.mostConnected && (
-                    <span className="text-continuum-muted">Most connected: <span className="text-continuum-accent font-medium">{networkData.stats.mostConnected.name}</span> ({networkData.stats.mostConnected.connections})</span>
-                  )}
-                  {networkData.stats.mostActive && (
-                    <span className="text-continuum-muted">Most active: <span className="text-green-400 font-medium">{networkData.stats.mostActive.name}</span> ({networkData.stats.mostActive.interactions})</span>
-                  )}
-                  {networkData.stats.strongestBond && (
-                    <span className="text-continuum-muted">Strongest bond: <span className="text-pink-400 font-medium">{networkData.stats.strongestBond.from} + {networkData.stats.strongestBond.to}</span></span>
-                  )}
-                </div>
-              )}
-
-              {/* Character Nodes */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-continuum-muted mb-3">Characters</h4>
-                <div className="flex flex-wrap gap-3">
-                  {networkData.nodes.map((node: any) => (
-                    <div key={node.id} className="bg-continuum-surface border border-continuum-border rounded-lg p-3 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: node.color }}>
-                        {node.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-continuum-text">{node.name}</div>
-                        <div className="text-xs text-continuum-muted">{node.role.replace(/_/g, " ")} &middot; {node.connectionCount} links &middot; {node.interactionCount} interactions</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-ate, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 // ============================================
 // TYPES
@@ -416,42 +384,6 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
       }
     } catch (err) {
       console.error('Failed to delete interaction:', err)
-    }
-  }
-
-  // ============================================
-  // Network functions
-  // ============================================
-
-  const fetchNetwork = async (projectId: string) => {
-    setNetworkLoading(true)
-    try {
-      const res = await fetch(`/api/orbit/${projectId}/network`)
-      if (res.ok) {
-        const data = await res.json()
-        setNetworkData(data)
-      }
-    } catch (err) {
-      console.error('Failed to fetch network:', err)
-    } finally {
-      setNetworkLoading(false)
-    }
-  }
-
-  const updateRelationship = async (relationshipId: string, dynamic: string) => {
-    if (!selectedProject) return
-    try {
-      const res = await fetch(`/api/orbit/${selectedProject.id}/network`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relationshipId, dynamic }),
-      })
-      if (res.ok) {
-        setEditingRelationship(null)
-        fetchNetwork(selectedProject.id)
-      }
-    } catch (err) {
-      console.error('Failed to update relationship:', err)
     }
   }
 
@@ -933,76 +865,6 @@ return (
                 </div>
               </div>
 
-              {/* Relationship Edges */}
-              <div>
-                <h4 className="text-sm font-medium text-continuum-muted mb-3">Relationships</h4>
-                {networkData.edges.length === 0 ? (
-                  <div className="text-center py-4 text-continuum-muted text-sm">No relationships yet.</div>
-                ) : (
-                  <div className="space-y-2">
-                    {networkData.edges.map((edge: any) => {
-                      const typeColors: Record<string, string> = {
-                        allies: 'bg-green-500/20 text-green-400',
-                        rivals: 'bg-red-500/20 text-red-400',
-                        mentor_mentee: 'bg-blue-500/20 text-blue-400',
-                        collaborators: 'bg-purple-500/20 text-purple-400',
-                        frenemies: 'bg-yellow-500/20 text-yellow-400',
-                        complementary: 'bg-cyan-500/20 text-cyan-400',
-                        competitive: 'bg-pink-500/20 text-pink-400',
-                      }
-                      const colorClass = typeColors[edge.relationshipType] || 'bg-gray-500/20 text-gray-400'
-                      return (
-                        <div key={edge.id} className="bg-continuum-surface border border-continuum-border rounded-lg p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-continuum-text">{edge.sourceLabel}</span>
-                              <span className="text-continuum-muted">&harr;</span>
-                              <span className="text-sm font-medium text-continuum-text">{edge.targetLabel}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {editingRelationship === edge.id ? (
-                                <select
-                                  className="bg-continuum-bg border border-continuum-border rounded px-2 py-1 text-xs text-continuum-text"
-                                  defaultValue={edge.relationshipType}
-                                  onChange={(e) => updateRelationship(edge.id, e.target.value)}
-                                  onBlur={() => setEditingRelationship(null)}
-                                  autoFocus
-                                >
-                                  <option value="allies">Allies</option>
-                                  <option value="rivals">Rivals</option>
-                                  <option value="mentor_mentee">Mentor / Mentee</option>
-                                  <option value="collaborators">Collaborators</option>
-                                  <option value="frenemies">Frenemies</option>
-                                  <option value="complementary">Complementary</option>
-                                  <option value="competitive">Competitive</option>
-                                </select>
-                              ) : (
-                                <button
-                                  onClick={() => setEditingRelationship(edge.id)}
-                                  className={`px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}
-                                >
-                                  {edge.relationshipType.replace(/_/g, " ")}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-continuum-muted">
-                            <span>Strength: {edge.strength.toFixed(1)}/10</span>
-                            <span>{edge.interactionCount} interactions</span>
-                            {edge.lastInteraction && <span>Last: {new Date(edge.lastInteraction).toLocaleDateString()}</span>}
-                          </div>
-                          <div className="mt-2 h-1.5 bg-continuum-bg rounded-full overflow-hidden">
-                            <div className="h-full bg-continuum-accent rounded-full" style={{ width: `${edge.strength * 10}%` }} />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="text-xs text-continuum-muted mb-1.5">By Platform</div>
@@ -1052,36 +914,145 @@ return (
           </div>
         )}
 
-        {/* Network Graph */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-continuum-text">Network Map</h3>
-          </div>
-
-          {networkLoading ? (
-            <div className="text-center py-8 text-continuum-muted">Loading network...</div>
-          ) : !networkData || networkData.nodes.length === 0 ? (
-            <div className="text-center py-8 text-continuum-muted">
-              No characters yet. Create an orbit to see the network.
+        
+        {/* Network Map */}
+        {selectedProject && (
+          <div className="rounded-xl bg-continuum-surface border border-continuum-border p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-continuum-text">Network Map</h3>
+              <button
+                onClick={() => fetchNetwork(selectedProject.id)}
+                disabled={networkLoading}
+                className="px-3 py-1.5 text-sm rounded-lg bg-continuum-accent/20 text-continuum-accent hover:bg-continuum-accent/30 disabled:opacity-50"
+              >
+                {networkLoading ? 'Loading...' : 'Refresh'}
+              </button>
             </div>
-          ) : (
-            <div>
-              {/* Network Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                <div className="bg-continuum-surface border border-continuum-border rounded-lg p-3">
-                  <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalCharacters}</div>
-                  <div className="text-xs text-continuum-muted">Characters</div>
+
+            {networkData ? (
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalNodes}</div>
+                    <div className="text-xs text-continuum-muted">Characters</div>
+                  </div>
+                  <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalEdges}</div>
+                    <div className="text-xs text-continuum-muted">Connections</div>
+                  </div>
+                  <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.avgStrength.toFixed(1)}</div>
+                    <div className="text-xs text-continuum-muted">Avg Strength</div>
+                  </div>
+                  <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalInteractions}</div>
+                    <div className="text-xs text-continuum-muted">Interactions</div>
+                  </div>
                 </div>
-                <div className="bg-continuum-surface border border-continuum-border rounded-lg p-3">
-                  <div className="text-2xl font-bold text-blue-400">{networkData.stats.totalRelationships}</div>
-                  <div className="text-xs text-continuum-muted">Relationships</div>
+
+                {/* Highlight Stats */}
+                {networkData.stats.mostConnected && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    <div className="rounded-lg border border-continuum-border p-3">
+                      <div className="text-xs text-continuum-muted mb-1">Most Connected</div>
+                      <div className="text-sm font-medium text-continuum-text">{networkData.stats.mostConnected.name}</div>
+                      <div className="text-xs text-continuum-muted">{networkData.stats.mostConnected.connectionCount} connections</div>
+                    </div>
+                    {networkData.stats.mostActive && (
+                      <div className="rounded-lg border border-continuum-border p-3">
+                        <div className="text-xs text-continuum-muted mb-1">Most Active</div>
+                        <div className="text-sm font-medium text-continuum-text">{networkData.stats.mostActive.name}</div>
+                        <div className="text-xs text-continuum-muted">{networkData.stats.mostActive.interactionCount} interactions</div>
+                      </div>
+                    )}
+                    {networkData.stats.strongestBond && (
+                      <div className="rounded-lg border border-continuum-border p-3">
+                        <div className="text-xs text-continuum-muted mb-1">Strongest Bond</div>
+                        <div className="text-sm font-medium text-continuum-text">{networkData.stats.strongestBond.source} & {networkData.stats.strongestBond.target}</div>
+                        <div className="text-xs text-continuum-muted">Strength: {networkData.stats.strongestBond.strength}/10</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Character Nodes */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-continuum-muted mb-3">Characters</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {networkData.nodes.map((node: any) => (
+                      <div key={node.id} className="flex items-center gap-2 rounded-lg border border-continuum-border p-2 px-3">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: node.color }} />
+                        <div>
+                          <div className="text-sm font-medium text-continuum-text">{node.name}</div>
+                          <div className="text-xs text-continuum-muted">@{node.username} · {node.connectionCount} links · {node.interactionCount} interactions</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="bg-continuum-surface border border-continuum-border rounded-lg p-3">
-                  <div className="text-2xl font-bold text-green-400">{networkData.stats.totalInteractions}</div>
-                  <div className="text-xs text-continuum-muted">Interactions</div>
+
+                {/* Relationship Edges */}
+                <div>
+                  <h4 className="text-sm font-medium text-continuum-muted mb-3">Relationships</h4>
+                  <div className="space-y-2">
+                    {networkData.edges.map((edge: any) => (
+                      <div key={edge.id} className="flex items-center justify-between rounded-lg border border-continuum-border p-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-continuum-text">{edge.source}</span>
+                          <span className="text-xs text-continuum-muted">&harr;</span>
+                          <span className="text-sm text-continuum-text">{edge.target}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {editingRelationship === edge.id ? (
+                            <select
+                              value={edge.dynamic}
+                              onChange={(e) => updateRelationship(edge.id, e.target.value)}
+                              className="text-xs rounded bg-continuum-bg border border-continuum-border text-continuum-text px-2 py-1"
+                            >
+                              <option value="allies">Allies</option>
+                              <option value="rivals">Rivals</option>
+                              <option value="mentor_mentee">Mentor/Mentee</option>
+                              <option value="collaborators">Collaborators</option>
+                              <option value="frenemies">Frenemies</option>
+                              <option value="complementary">Complementary</option>
+                              <option value="competitive">Competitive</option>
+                            </select>
+                          ) : (
+                            <button
+                              onClick={() => setEditingRelationship(edge.id)}
+                              className="text-xs rounded px-2 py-0.5 text-white"
+                              style={{ backgroundColor: edge.color }}
+                            >
+                              {edge.dynamicLabel}
+                            </button>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <div className="w-20 h-1.5 rounded-full bg-continuum-bg overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-continuum-accent"
+                                style={{ width: `${(edge.strength / 10) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-continuum-muted">{edge.strength}/10</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {networkData.edges.length === 0 && (
+                      <div className="text-center py-4 text-continuum-muted text-sm">No relationships yet. Generate interactions first.</div>
+                    )}
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-continuum-muted">
+                {networkLoading ? 'Loading network data...' : 'Click Refresh to load the network map'}
               </div>
-        {/* Cross-Character Interactions */}
+            )}
+          </div>
+        )}
+{/* Cross-Character Interactions */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-continuum-text">Cross-Character Interactions</h3>
@@ -1292,6 +1263,41 @@ return (
 function CharacterCard({ character }: { character: any }) {
   const [expanded, setExpanded] = useState(false)
 
+
+
+  // ============================================
+  // NETWORK GRAPH
+  // ============================================
+
+  const fetchNetwork = async (projectId: string) => {
+    setNetworkLoading(true)
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/network`)
+      if (!res.ok) throw new Error('Failed to fetch network')
+      const data = await res.json()
+      setNetworkData(data)
+    } catch (err) {
+      console.error('Network fetch error:', err)
+    } finally {
+      setNetworkLoading(false)
+    }
+  }
+
+  const updateRelationship = async (relationshipId: string, dynamic: string) => {
+    if (!selectedProject) return
+    try {
+      const res = await fetch(`/api/orbit/${selectedProject.id}/network`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ relationshipId, dynamic })
+      })
+      if (!res.ok) throw new Error('Failed to update relationship')
+      fetchNetwork(selectedProject.id)
+      setEditingRelationship(null)
+    } catch (err) {
+      console.error('Relationship update error:', err)
+    }
+  }
   return (
     <div className="rounded-xl bg-continuum-surface border border-continuum-border overflow-hidden">
       <button

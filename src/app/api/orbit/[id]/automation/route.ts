@@ -37,7 +37,7 @@ export async function GET(
     }
 
     // Default: get publishing queue
-    const statusFilter = searchParams.get('status') || undefined;
+    const statusFilter = (searchParams.get('status') || undefined) as 'draft' | 'all' | 'scheduled' | 'pending_approval' | undefined;
     const queue = await getPublishingQueue(projectId, user.id, statusFilter);
     return NextResponse.json({ queue });
   } catch (error: any) {

@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
 
 // =============================================
 // PRICING PAGE — shows tiers + wallet top-ups
@@ -87,15 +86,10 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
   walletBalance?: number;
   onClose?: () => void;
 }) {
-  const { data: session } = useSession();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleCheckout = async (priceKey: string) => {
-    if (!session) {
-      setError('Please sign in first');
-      return;
-    }
     setLoading(priceKey);
     setError(null);
     try {

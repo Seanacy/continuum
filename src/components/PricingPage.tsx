@@ -133,17 +133,17 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
       position: 'fixed', inset: 0, zIndex: 9999,
       background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      overflowY: 'auto', padding: '40px 20px',
+      overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '20px 20px 100px 20px',
     }}>
       {/* Close button */}
       {onClose && (
         <button onClick={onClose} style={{
-          position: 'fixed', top: 16, right: 20, zIndex: 10000,
-          background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-          color: '#fff', fontSize: 28, borderRadius: '50%',
-          width: 48, height: 48, cursor: 'pointer',
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10000,
+          background: 'rgba(30,30,30,0.98)', borderTop: '1px solid rgba(255,255,255,0.2)', border: 'none',
+          color: '#fff', fontSize: 16, fontWeight: 600, borderRadius: 0,
+          width: '100%', padding: '18px 0', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>×</button>
+        }}>← Back</button>
       )}
 
       {/* Header */}
@@ -279,8 +279,8 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
               }}
             >
               <div style={{ color: '#fff', fontSize: 28, fontWeight: 800 }}>{opt.display}</div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
-                {opt.label}
+              <div style={{ color: currentTier === 'free' ? 'rgba(255,100,100,0.7)' : 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
+                {currentTier === 'free' ? 'Upgrade first' : opt.label}
               </div>
             </button>
           ))}

@@ -287,6 +287,28 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
     return contentPosts.filter((p: any) => p.status === contentFilter)
   }
 
+  function getContentStats() {
+    const total = contentPosts.length
+    const drafts = contentPosts.filter((p: any) => !p.status || p.status === 'draft').length
+    const scheduled = contentPosts.filter((p: any) => p.status === 'scheduled').length
+    const posted = contentPosts.filter((p: any) => p.status === 'posted').length
+    const platforms: Record<string, number> = {}
+    const characters: Record<string, number> = {}
+    const upcoming: any[] = []
+    const now = new Date()
+    contentPosts.forEach((p: any) => {
+      platforms[p.platform] = (platforms[p.platform] || 0) + 1
+      characters[p.characterName] = (characters[p.characterName] || 0) + 1
+      if (p.status === 'scheduled' && p.scheduledFor) {
+        const d = new Date(p.scheduledFor)
+        if (d >= now) upcoming.push(p)
+      }
+    })
+    upcoming.sort((a: any, b: any) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())
+    return { total, drafts, scheduled, posted, platforms, characters, upcoming: upcoming.slice(0, 5) }
+  }
+
+
 
 
   function resetForm() {
@@ -750,6 +772,84 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Orbit Analytics */}
+        {contentPosts.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-continuum-text mb-3 flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-continuum-accent">
+                <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
+              </svg>
+              Content Analytics
+            </h3>
+            <div className="p-4 rounded-xl bg-continuum-surface border border-continuum-border space-y-4">
+              <div className="grid grid-cols-4 gap-3">
+                <div className="text-center p-2 rounded-lg bg-continuum-bg">
+                  <div className="text-lg font-bold text-continuum-text">{getContentStats().total}</div>
+                  <div className="text-xs text-continuum-muted">Total</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-continuum-bg">
+                  <div className="text-lg font-bold text-continuum-muted">{getContentStats().drafts}</div>
+                  <div className="text-xs text-continuum-muted">Drafts</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-continuum-bg">
+                  <div className="text-lg font-bold text-yellow-400">{getContentStats().scheduled}</div>
+                  <div className="text-xs text-continuum-muted">Scheduled</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-continuum-bg">
+                  <div className="text-lg font-bold text-green-400">{getContentStats().posted}</div>
+                  <div className="text-xs text-continuum-muted">Posted</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-continuum-muted mb-1.5">By Platform</div>
+                  <div className="space-y-1">
+                    {Object.entries(getContentStats().platforms).map(([plat, count]) => (
+                      <div key={plat} className="flex items-center justify-between text-xs">
+                        <span className="text-continuum-text">{plat}</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-1.5 rounded-full bg-continuum-accent/30" style={{ width: Math.max(20, (count as number / getContentStats().total) * 80) + 'px' }} />
+                          <span className="text-continuum-muted w-4 text-right">{count as number}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-continuum-muted mb-1.5">By Character</div>
+                  <div className="space-y-1">
+                    {Object.entries(getContentStats().characters).map(([name, count]) => (
+                      <div key={name} className="flex items-center justify-between text-xs">
+                        <span className="text-continuum-text truncate mr-2">{name}</span>
+                        <span className="text-continuum-muted">{count as number}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {getContentStats().upcoming.length > 0 && (
+                <div>
+                  <div className="text-xs text-continuum-muted mb-1.5">Upcoming Scheduled</div>
+                  <div className="space-y-1">
+                    {getContentStats().upcoming.map((p: any) => (
+                      <div key={p.id} className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-continuum-bg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-yellow-400/60">&#9679;</span>
+                          <span className="text-continuum-text truncate">{p.characterName}</span>
+                          <span className="text-continuum-muted">{p.platform}</span>
+                        </div>
+                        <span className="text-continuum-muted/60">{new Date(p.scheduledFor).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

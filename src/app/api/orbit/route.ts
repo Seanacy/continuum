@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         estimate: {
           characterCount,
           objective,
-          ...estimate,
+          costEstimate: estimate,
         },
         message: 'Send confirm: true to proceed with generation',
       })

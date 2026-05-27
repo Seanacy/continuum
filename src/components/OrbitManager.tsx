@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import OrbitAutomationPanel from '@/components/OrbitAutomationPanel'
 import OrbitContentFeed from '@/components/OrbitContentFeed'
+import OrbitCampaignManager from '@/components/OrbitCampaignManager'
 
 // ============================================
 // TYPES
@@ -1470,6 +1471,12 @@ return (
           projectId={selectedProject.id}
           characters={selectedProject.characters}
         />
+
+      {/* CAMPAIGN MANAGER */}
+      <OrbitCampaignManager
+        projectId={selectedProject.id}
+        characters={selectedProject.characters}
+      />
       </div>
     )
   }

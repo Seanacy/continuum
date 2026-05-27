@@ -418,7 +418,11 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
           }
           if (onGoToChat) onGoToChat()
         }}
-        onCancel={() => { setAiCreatorMode(null); setAiCreatorScope(null); setPendingAiMode(null); setAutoSpecs(''); setAutoSpecsCollected(false) }}
+        onCancel={() => {
+          setAiCreatorMode(null); setAiCreatorScope(null); setPendingAiMode(null); setAutoSpecs(''); setAutoSpecsCollected(false);
+          setStep('list');
+          fetch('/api/characters/mine').then(r => r.ok ? r.json() : null).then(d => { if (d?.characters) setAllCharacters(d.characters) }).catch(() => {})
+        }}
       />
     )
   }

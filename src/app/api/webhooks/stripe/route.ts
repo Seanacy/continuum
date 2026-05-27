@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object as any;
         const userId = session.metadata?.userId;
         if (!userId) break;
 
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
       case 'invoice.paid': {
         // Recurring subscription payment succeeded — keep tier active
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object as any;
         const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
         const priceId = sub.items.data[0]?.price.id;
         const tier = PRICE_TO_TIER[priceId] || 'free';
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.deleted': {
         // Subscription canceled — downgrade to free
-        const sub = event.data.object as Stripe.Subscription;
+        const sub = event.data.object as any;
         const customerId = sub.customer as string;
 
         const user = await db.user.findFirst({

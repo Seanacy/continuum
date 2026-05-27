@@ -110,6 +110,42 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [networkLoading, setNetworkLoading] = useState(false)
   const [editingRelationship, setEditingRelationship] = useState<string | null>(null)
 
+  // ============================================
+  // NETWORK GRAPH
+  // ============================================
+
+  const fetchNetwork = async (projectId: string) => {
+    setNetworkLoading(true)
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/network`)
+      if (!res.ok) throw new Error('Failed to fetch network')
+      const data = await res.json()
+      setNetworkData(data)
+    } catch (err) {
+      console.error('Network fetch error:', err)
+    } finally {
+      setNetworkLoading(false)
+    }
+  }
+
+  const updateRelationship = async (relationshipId: string, dynamic: string) => {
+    if (!selectedProject) return
+    try {
+      const res = await fetch(`/api/orbit/${selectedProject.id}/network`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ relationshipId, dynamic })
+      })
+      if (!res.ok) throw new Error('Failed to update relationship')
+      fetchNetwork(selectedProject.id)
+      setEditingRelationship(null)
+    } catch (err) {
+      console.error('Relationship update error:', err)
+    }
+  }
+
+
+
 
   useEffect(() => {
     loadProjects()
@@ -352,6 +388,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
       console.error('Failed to fetch interactions:', err)
     }
   }
+
 
   const generateInteractions = async () => {
     if (!selectedProject || generatingInteractions) return
@@ -1262,42 +1299,6 @@ return (
 
 function CharacterCard({ character }: { character: any }) {
   const [expanded, setExpanded] = useState(false)
-
-
-
-  // ============================================
-  // NETWORK GRAPH
-  // ============================================
-
-  const fetchNetwork = async (projectId: string) => {
-    setNetworkLoading(true)
-    try {
-      const res = await fetch(`/api/orbit/${projectId}/network`)
-      if (!res.ok) throw new Error('Failed to fetch network')
-      const data = await res.json()
-      setNetworkData(data)
-    } catch (err) {
-      console.error('Network fetch error:', err)
-    } finally {
-      setNetworkLoading(false)
-    }
-  }
-
-  const updateRelationship = async (relationshipId: string, dynamic: string) => {
-    if (!selectedProject) return
-    try {
-      const res = await fetch(`/api/orbit/${selectedProject.id}/network`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relationshipId, dynamic })
-      })
-      if (!res.ok) throw new Error('Failed to update relationship')
-      fetchNetwork(selectedProject.id)
-      setEditingRelationship(null)
-    } catch (err) {
-      console.error('Relationship update error:', err)
-    }
-  }
   return (
     <div className="rounded-xl bg-continuum-surface border border-continuum-border overflow-hidden">
       <button

@@ -103,6 +103,10 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [contentFilter, setContentFilter] = useState<'all' | 'draft' | 'scheduled' | 'posted'>('all')
   const [schedulingPostId, setSchedulingPostId] = useState<string | null>(null)
   const [scheduleDate, setScheduleDate] = useState('')
+  const [interactions, setInteractions] = useState<any[]>([])
+  const [interactionsLoading, setInteractionsLoading] = useState(false)
+  const [generatingInteractions, setGeneratingInteractions] = useState(false)
+
 
   useEffect(() => {
     loadProjects()
@@ -128,6 +132,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
       setSelectedProject(data.project)
       setView('detail')
       await loadContent(id)
+      fetchInteractions(id)
     } catch {
       setError('Failed to load project detail')
     }
@@ -327,7 +332,58 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   // RENDER
   // ============================================
 
-  return (
+  
+  // ============================================
+  // INTERACTIONS
+  // ============================================
+
+  const fetchInteractions = async (projectId: string) => {
+    try {
+      const res = await fetch(`/api/orbit/${projectId}/interactions`)
+      if (res.ok) {
+        const data = await res.json()
+        setInteractions(data.interactions || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch interactions:', err)
+    }
+  }
+
+  const generateInteractions = async () => {
+    if (!selectedProject || generatingInteractions) return
+    setGeneratingInteractions(true)
+    try {
+      const res = await fetch(`/api/orbit/${selectedProject.id}/interactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 3 }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setInteractions(prev => [...prev, ...data.interactions])
+      }
+    } catch (err) {
+      console.error('Failed to generate interactions:', err)
+    } finally {
+      setGeneratingInteractions(false)
+    }
+  }
+
+  const deleteInteraction = async (interactionId: string) => {
+    if (!selectedProject) return
+    try {
+      const res = await fetch(`/api/orbit/${selectedProject.id}/interactions?interactionId=${interactionId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setInteractions(prev => prev.filter(i => i.id !== interactionId))
+      }
+    } catch (err) {
+      console.error('Failed to delete interaction:', err)
+    }
+  }
+
+return (
     <div className="fixed inset-0 z-50 bg-continuum-bg/95 backdrop-blur-sm flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-continuum-border">
@@ -853,6 +909,66 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+
+        {/* Cross-Character Interactions */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-continuum-text">Cross-Character Interactions</h3>
+            <button
+              onClick={generateInteractions}
+              disabled={generatingInteractions}
+              className="px-3 py-1.5 bg-continuum-accent/20 text-continuum-accent rounded-lg text-xs hover:bg-continuum-accent/30 disabled:opacity-50"
+            >
+              {generatingInteractions ? 'Generating...' : 'Generate Interactions'}
+            </button>
+          </div>
+          <p className="text-xs text-continuum-muted mb-3">AI characters commenting, replying, and collaborating with each other</p>
+          
+          {interactions.length === 0 ? (
+            <div className="text-center py-6 bg-continuum-surface/50 rounded-lg border border-continuum-border/30">
+              <p className="text-continuum-muted text-sm">No interactions yet</p>
+              <p className="text-continuum-muted/60 text-xs mt-1">Generate interactions to make your orbit feel alive</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {interactions.map((interaction: any) => (
+                <div key={interaction.id} className="bg-continuum-surface/50 rounded-lg border border-continuum-border/30 p-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        interaction.type === 'comment' ? 'bg-blue-500/20 text-blue-400' :
+                        interaction.type === 'reply' ? 'bg-green-500/20 text-green-400' :
+                        interaction.type === 'shoutout' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-purple-500/20 text-purple-400'
+                      }`}>
+                        {interaction.type}
+                      </span>
+                      <span className="text-xs text-continuum-muted">{interaction.platform}</span>
+                    </div>
+                    <button
+                      onClick={() => deleteInteraction(interaction.id)}
+                      className="text-continuum-muted hover:text-red-400 text-xs"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="text-xs text-continuum-accent mb-1">
+                    {interaction.fromCharacterName} → {interaction.toCharacterName}
+                  </div>
+                  {interaction.postPreview && (
+                    <div className="text-xs text-continuum-muted/60 italic mb-2 pl-2 border-l-2 border-continuum-border/30">
+                      Re: "{interaction.postPreview}..."
+                    </div>
+                  )}
+                  <p className="text-sm text-continuum-text/90">{interaction.content}</p>
+                  <div className="text-xs text-continuum-muted/50 mt-2">
+                    {new Date(interaction.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Content Generation */}
         <div>

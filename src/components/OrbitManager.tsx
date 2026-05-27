@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import OrbitAutomationPanel from '@/components/OrbitAutomationPanel'
 import OrbitContentFeed from '@/components/OrbitContentFeed'
 import OrbitCampaignManager from '@/components/OrbitCampaignManager'
+import OrbitAnalyticsDashboard from '@/components/OrbitAnalyticsDashboard'
 
 // ============================================
 // TYPES
@@ -1477,6 +1478,9 @@ return (
         projectId={selectedProject.id}
         characters={selectedProject.characters.map((c: any) => ({ id: c.id, name: c.name, role: c.roleType }))}
       />
+
+      {/* PERFORMANCE ANALYTICS */}
+      <OrbitAnalyticsDashboard projectId={selectedProject.id} />
       </div>
     )
   }

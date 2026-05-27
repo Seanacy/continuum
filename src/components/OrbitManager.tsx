@@ -511,10 +511,10 @@ return (
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-continuum-border">
         <div className="flex items-center gap-3">
-          {view !== 'list' && (
             <button
               onClick={() => {
-                if (view === 'create') resetForm()
+                if (view === 'list') onClose()
+                else if (view === 'create') resetForm()
                 else { setView('list'); setSelectedProject(null) }
               }}
               className="p-1.5 rounded-lg hover:bg-continuum-surface text-continuum-muted"
@@ -523,7 +523,6 @@ return (
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-          )}
           <h2 className="text-lg font-semibold text-continuum-accent">
             {view === 'list' ? 'Orbit Network' : view === 'create' ? 'Create Orbit' : selectedProject?.name || 'Project'}
           </h2>

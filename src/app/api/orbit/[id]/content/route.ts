@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import { generateOrbitContent, getOrbitContent, deleteOrbitPost } from '@/lib/orbit-content'
+import { generateOrbitContent, getOrbitContent, deleteOrbitPost, updateOrbitPost, scheduleOrbitPost, getOrbitPostsByStatus } from '@/lib/orbit-content'
 
 // GET /api/orbit/[id]/content — fetch generated content for an orbit project
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -59,5 +59,38 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Failed to delete post' }, { status: 500 })
+  }
+}
+
+
+// PATCH /api/orbit/[id]/content — update a post (schedule, edit, change status)
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await req.json()
+    const { postId, content, status, scheduledFor } = body
+
+    if (!postId) {
+      return NextResponse.json({ error: 'postId required' }, { status: 400 })
+    }
+
+    // If scheduling, use the dedicated function
+    if (status === 'scheduled' && scheduledFor) {
+      await scheduleOrbitPost(params.id, user.id, postId, scheduledFor)
+    } else {
+      await updateOrbitPost(params.id, user.id, postId, {
+        ...(content !== undefined ? { content } : {}),
+        ...(status !== undefined ? { status } : {}),
+        ...(scheduledFor !== undefined ? { scheduledFor } : {}),
+      })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Failed to update post' }, { status: 500 })
   }
 }

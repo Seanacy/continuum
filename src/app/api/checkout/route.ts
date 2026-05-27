@@ -3,8 +3,7 @@ import { db } from '@/lib/db';
 import Stripe from 'stripe';
 import { getCurrentUser } from '@/lib/auth';
 
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+export const dynamic = 'force-dynamic';
 
 // Stripe Price IDs — set these in your Vercel env vars
 const PRICE_MAP: Record<string, string> = {
@@ -33,40 +32,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get or create Stripe customer
-    let customerId = user.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { userId: user.id },
-      });
-      customerId = customer.id;
-      await db.user.update({
-        where: { id: user.id },
-        data: { stripeCustomerId: customerId },
-      });
-    }
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-    const isSubscription = priceKey === 'creator' || priceKey === 'studio';
-    const origin = req.headers.get('origin') || 'https://continuum-app.vercel.app';
+    const isWallet = priceKey.startsWith('wallet_');
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://continuum-app.vercel.app';
 
     const checkoutSession = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: isSubscription ? 'subscription' : 'payment',
+      mode: isWallet ? 'payment' : 'subscription',
+      payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/?checkout=canceled`,
-      metadata: {
-        userId: user.id,
-        priceKey,
-      },
+      success_url: baseUrl + '?checkout=success',
+      cancel_url: baseUrl + '?checkout=cancel',
+      metadata: { userId: user.id, priceKey },
+      ...(user.stripeCustomerId ? { customer: user.stripeCustomerId } : { customer_email: user.email || undefined }),
     });
 
     return NextResponse.json({ url: checkoutSession.url });
-  } catch (error: any) {
-    console.error('Checkout error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (err: any) {
+    console.error('Checkout error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-export const dynamic = 'force-dynamic';

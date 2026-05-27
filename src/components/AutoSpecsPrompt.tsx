@@ -26,7 +26,7 @@ export default function AutoSpecsPrompt({
   return (
     <div className="h-full overflow-y-auto p-4 pb-8">
       <div className="max-w-xl mx-auto text-center">
-        <span className="text-5xl block mb-4">{emoji}</span>
+        <span className="text-5xl block mb-4">{emoji?.startsWith?.("\\u") ? String.fromCodePoint(parseInt(emoji.slice(2), 16)) : emoji}</span>
         <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
         <p className="text-sm text-continuum-muted mb-8">{subtitle}</p>
 

@@ -103,9 +103,7 @@ export async function getOrbitNetwork(
   const relationships = allRels.filter((r: any) => { if (seenIds.has(r.id)) return false; seenIds.add(r.id); return true; })
 
   // Get interactions from strategy table
-  const strategy = await db.strategyTable.findFirst({
-    where: { projectId, userId },
-  });
+  const strategy = (project as any).strategyTable || [];
 
   const interactions = (strategy?.interactions as any[] | null) || [];
 

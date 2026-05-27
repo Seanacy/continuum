@@ -15,6 +15,8 @@ export interface OrbitPost {
   hashtags: string[]
   tone: string
   createdAt: string
+  status: 'draft' | 'scheduled' | 'posted'
+  scheduledFor?: string
 }
 
 export interface GenerateContentInput {
@@ -152,6 +154,7 @@ Only return the JSON array, nothing else.`
               hashtags: post.hashtags || [],
               tone: post.tone || 'neutral',
               createdAt: new Date().toISOString(),
+              status: 'draft' as const,
             })
           }
         }
@@ -223,4 +226,115 @@ export async function deleteOrbitPost(projectId: string, userId: string, postId:
       } as any,
     },
   })
+}
+
+
+// ============================================
+// SCHEDULE CONTENT
+// ============================================
+
+export async function scheduleOrbitPost(
+  projectId: string,
+  userId: string,
+  postId: string,
+  scheduledFor: string
+): Promise<void> {
+  const project = await db.orbitProject.findFirst({
+    where: { id: projectId, userId },
+  })
+
+  if (!project) {
+    throw new Error('Orbit project not found')
+  }
+
+  const strategyTable = project.strategyTable as any
+  const content = strategyTable?.generatedContent || []
+  const updated = content.map((p: any) =>
+    p.id === postId ? { ...p, status: 'scheduled', scheduledFor } : p
+  )
+
+  await db.orbitProject.update({
+    where: { id: projectId },
+    data: {
+      strategyTable: {
+        ...(strategyTable || {}),
+        generatedContent: updated,
+      } as any,
+    },
+  })
+}
+
+// ============================================
+// UPDATE POST (edit content, change status)
+// ============================================
+
+export async function updateOrbitPost(
+  projectId: string,
+  userId: string,
+  postId: string,
+  updates: { content?: string; status?: string; scheduledFor?: string | null }
+): Promise<void> {
+  const project = await db.orbitProject.findFirst({
+    where: { id: projectId, userId },
+  })
+
+  if (!project) {
+    throw new Error('Orbit project not found')
+  }
+
+  const strategyTable = project.strategyTable as any
+  const existing = strategyTable?.generatedContent || []
+  const updated = existing.map((p: any) => {
+    if (p.id !== postId) return p
+    return {
+      ...p,
+      ...(updates.content !== undefined ? { content: updates.content } : {}),
+      ...(updates.status !== undefined ? { status: updates.status } : {}),
+      ...(updates.scheduledFor !== undefined ? { scheduledFor: updates.scheduledFor } : {}),
+    }
+  })
+
+  await db.orbitProject.update({
+    where: { id: projectId },
+    data: {
+      strategyTable: {
+        ...(strategyTable || {}),
+        generatedContent: updated,
+      } as any,
+    },
+  })
+}
+
+// ============================================
+// GET POSTS BY STATUS
+// ============================================
+
+export async function getOrbitPostsByStatus(
+  projectId: string,
+  userId: string,
+  status: string
+): Promise<OrbitPost[]> {
+  const project = await db.orbitProject.findFirst({
+    where: { id: projectId, userId },
+  })
+
+  if (!project) {
+    throw new Error('Orbit project not found')
+  }
+
+  const strategyTable = project.strategyTable as any
+  const all = strategyTable?.generatedContent || []
+  return all.filter((p: any) => p.status === status)
+}
+
+// ============================================
+// MARK POST AS POSTED
+// ============================================
+
+export async function markOrbitPostPosted(
+  projectId: string,
+  userId: string,
+  postId: string
+): Promise<void> {
+  await updateOrbitPost(projectId, userId, postId, { status: 'posted' })
 }

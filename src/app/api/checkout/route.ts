@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import Stripe from 'stripe';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
@@ -17,8 +17,8 @@ const PRICE_MAP: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await getCurrentUser();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid price key' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await db.user.findUnique({ where: { id: session.id } });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         metadata: { userId: user.id },
       });
       customerId = customer.id;
-      await prisma.user.update({
+      await db.user.update({
         where: { id: user.id },
         data: { stripeCustomerId: customerId },
       });

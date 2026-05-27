@@ -48,6 +48,7 @@ model User {
   businesses         Business[]
   facebookAccounts   FacebookAccount[]
   adCampaigns        AdCampaign[]
+  orbitProjects      OrbitProject[]
 
   // Wallet system — dollar balance stored in cents ($5.00 = 500)
   walletBalance   Int    @default(0) @map("wallet_balance")    // balance in cents
@@ -611,4 +612,78 @@ model ImageGeneration {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("image_generations")
+}
+
+
+// ============================================
+// CONTINUUM ORBIT: MULTI-AI INFLUENCER NETWORK
+// ============================================
+
+model OrbitProject {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String   // project name
+  websiteUrl      String?  @map("website_url")
+  description     String   @db.Text
+  industry        String?  // niche or industry
+  targetAudience  String?  @map("target_audience") @db.Text
+  objective       String   @default("awareness") // awareness, traffic, signups, sales, audience_growth
+  characterCount  Int      @default(6) @map("character_count") // 3 or 6
+  strategyTable   Json     @default("[]") @map("strategy_table") // [{character, role, contentAngle, goal}]
+  status          String   @default("draft") // draft, generating, active, paused, archived
+  totalCostCents  Int      @default(0) @map("total_cost_cents") // total spent generating this orbit
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  characters      OrbitCharacter[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("orbit_projects")
+}
+
+model OrbitCharacter {
+  id              String   @id @default(cuid())
+  projectId       String   @map("project_id")
+  project         OrbitProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roleType        String   @map("role_type") // main_character, builder, chaos, expert, mystery, social_connector
+  name            String
+  username        String?  // suggested social handle
+  appearance      Json     @default("{}") // physical appearance, visual style
+  personality     Json     @default("{}") // traits, speech patterns, emotional tendencies, values, goals, strengths, flaws
+  behavior        Json     @default("{}") // posting style, humor, social behavior, reaction patterns, confidence
+  contentProfile  Json     @default("{}") @map("content_profile") // themes, angles, hooks, formats, catchphrases, viral triggers
+  imagePrompt     String?  @map("image_prompt") @db.Text // prompt for generating profile images
+  profileImages   Json     @default("[]") @map("profile_images") // up to 6 image URLs
+  contentAngle    String?  @map("content_angle") // unique content angle (from strategy table)
+  goal            String?  // character's goal aligned to project objective
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  relationshipsAsA OrbitRelationship[] @relation("orbitRelA")
+  relationshipsAsB OrbitRelationship[] @relation("orbitRelB")
+
+  @@index([projectId])
+  @@index([roleType])
+  @@map("orbit_characters")
+}
+
+model OrbitRelationship {
+  id              String   @id @default(cuid())
+  characterAId    String   @map("character_a_id")
+  characterA      OrbitCharacter @relation("orbitRelA", fields: [characterAId], references: [id], onDelete: Cascade)
+  characterBId    String   @map("character_b_id")
+  characterB      OrbitCharacter @relation("orbitRelB", fields: [characterBId], references: [id], onDelete: Cascade)
+  relationshipType String  @map("relationship_type") // friend, rival, collaborator, mentor, subordinate, mysterious_connection, hidden_tension
+  description     String?  @db.Text // narrative description of the relationship
+  interactionIdeas Json    @default("[]") @map("interaction_ideas") // content ideas born from this relationship
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([characterAId, characterBId])
+  @@index([characterAId])
+  @@index([characterBId])
+  @@map("orbit_relationships")
 }

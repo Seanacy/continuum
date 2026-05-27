@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
              VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7), to_timestamp($8), NOW(), NOW())
              ON CONFLICT (stripe_sub_id) DO UPDATE SET status = $6, tier = $5, current_period_start = to_timestamp($7), current_period_end = to_timestamp($8), updated_at = NOW()`,
             cuid(), userId, sub.id, priceId, tier, sub.status,
-            sub.current_period_start, sub.current_period_end
+            (sub as any).current_period_start, (sub as any).current_period_end
           );
         } else {
           // One-time payment — wallet top-up

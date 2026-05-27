@@ -54,7 +54,7 @@ export async function DELETE(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Verify ownership before deleting
-    const project = await getOrbitProject(params.id)
+    const project = await getOrbitProject(params.id, user.id)
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })

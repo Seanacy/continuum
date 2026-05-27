@@ -73,8 +73,12 @@ export async function getOrbitNetwork(
   const project = await db.orbitProject.findFirst({
     where: { id: projectId, userId },
     include: {
-      characters: true,
-      relationships: true,
+      characters: {
+        include: {
+          relationshipsAsA: true,
+          relationshipsAsB: true,
+        }
+      }
     },
   });
 
@@ -94,7 +98,9 @@ export async function getOrbitNetwork(
   }
 
   const characters = project.characters as any[];
-  const relationships = project.relationships as any[];
+  const allRels = (characters as any[]).flatMap((c: any) => [...(c.relationshipsAsA || []), ...(c.relationshipsAsB || [])]);
+  const seenIds = new Set<string>();
+  const relationships = allRels.filter((r: any) => { if (seenIds.has(r.id)) return false; seenIds.add(r.id); return true; })
 
   // Get interactions from strategy table
   const strategy = await db.strategyTable.findFirst({

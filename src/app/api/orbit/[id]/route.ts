@@ -22,7 +22,7 @@ export async function GET(
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const project = await getOrbitProject(params.id)
+    const project = await getOrbitProject(params.id, user.id)
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
@@ -64,7 +64,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await deleteOrbitProject(params.id)
+    await deleteOrbitProject(params.id, user.id)
 
     return NextResponse.json({ success: true })
   } catch (err) {

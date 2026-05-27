@@ -285,7 +285,7 @@ Consider how the characters can play off each other based on their relationships
   });
 
   try {
-    const suggestions = JSON.parse(response);
+    const suggestions = JSON.parse(response.content);
     return suggestions as StrategySuggestion[];
   } catch {
     return project.characters.map((char: any) => ({

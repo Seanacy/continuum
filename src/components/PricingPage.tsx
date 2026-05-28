@@ -132,7 +132,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
       display: 'flex', flexDirection: 'column',
-      background: 'rgba(0,0,0,0.92)',
+      background: 'rgba(20,20,24,0.95)',
     }}>
       <div style={{
         flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
@@ -144,7 +144,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
           <h1 style={{
             fontSize: 36, fontWeight: 800, color: '#fff',
             margin: '0 0 8px 0',
-            background: 'linear-gradient(135deg, #a78bfa, #60a5fa)',
+            background: 'linear-gradient(135deg, #4f5de6, #6366f1)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>Choose Your Plan</h1>
           <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, margin: 0 }}>
@@ -170,10 +170,10 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
             return (
               <div key={tier.id} style={{
                 background: isPopular
-                  ? 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(96,165,250,0.15))'
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(96,165,250,0.15))'
                   : 'rgba(255,255,255,0.05)',
                 border: isPopular
-                  ? '2px solid rgba(167,139,250,0.5)'
+                  ? '2px solid rgba(99,102,241,0.5)'
                   : '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 16, padding: 28, width: 280,
                 position: 'relative', transition: 'transform 0.2s',
@@ -181,7 +181,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
                 {isPopular && (
                   <div style={{
                     position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                    background: 'linear-gradient(135deg, #a78bfa, #60a5fa)',
+                    background: 'linear-gradient(135deg, #4f5de6, #6366f1)',
                     color: '#fff', fontSize: 12, fontWeight: 700,
                     padding: '4px 14px', borderRadius: 20,
                   }}>MOST POPULAR</div>
@@ -224,7 +224,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
                     background: isCurrentTier
                       ? 'rgba(255,255,255,0.1)'
                       : isPopular
-                        ? 'linear-gradient(135deg, #a78bfa, #60a5fa)'
+                        ? 'linear-gradient(135deg, #4f5de6, #6366f1)'
                         : 'rgba(255,255,255,0.1)',
                     color: isCurrentTier
                       ? 'rgba(255,255,255,0.4)'
@@ -249,7 +249,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: '0 0 8px 0' }}>
             Pay-as-you-go for image generation, video creation, and premium features
           </p>
-          <p style={{ color: '#a78bfa', fontSize: 18, fontWeight: 600, margin: '0 0 24px 0' }}>
+          <p style={{ color: '#818cf8', fontSize: 18, fontWeight: 600, margin: '0 0 24px 0' }}>
             Current balance: ${(walletBalance / 100).toFixed(2)}
           </p>
 
@@ -300,7 +300,7 @@ export default function PricingPage({ currentTier = 'free', walletBalance = 0, o
       {onClose && (
         <button onClick={onClose} style={{
           flexShrink: 0,
-          background: 'rgba(30,30,30,0.98)',
+          background: 'rgba(26,27,34,0.98)',
           border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)',
           color: '#fff', fontSize: 16, fontWeight: 600,
           padding: '18px 0',

@@ -29,84 +29,26 @@ input, textarea {
 }
 
 /* ============================================
-   Fuzzy Glow Chat Bubbles
+   Chat Bubbles — Clean Professional
    ============================================ */
 
 .bubble-ai {
-  position: relative;
-  background: rgba(99, 102, 241, 0.12);
-  border: none;
-  box-shadow:
-    0 0 30px rgba(99, 102, 241, 0.6),
-    0 0 60px rgba(99, 102, 241, 0.4),
-    0 0 120px rgba(99, 102, 241, 0.25),
-    0 0 200px rgba(99, 102, 241, 0.12),
-    0 0 300px rgba(99, 102, 241, 0.06);
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
-}
-
-.bubble-ai::before {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.35), rgba(99, 102, 241, 0.12) 40%, transparent 70%);
-  filter: blur(40px);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.bubble-ai::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.2), transparent 60%);
-  filter: blur(16px);
-  z-index: -1;
-  pointer-events: none;
+  background: rgba(26, 27, 34, 0.75);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-left: 2px solid rgba(99, 102, 241, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .bubble-user {
-  position: relative;
-  background: rgba(26, 27, 34, 0.5);
-  border: none;
-  box-shadow:
-    0 0 20px rgba(30, 32, 40, 0.6),
-    0 0 50px rgba(30, 32, 40, 0.4),
-    0 0 100px rgba(30, 32, 40, 0.25),
-    0 0 160px rgba(30, 32, 40, 0.12);
+  background: rgba(99, 102, 241, 0.16);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-.bubble-user::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06), transparent 60%);
-  filter: blur(25px);
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Thinking/loading bubble gets the AI glow too */
+/* Thinking/loading bubble */
 .bubble-thinking {
-  position: relative;
   background: rgba(26, 27, 34, 0.5);
-  border: none;
-  box-shadow:
-    0 0 20px rgba(30, 32, 40, 0.6),
-    0 0 50px rgba(30, 32, 40, 0.4),
-    0 0 100px rgba(30, 32, 40, 0.25);
-}
-
-.bubble-thinking::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  border-radius: inherit;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06), transparent 60%);
-  filter: blur(25px);
-  z-index: -1;
-  pointer-events: none;
+  border: 1px solid rgba(99, 102, 241, 0.08);
+  border-left: 2px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }

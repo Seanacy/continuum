@@ -286,7 +286,7 @@ export default function VisualCreator({
                 width: `${(filledTraits / totalTraits) * 100}%`,
                 background: filledTraits === totalTraits
                   ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                  : 'linear-gradient(90deg, #8b5cf6, #a78bfa)',
+                  : 'linear-gradient(90deg, #6366f1, #818cf8)',
               }}
             />
           </div>
@@ -422,7 +422,7 @@ export default function VisualCreator({
 
         {/* Gemini Generation Prompts */}
         <div className="space-y-3">
-          <h4 className="text-sm font-bold text-purple-300">Gemini Image Generation Prompts</h4>
+          <h4 className="text-sm font-bold text-indigo-300">Gemini Image Generation Prompts</h4>
           <p className="text-xs text-continuum-muted mb-2">
             These prompts are used one at a time, in order. Each one builds on the image created by the previous prompt. Stay in the same Gemini conversation.
           </p>
@@ -575,7 +575,7 @@ export default function VisualCreator({
                 width: `${(uploadedCount / 6) * 100}%`,
                 background: uploadedCount === 6
                   ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                  : 'linear-gradient(90deg, #8b5cf6, #a78bfa)',
+                  : 'linear-gradient(90deg, #6366f1, #818cf8)',
               }}
             />
           </div>

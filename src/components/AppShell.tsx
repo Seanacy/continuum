@@ -53,7 +53,7 @@ export default function AppShell({
         </div>
         {/* Centered app name */}
         <span
-          className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none"
+          className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none hidden sm:inline"
           style={{ textShadow: '0 0 8px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.6), 0 0 45px rgba(99, 102, 241, 0.4), 0 0 80px rgba(99, 102, 241, 0.25), 0 0 120px rgba(99, 102, 241, 0.12)' }}
         >
           Continuum

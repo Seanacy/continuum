@@ -37,7 +37,7 @@ export default function AppShell({
           {activeView === 'chat' && onPartnerModeToggle && (
             <button
               onClick={onPartnerModeToggle}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                 partnerMode
                   ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400'
                   : 'bg-continuum-surface border border-continuum-border text-continuum-muted hover:border-amber-500/30 hover:text-amber-400/70'
@@ -47,13 +47,13 @@ export default function AppShell({
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
-              Partner
+              <span className="hidden sm:inline ml-1">Partner</span>
             </button>
           )}
         </div>
         {/* Centered app name */}
         <span
-          className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none hidden sm:inline"
+          className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-widest uppercase text-white pointer-events-none select-none"
           style={{ textShadow: '0 0 8px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.6), 0 0 45px rgba(99, 102, 241, 0.4), 0 0 80px rgba(99, 102, 241, 0.25), 0 0 120px rgba(99, 102, 241, 0.12)' }}
         >
           Continuum

@@ -225,7 +225,7 @@ export default function BuildAssistant({ character, onBack }: Props) {
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   saved
                     ? 'bg-green-500/20 text-green-400'
-                    : 'bg-purple-600 text-white hover:bg-purple-500'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-500'
                 }`}
               >
                 {saving ? 'Saving...' : saved ? '✓ Saved!' : '💾 Save to Character'}
@@ -266,8 +266,8 @@ export default function BuildAssistant({ character, onBack }: Props) {
                           </p>
                         </div>
                         {section.customText && (
-                          <div className="mt-2 p-2 rounded bg-purple-500/10 border border-purple-500/20">
-                            <p className="text-xs text-purple-300">
+                          <div className="mt-2 p-2 rounded bg-indigo-500/10 border border-indigo-500/20">
+                            <p className="text-xs text-indigo-300">
                               ✏️ Custom: {section.customText}
                             </p>
                           </div>

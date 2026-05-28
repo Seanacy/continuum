@@ -181,7 +181,7 @@ export default function AdsView() {
       pending: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       draft: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
       failed: 'bg-red-500/20 text-red-400 border-red-500/30',
-      completed: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+      completed: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
     }
     return colors[status] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'
   }

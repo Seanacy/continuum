@@ -100,7 +100,7 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  reflection: 'text-purple-400',
+  reflection: 'text-indigo-400',
   memory_echo: 'text-blue-400',
   state_report: 'text-green-400',
   thread_update: 'text-yellow-400',
@@ -110,7 +110,7 @@ const TYPE_COLORS: Record<string, string> = {
   daily_brief: 'text-amber-400',
   curated_find: 'text-teal-400',
   video_script: 'text-indigo-400',
-  echo_connection: 'text-violet-400',
+  echo_connection: 'text-indigo-400',
 }
 
 const SOURCE_ICONS: Record<string, string> = {
@@ -855,12 +855,12 @@ function EchoConnectionCard({ item }: { item: FeedItem }) {
   return (
     <div
       className={`rounded-xl border overflow-hidden transition ${
-        item.seen ? 'bg-continuum-surface border-continuum-border' : 'bg-continuum-surface border-violet-500/30'
+        item.seen ? 'bg-continuum-surface border-continuum-border' : 'bg-continuum-surface border-indigo-500/30'
       }`}
     >
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-medium text-violet-400">Echo Match</span>
+          <span className="text-xs font-medium text-indigo-400">Echo Match</span>
           <span className="text-xs text-continuum-muted">{timeAgo}</span>
         </div>
         <p className="text-sm text-continuum-text leading-relaxed">{data.message}</p>
@@ -871,7 +871,7 @@ function EchoConnectionCard({ item }: { item: FeedItem }) {
           <button
             onClick={() => handleAction('accepted')}
             disabled={responding}
-            className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition disabled:opacity-50"
+            className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition disabled:opacity-50"
           >
             {responding ? '...' : 'Connect'}
           </button>

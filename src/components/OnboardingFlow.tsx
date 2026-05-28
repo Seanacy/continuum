@@ -231,7 +231,7 @@ export default function OnboardingFlow({
         {/* Personal section */}
         {hasPersonal && (
           <div className="w-full rounded-xl border border-continuum-border bg-continuum-surface p-4 mb-4 text-left">
-            <h3 className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-3">About You</h3>
+            <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">About You</h3>
             <InfoRow label="Name" value={scraped.personal.name} />
             <InfoRow label="Location" value={scraped.personal.location} />
             <InfoRow label="Background" value={scraped.personal.background} />

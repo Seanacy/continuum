@@ -222,8 +222,8 @@ export default function RemindersPanel({ character, onBack }: Props) {
             </div>
 
             {/* Info Box */}
-            <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
-              <p className="text-xs text-purple-300">
+            <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+              <p className="text-xs text-indigo-300">
                 🔔 Reminders help you stay consistent with your character&apos;s personality. You&apos;ll get
                 a notification with your selected traits so every piece of content stays on-brand.
               </p>
@@ -270,7 +270,7 @@ export function ReminderNotification({ character }: { character: CharacterData |
   const freqLabel = FREQUENCIES.find(f => f.value === rem?.frequency)?.label || 'Daily'
 
   return (
-    <div className="mx-4 mb-3 p-4 rounded-xl bg-gradient-to-r from-purple-500/20 to-green-500/20 border border-purple-500/30 animate-fade-in">
+    <div className="mx-4 mb-3 p-4 rounded-xl bg-gradient-to-r from-indigo-500/20 to-green-500/20 border border-indigo-500/30 animate-fade-in">
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="text-sm font-semibold">🔔 Trait Reminder: {character?.name}</p>

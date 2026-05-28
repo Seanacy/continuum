@@ -330,21 +330,21 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 setAiCreatorMode(pendingAiMode)
                 setPendingAiMode(null)
               }}
-              className="rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-500/10 to-continuum-surface p-6 text-left hover:border-violet-400/70 transition-all"
+              className="rounded-xl border border-indigo-500/50 bg-gradient-to-br from-indigo-500/10 to-continuum-surface p-6 text-left hover:border-indigo-400/70 transition-all"
             >
               <span className="text-4xl mb-3 block">&#x1F9D1;</span>
-              <span className="text-sm text-violet-400 font-medium mb-2 block">~1 min</span>
+              <span className="text-sm text-indigo-400 font-medium mb-2 block">~1 min</span>
               <h3 className="text-lg font-bold text-white mb-2">Just the Character</h3>
               <p className="text-sm text-continuum-muted mb-4">
                 Create the personality and profile only. No content pack, images, or video.
               </p>
               <div className="text-left space-y-2 mb-4">
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-violet-400 mt-0.5">&#10003;</span>
+                  <span className="text-indigo-400 mt-0.5">&#10003;</span>
                   <span>Name &amp; personality</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
-                  <span className="text-violet-400 mt-0.5">&#10003;</span>
+                  <span className="text-indigo-400 mt-0.5">&#10003;</span>
                   <span>Bio &amp; communication style</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm text-continuum-muted">
@@ -352,8 +352,8 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                   <span className="line-through opacity-50">Content, images, video</span>
                 </div>
               </div>
-              <div className="pt-3 border-t border-violet-500/20">
-                <span className="text-sm font-semibold text-violet-400">Quick Start &rarr;</span>
+              <div className="pt-3 border-t border-indigo-500/20">
+                <span className="text-sm font-semibold text-indigo-400">Quick Start &rarr;</span>
               </div>
             </button>
 
@@ -849,7 +849,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
             {/* Custom Character — Most Popular */}
             <button
               onClick={() => { setBuildMode('custom'); setCurrentCategoryIndex(0); setStep('category') }}
-              className="relative rounded-xl border border-purple-500/50 bg-continuum-surface p-6 text-center hover:border-purple-400/70 transition-all flex flex-col items-center"
+              className="relative rounded-xl border border-indigo-500/50 bg-continuum-surface p-6 text-center hover:border-indigo-400/70 transition-all flex flex-col items-center"
             >
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-continuum-accent text-white text-xs font-bold rounded-full">
                 Most Popular
@@ -939,7 +939,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 </button>
                 <button
                   onClick={() => setStep('visual')}
-                  className="py-3 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+                  className="py-3 rounded-xl text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition-all"
                 >
                   🎨 Create Look
                 </button>
@@ -1074,7 +1074,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 <p className="text-sm text-continuum-muted leading-snug">{bundle.desc}</p>
                 {bundle.tag && (
                   <div className="mt-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                    <span className="text-xs px-2 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300">
                       {bundle.tag}
                     </span>
                   </div>
@@ -1302,7 +1302,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
                 {contentPillars.map((pillar, i) => (
                   <span
                     key={i}
-                    className="text-xs px-3 py-1.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300"
+                    className="text-xs px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300"
                   >
                     {pillar}
                   </span>
@@ -1371,7 +1371,7 @@ export default function CharacterBuilder({ onGoToChat, activeCharacterId, onActi
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <button
                   onClick={() => setStep('visual')}
-                  className="py-3 rounded-xl text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+                  className="py-3 rounded-xl text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition-all"
                 >
                   🎨 Create Their Look
                 </button>

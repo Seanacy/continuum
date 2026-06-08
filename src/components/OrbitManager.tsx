@@ -1578,6 +1578,7 @@ function OrbitImageSlots({ character }: { character: any }) {
   const [images, setImages] = useState<Record<string, string>>(initial)
   const [uploading, setUploading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<string | null>(null)
 
   async function handleFile(slot: string, file: File | null) {
     if (!file) return
@@ -1603,34 +1604,63 @@ function OrbitImageSlots({ character }: { character: any }) {
     <div>
       <span className="text-xs font-medium text-continuum-muted block mb-1">Profile Images</span>
       <div className="grid grid-cols-3 gap-2">
-        {SLOTS.map((s) => (
-          <label key={s.key} className="cursor-pointer block">
-            <div className="aspect-square rounded-lg border border-continuum-border bg-continuum-bg overflow-hidden flex items-center justify-center relative">
-              {images[s.key] ? (
-                <img src={images[s.key]} alt={s.label} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[10px] text-continuum-muted text-center px-1">
-                  {uploading === s.key ? 'Uploading...' : '+ Add'}
-                </span>
-              )}
-              {images[s.key] && uploading === s.key && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] text-white">
-                  Uploading...
-                </div>
-              )}
+        {SLOTS.map((s) => {
+          const img = images[s.key]
+          return (
+            <div key={s.key}>
+              <div className="aspect-square rounded-lg border border-continuum-border bg-continuum-bg overflow-hidden flex items-center justify-center relative">
+                {img ? (
+                  <button type="button" onClick={() => setLightbox(img)} className="w-full h-full" title="Click to enlarge">
+                    <img src={img} alt={s.label} className="w-full h-full object-cover" />
+                  </button>
+                ) : (
+                  <label className="cursor-pointer w-full h-full flex items-center justify-center">
+                    <span className="text-[10px] text-continuum-muted text-center px-1">
+                      {uploading === s.key ? 'Uploading...' : '+ Add'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading === s.key}
+                      onChange={(e) => handleFile(s.key, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                    />
+                  </label>
+                )}
+                {img && uploading === s.key && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] text-white">
+                    Uploading...
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-1 mt-1">
+                <span className="text-[10px] text-continuum-muted leading-tight">{s.label}</span>
+                {img && (
+                  <label className="text-[10px] text-continuum-accent cursor-pointer shrink-0">
+                    Change
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading === s.key}
+                      onChange={(e) => handleFile(s.key, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                    />
+                  </label>
+                )}
+              </div>
             </div>
-            <span className="text-[10px] text-continuum-muted block mt-1 text-center leading-tight">{s.label}</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              disabled={uploading === s.key}
-              onChange={(e) => handleFile(s.key, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
-            />
-          </label>
-        ))}
+          )
+        })}
       </div>
       {error && <p className="text-[10px] text-red-400 mt-1">{error}</p>}
+      {lightbox && (
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <img src={lightbox} alt="Enlarged profile" className="max-w-full max-h-full object-contain rounded-lg" />
+        </div>
+      )}
     </div>
   )
 }

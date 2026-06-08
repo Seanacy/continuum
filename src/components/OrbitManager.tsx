@@ -97,7 +97,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [formUrl, setFormUrl] = useState('')
   const [formAudience, setFormAudience] = useState('')
   const [formObjective, setFormObjective] = useState('brand_awareness')
-  const [formCount, setFormCount] = useState<3 | 6>(3)
+  const [formCount, setFormCount] = useState<2 | 4 | 6>(4)
   const [costEstimate, setCostEstimate] = useState<any>(null)
   const [creating, setCreating] = useState(false)
   const [generateStep, setGenerateStep] = useState<'form' | 'estimate' | 'generating'>('form')
@@ -444,7 +444,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
     setFormUrl('')
     setFormAudience('')
     setFormObjective('brand_awareness')
-    setFormCount(3)
+    setFormCount(4)
     setCostEstimate(null)
     setGenerateStep('form')
     setView('list')
@@ -787,29 +787,25 @@ return (
         {/* Character Count */}
         <div>
           <label className="text-sm font-medium text-continuum-text mb-2 block">Network Size</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setFormCount(3)}
-              className={`px-4 py-3 rounded-xl border text-sm transition text-center ${
-                formCount === 3
-                  ? 'bg-continuum-accent/10 border-continuum-accent/40 text-continuum-accent'
-                  : 'bg-continuum-surface border-continuum-border text-continuum-text hover:border-continuum-accent/20'
-              }`}
-            >
-              <div className="font-semibold text-lg mb-0.5">3</div>
-              <div className="text-xs text-continuum-muted">Budget Mode</div>
-            </button>
-            <button
-              onClick={() => setFormCount(6)}
-              className={`px-4 py-3 rounded-xl border text-sm transition text-center ${
-                formCount === 6
-                  ? 'bg-continuum-accent/10 border-continuum-accent/40 text-continuum-accent'
-                  : 'bg-continuum-surface border-continuum-border text-continuum-text hover:border-continuum-accent/20'
-              }`}
-            >
-              <div className="font-semibold text-lg mb-0.5">6</div>
-              <div className="text-xs text-continuum-muted">Full Network</div>
-            </button>
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { n: 2, label: 'Minimal' },
+              { n: 4, label: 'Balanced' },
+              { n: 6, label: 'Full Network' },
+            ] as const).map((opt) => (
+              <button
+                key={opt.n}
+                onClick={() => setFormCount(opt.n)}
+                className={`px-4 py-3 rounded-xl border text-sm transition text-center ${
+                  formCount === opt.n
+                    ? 'bg-continuum-accent/10 border-continuum-accent/40 text-continuum-accent'
+                    : 'bg-continuum-surface border-continuum-border text-continuum-text hover:border-continuum-accent/20'
+                }`}
+              >
+                <div className="font-semibold text-lg mb-0.5">{opt.n}</div>
+                <div className="text-xs text-continuum-muted">{opt.label}</div>
+              </button>
+            ))}
           </div>
         </div>
 

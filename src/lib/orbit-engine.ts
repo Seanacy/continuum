@@ -32,7 +32,7 @@ export interface OrbitProjectInput {
   industry?: string
   targetAudience?: string
   objective: OrbitObjective
-  characterCount: 3 | 6
+  characterCount: 2 | 4 | 6
 }
 
 interface GeneratedCharacter {
@@ -83,10 +83,10 @@ function generateId(): string {
 // STEP 1: SELECT ROLES
 // ============================================
 
-function selectRoles(characterCount: 3 | 6, objective: OrbitObjective): OrbitRoleType[] {
-  if (characterCount === 6) return [...ALL_ROLE_TYPES]
+function selectRoles(characterCount: 2 | 4 | 6, objective: OrbitObjective): OrbitRoleType[] {
+  if (characterCount >= ALL_ROLE_TYPES.length) return [...ALL_ROLE_TYPES]
 
-  // Budget mode: main_character always included + AI picks best 2
+  // main_character is always included; fill the rest by objective priority
   const roles: OrbitRoleType[] = [BUDGET_REQUIRED_ROLE]
   const available = ALL_ROLE_TYPES.filter(r => r !== BUDGET_REQUIRED_ROLE)
 
@@ -99,7 +99,9 @@ function selectRoles(characterCount: 3 | 6, objective: OrbitObjective): OrbitRol
     return aMatch - bMatch
   })
 
-  roles.push(prioritized[0], prioritized[1])
+  for (let i = 0; roles.length < characterCount && i < prioritized.length; i++) {
+    roles.push(prioritized[i])
+  }
   return roles
 }
 

@@ -69,12 +69,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to upload image.' }, { status: 500 })
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(storagePath)
-
-    const publicUrl = urlData.publicUrl + '?t=' + Date.now()
+    const publicUrl = '/api/img/' + storagePath + '?t=' + Date.now()
 
     // Position mapping
     const positionMap: Record<string, number> = {

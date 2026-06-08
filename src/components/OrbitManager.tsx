@@ -1048,39 +1048,39 @@ return (
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                   <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
-                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalNodes}</div>
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats?.totalNodes ?? 0}</div>
                     <div className="text-xs text-continuum-muted">Characters</div>
                   </div>
                   <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
-                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalEdges}</div>
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats?.totalEdges ?? 0}</div>
                     <div className="text-xs text-continuum-muted">Connections</div>
                   </div>
                   <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
-                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.avgStrength.toFixed(1)}</div>
+                    <div className="text-2xl font-bold text-continuum-accent">{(networkData.stats?.avgStrength ?? 0).toFixed(1)}</div>
                     <div className="text-xs text-continuum-muted">Avg Strength</div>
                   </div>
                   <div className="rounded-lg bg-continuum-bg/50 p-3 text-center">
-                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats.totalInteractions}</div>
+                    <div className="text-2xl font-bold text-continuum-accent">{networkData.stats?.totalInteractions ?? 0}</div>
                     <div className="text-xs text-continuum-muted">Interactions</div>
                   </div>
                 </div>
 
                 {/* Highlight Stats */}
-                {networkData.stats.mostConnected && (
+                {networkData.stats?.mostConnected && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
                     <div className="rounded-lg border border-continuum-border p-3">
                       <div className="text-xs text-continuum-muted mb-1">Most Connected</div>
                       <div className="text-sm font-medium text-continuum-text">{networkData.stats.mostConnected.name}</div>
                       <div className="text-xs text-continuum-muted">{networkData.stats.mostConnected.connectionCount} connections</div>
                     </div>
-                    {networkData.stats.mostActive && (
+                    {networkData.stats?.mostActive && (
                       <div className="rounded-lg border border-continuum-border p-3">
                         <div className="text-xs text-continuum-muted mb-1">Most Active</div>
                         <div className="text-sm font-medium text-continuum-text">{networkData.stats.mostActive.name}</div>
                         <div className="text-xs text-continuum-muted">{networkData.stats.mostActive.interactionCount} interactions</div>
                       </div>
                     )}
-                    {networkData.stats.strongestBond && (
+                    {networkData.stats?.strongestBond && (
                       <div className="rounded-lg border border-continuum-border p-3">
                         <div className="text-xs text-continuum-muted mb-1">Strongest Bond</div>
                         <div className="text-sm font-medium text-continuum-text">{networkData.stats.strongestBond.source} & {networkData.stats.strongestBond.target}</div>
@@ -1094,7 +1094,7 @@ return (
                 <div className="mb-6">
                   <h4 className="text-sm font-medium text-continuum-muted mb-3">Characters</h4>
                   <div className="flex flex-wrap gap-3">
-                    {networkData.nodes.map((node: any) => (
+                    {(networkData.nodes || []).map((node: any) => (
                       <div key={node.id} className="flex items-center gap-2 rounded-lg border border-continuum-border p-2 px-3">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: node.color }} />
                         <div>
@@ -1110,7 +1110,7 @@ return (
                 <div>
                   <h4 className="text-sm font-medium text-continuum-muted mb-3">Relationships</h4>
                   <div className="space-y-2">
-                    {networkData.edges.map((edge: any) => (
+                    {(networkData.edges || []).map((edge: any) => (
                       <div key={edge.id} className="flex items-center justify-between rounded-lg border border-continuum-border p-3">
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-continuum-text">{edge.source}</span>
@@ -1153,7 +1153,7 @@ return (
                         </div>
                       </div>
                     ))}
-                    {networkData.edges.length === 0 && (
+                    {(networkData.edges || []).length === 0 && (
                       <div className="text-center py-4 text-continuum-muted text-sm">No relationships yet. Generate interactions first.</div>
                     )}
                   </div>

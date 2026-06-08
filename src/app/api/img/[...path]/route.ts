@@ -28,7 +28,14 @@ export async function GET(
 
   // Ownership check, depending on the storage layout.
   let owned = false
-  if (CHARACTER_FOLDERS.includes(segments[0])) {
+  if (segments[0] === 'orbit') {
+    // orbit/<orbitCharacterId>/<file...> belongs to one of the user's Orbit projects
+    const oc = await db.orbitCharacter.findFirst({
+      where: { id: segments[1], project: { userId: user.id } },
+      select: { id: true },
+    })
+    owned = !!oc
+  } else if (CHARACTER_FOLDERS.includes(segments[0])) {
     // <folder>/<characterId>/<file...>
     const character = await db.character.findFirst({
       where: { id: segments[1], userId: user.id },

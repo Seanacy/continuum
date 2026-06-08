@@ -1550,8 +1550,87 @@ function CharacterCard({ character }: { character: any }) {
               <p className="text-xs text-continuum-text/60 italic">{character.imagePrompt}</p>
             </div>
           )}
+          <OrbitImageSlots character={character} />
         </div>
       )}
+    </div>
+  )
+}
+
+
+// ============================================
+// ORBIT CHARACTER PROFILE IMAGE SLOTS (6 labeled)
+// ============================================
+
+function OrbitImageSlots({ character }: { character: any }) {
+  const SLOTS = [
+    { key: 'face_front', label: 'Front Facial Profile' },
+    { key: 'face_left', label: 'Left Facial Profile' },
+    { key: 'face_right', label: 'Right Facial Profile' },
+    { key: 'body_front', label: 'Front Full Body Profile' },
+    { key: 'body_left', label: 'Left Full Body Profile' },
+    { key: 'body_right', label: 'Right Full Body Profile' },
+  ]
+  const initial =
+    character.profileImages && typeof character.profileImages === 'object' && !Array.isArray(character.profileImages)
+      ? (character.profileImages as Record<string, string>)
+      : {}
+  const [images, setImages] = useState<Record<string, string>>(initial)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFile(slot: string, file: File | null) {
+    if (!file) return
+    setError(null)
+    setUploading(slot)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('characterId', character.id)
+      fd.append('slot', slot)
+      const res = await fetch('/api/orbit/character-image', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      setImages((prev) => ({ ...prev, [slot]: data.url }))
+    } catch (e: any) {
+      setError(e.message || 'Upload failed')
+    } finally {
+      setUploading(null)
+    }
+  }
+
+  return (
+    <div>
+      <span className="text-xs font-medium text-continuum-muted block mb-1">Profile Images</span>
+      <div className="grid grid-cols-3 gap-2">
+        {SLOTS.map((s) => (
+          <label key={s.key} className="cursor-pointer block">
+            <div className="aspect-square rounded-lg border border-continuum-border bg-continuum-bg overflow-hidden flex items-center justify-center relative">
+              {images[s.key] ? (
+                <img src={images[s.key]} alt={s.label} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] text-continuum-muted text-center px-1">
+                  {uploading === s.key ? 'Uploading...' : '+ Add'}
+                </span>
+              )}
+              {images[s.key] && uploading === s.key && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] text-white">
+                  Uploading...
+                </div>
+              )}
+            </div>
+            <span className="text-[10px] text-continuum-muted block mt-1 text-center leading-tight">{s.label}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploading === s.key}
+              onChange={(e) => handleFile(s.key, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+            />
+          </label>
+        ))}
+      </div>
+      {error && <p className="text-[10px] text-red-400 mt-1">{error}</p>}
     </div>
   )
 }

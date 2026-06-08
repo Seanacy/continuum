@@ -78,12 +78,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Get public URL
-  const { data: urlData } = supabase.storage
-    .from(BUCKET)
-    .getPublicUrl(storagePath)
-
-  const publicUrl = urlData.publicUrl + '?t=' + Date.now()
+  const publicUrl = '/api/img/' + storagePath + '?t=' + Date.now()
 
   // Update character's customizations with the new ref image URL
   const currentCustomizations = (character.customizations as Record<string, any>) || {}

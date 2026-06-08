@@ -151,12 +151,7 @@ export async function recreateScene(
       }
     }
 
-    // Get the public URL
-    const { data: urlData } = getSupabase().storage
-      .from('character-images')
-      .getPublicUrl(filePath)
-
-    const publicUrl = urlData.publicUrl
+    const publicUrl = '/api/img/' + filePath
 
     // Step 6: Record the successful generation
     const generation = await db.imageGeneration.create({

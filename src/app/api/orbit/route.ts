@@ -39,7 +39,7 @@ export async function GET() {
 //   websiteUrl?: string,
 //   targetAudience?: string,
 //   objective: OrbitObjective,
-//   characterCount: 3 | 6,
+//   characterCount: 2 | 4 | 6,
 //   confirm?: boolean  // if false, just return cost estimate
 // }
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       websiteUrl,
       targetAudience,
       objective,
-      characterCount = 3,
+      characterCount = 4,
       confirm = false,
     } = body
 
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate character count
-    if (characterCount !== 3 && characterCount !== 6) {
+    if (characterCount !== 2 && characterCount !== 4 && characterCount !== 6) {
       return NextResponse.json(
-        { error: 'characterCount must be 3 or 6' },
+        { error: 'characterCount must be 2, 4, or 6' },
         { status: 400 }
       )
     }

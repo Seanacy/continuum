@@ -63,11 +63,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to upload reference.' }, { status: 500 })
     }
 
-    const { data: urlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(storagePath)
-
-    const publicUrl = urlData.publicUrl + '?t=' + timestamp
+    const publicUrl = '/api/img/' + storagePath + '?t=' + timestamp
 
     return NextResponse.json({
       url: publicUrl,

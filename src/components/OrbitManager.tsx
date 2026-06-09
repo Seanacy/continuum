@@ -879,6 +879,7 @@ return (
             {selectedProject.targetAudience && <span>Audience: {selectedProject.targetAudience}</span>}
           </div>
         </div>
+        <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
 
         {/* Characters */}
         <div>
@@ -1483,7 +1484,6 @@ return (
         </div>
 
       {/* CONTENT CALENDAR */}
-      <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
         <OrbitPostingPlan projectId={selectedProject.id} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
         <OrbitCalendar projectId={selectedProject.id} />
       </div>

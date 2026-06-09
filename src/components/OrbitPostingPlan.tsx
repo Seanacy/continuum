@@ -6,8 +6,9 @@ import { useState } from 'react'
 // ORBIT POSTING PLAN — monthly calendar with per-post images
 // ============================================
 // Shows each scheduled post on its day. Posts without an image are
-// clearly flagged. You can attach an image to any post; tap a thumbnail
-// to enlarge it. Works on desktop and the PWA.
+// clearly flagged. You can attach an image to any post, or generate
+// them with AI (one click does the whole visible month). Tap a
+// thumbnail to enlarge. Works on desktop and the PWA.
 // ============================================
 
 interface PlanPost {
@@ -51,8 +52,13 @@ export default function OrbitPostingPlan({ projectId, posts, onChange }: OrbitPo
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [lightbox, setLightbox] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [genProgress, setGenProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 })
 
   const withImages = posts.filter((p) => p.imageUrl).length
+
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
 
   async function handleUpload(postId: string, file: File) {
     setError('')
@@ -75,9 +81,40 @@ export default function OrbitPostingPlan({ projectId, posts, onChange }: OrbitPo
     setUploadingId(null)
   }
 
+  // Generate AI images for every post in the visible month that has no image yet.
+  async function generateMissing() {
+    setError('')
+    const targets = posts.filter((p) => {
+      if (p.imageUrl || !p.scheduledFor) return false
+      const d = new Date(p.scheduledFor)
+      return d.getFullYear() === year && d.getMonth() === month
+    })
+    if (targets.length === 0) {
+      setError('Every post this month already has an image.')
+      return
+    }
+    setGenerating(true)
+    setGenProgress({ done: 0, total: targets.length })
+    let failures = 0
+    for (let i = 0; i < targets.length; i++) {
+      try {
+        const res = await fetch('/api/orbit/generate-post-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId, postId: targets[i].id }),
+        })
+        if (!res.ok) failures++
+        else if (onChange) onChange()
+      } catch {
+        failures++
+      }
+      setGenProgress({ done: i + 1, total: targets.length })
+    }
+    setGenerating(false)
+    if (failures > 0) setError(`${failures} image(s) couldn't be generated. You can retry or upload those yourself.`)
+  }
+
   // Build the month grid (Monday-first).
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
   const startOffset = (firstDay.getDay() + 6) % 7
@@ -106,14 +143,30 @@ export default function OrbitPostingPlan({ projectId, posts, onChange }: OrbitPo
             {withImages} of {posts.length} posts have an image
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button onClick={() => navigate(-1)} style={navBtn}>{'<'}</button>
-          <span style={{ fontSize: '15px', fontWeight: 600, color: '#e4e4e7', minWidth: '130px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={generateMissing}
+            disabled={generating}
+            style={{
+              padding: '7px 14px', borderRadius: '8px', border: 'none', cursor: generating ? 'default' : 'pointer',
+              backgroundColor: generating ? '#3f3f46' : '#8b5cf6', color: '#fff', fontSize: '13px', fontWeight: 600,
+            }}
+          >
+            {generating ? `Generating ${genProgress.done}/${genProgress.total}…` : '✨ Generate missing images'}
+          </button>
+          <button onClick={() => navigate(-1)} style={navBtn} disabled={generating}>{'<'}</button>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: '#e4e4e7', minWidth: '120px', textAlign: 'center' }}>
             {MONTH_NAMES[month]} {year}
           </span>
-          <button onClick={() => navigate(1)} style={navBtn}>{'>'}</button>
+          <button onClick={() => navigate(1)} style={navBtn} disabled={generating}>{'>'}</button>
         </div>
       </div>
+
+      {generating && (
+        <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', color: '#c4b5fd', fontSize: '12px' }}>
+          Making your photos… this takes about 20–30 seconds each, so a full week is a few minutes. You can leave this open.
+        </div>
+      )}
 
       {error && (
         <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: '12px' }}>

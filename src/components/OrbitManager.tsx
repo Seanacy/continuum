@@ -6,7 +6,7 @@ import OrbitContentFeed from '@/components/OrbitContentFeed'
 import OrbitCampaignManager from '@/components/OrbitCampaignManager'
 import OrbitAnalyticsDashboard from '@/components/OrbitAnalyticsDashboard'
 import OrbitCalendar from '@/components/OrbitCalendar'
-import OrbitPostingPlan from '@/components/OrbitPostingPlan'
+  import OrbitPostingPlan from '@/components/OrbitPostingPlan'
 import OrbitImageStudio from '@/components/OrbitImageStudio'
 
 // ============================================
@@ -92,6 +92,7 @@ export default function OrbitManager({ onClose }: { onClose: () => void }) {
   const [selectedProject, setSelectedProject] = useState<OrbitProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Create form state
   const [formName, setFormName] = useState('')
@@ -896,8 +897,8 @@ return (
             ))}
           </div>
         </div>
-
-        {/* Relationships */}
+<button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full mt-2 mb-3 px-4 py-3 rounded-xl text-sm font-medium bg-continuum-surface border border-continuum-border text-continuum-muted">{showAdvanced ? 'Hide advanced tools' : 'Show advanced tools'}</button>        
+        <div style={{ display: showAdvanced ? 'block' : 'none' }}>   {/* Relationships */}
         {allRelationships.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-continuum-text mb-3 flex items-center gap-2">
@@ -1479,6 +1480,7 @@ return (
 
       {/* PERFORMANCE ANALYTICS */}
       <OrbitAnalyticsDashboard projectId={selectedProject.id} />
+        </div>
 
       {/* CONTENT CALENDAR */}
       <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />

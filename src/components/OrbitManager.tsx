@@ -7,6 +7,7 @@ import OrbitCampaignManager from '@/components/OrbitCampaignManager'
 import OrbitAnalyticsDashboard from '@/components/OrbitAnalyticsDashboard'
 import OrbitCalendar from '@/components/OrbitCalendar'
 import OrbitPostingPlan from '@/components/OrbitPostingPlan'
+import OrbitImageStudio from '@/components/OrbitImageStudio'
 
 // ============================================
 // TYPES
@@ -1480,7 +1481,8 @@ return (
       <OrbitAnalyticsDashboard projectId={selectedProject.id} />
 
       {/* CONTENT CALENDAR */}
-      <OrbitPostingPlan projectId={selectedProject.id} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
+      <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
+        <OrbitPostingPlan projectId={selectedProject.id} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
         <OrbitCalendar projectId={selectedProject.id} />
       </div>
     )

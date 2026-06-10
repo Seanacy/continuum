@@ -4,9 +4,10 @@ import { useState } from 'react'
 
 // ============================================
 // ORBIT IMAGE STUDIO -- the simple image page
-// Pick a girl -> open the inspiration photo bucket (a folder per model)
-// -> pick an inspiration photo -> pick a day -> Make.
-// A fresh photo of the girl is generated copying the inspiration photo's vibe.
+// Pick a girl -> see her content ideas (same ones as the calendar, in date order)
+// -> tap Make on an idea -> pick a friend photo (from her bucket or a fresh upload)
+// -> a fresh photo of the girl is generated in that photo's vibe and lands on that day.
+// The "inspiration photo bucket" (a folder per model) is just the photo stash.
 // ============================================
 
 interface Char { id: string; name: string; face?: string | null }
@@ -18,6 +19,7 @@ interface Post {
   scheduledFor?: string
   imageUrl?: string | null
   dayLabel?: string
+  photoIdea?: string
 }
 interface Scene { path: string; url: string }
 interface Props {
@@ -41,11 +43,11 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
   const [scenes, setScenes] = useState<Scene[]>([])
   const [loadingScenes, setLoadingScenes] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
   const [busyPostId, setBusyPostId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [bucketOpen, setBucketOpen] = useState(false)
   const [folderId, setFolderId] = useState<string | null>(null)
+  const [pickingFor, setPickingFor] = useState<string | null>(null)
 
   const char = characters.find((c) => c.id === charId) || null
   const folder = characters.find((c) => c.id === folderId) || null
@@ -66,17 +68,26 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
     setLoadingScenes(false)
   }
 
-  function openFolder(id: string) {
-    setFolderId(id)
+  function pickGirl(id: string) {
     setCharId(id)
-    setSelectedScene(null)
+    setBucketOpen(false)
+    setFolderId(null)
+    setPickingFor(null)
     setScenes([])
     loadScenes(id)
   }
 
-  function pickGirl(id: string) {
+  function openBucket() {
     setBucketOpen(true)
-    openFolder(id)
+    setFolderId(null)
+    setPickingFor(null)
+  }
+
+  function openFolder(id: string) {
+    setCharId(id)
+    setFolderId(id)
+    setScenes([])
+    loadScenes(id)
   }
 
   function closeBucket() {
@@ -107,21 +118,21 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
     setUploading(false)
   }
 
-  async function recreate(postId: string) {
-    if (!selectedScene) return
+  async function recreate(postId: string, baseImagePath: string) {
     setBusyPostId(postId)
     setError('')
     try {
       const r = await fetch('/api/orbit/recreate-post-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, postId, baseImagePath: selectedScene.path }),
+        body: JSON.stringify({ projectId, postId, baseImagePath }),
       })
       if (!r.ok) {
         const d = await r.json().catch(() => ({}))
         setError(d.error || 'Could not make the photo')
-      } else if (onChange) {
-        onChange()
+      } else {
+        setPickingFor(null)
+        if (onChange) onChange()
       }
     } catch {
       setError('Could not make the photo')
@@ -185,8 +196,8 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
         ))}
       </div>
 
-      {/* Inspiration photo bucket -- a folder for each model. */}
-      <button onClick={() => { setBucketOpen(true); setFolderId(null) }}
+      {/* Inspiration photo bucket -- a folder for each model (the photo stash). */}
+      <button onClick={openBucket}
         style={{
           width: '100%', marginTop: '18px', padding: '14px', borderRadius: '12px', cursor: 'pointer',
           background: '#1e1e2e', border: '1px solid #2e2e3e', color: '#e4e4e7', fontSize: '15px', fontWeight: 700,
@@ -230,7 +241,7 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
                 <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                   onChange={(e) => { if (e.target.files && e.target.files.length) handleFiles(e.target.files) }} />
               </label>
-              <div style={note}>These are the photos you picked for {folder?.name}. Tap one to use it. Use only photos you have permission to use.</div>
+              <div style={note}>These are the photos you picked for {folder?.name}. Use only photos you have permission to use.</div>
 
               {loadingScenes ? (
                 <div style={{ color: '#71717a', fontSize: '13px' }}>Loading photos...</div>
@@ -239,13 +250,9 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
                   {scenes.map((s) => (
-                    <button key={s.path} onClick={() => { setSelectedScene(s); setBucketOpen(false) }}
-                      style={{
-                        padding: 0, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', aspectRatio: '3/4',
-                        border: selectedScene?.path === s.path ? '3px solid #8b5cf6' : '1px solid #2e2e3e', background: '#14141f',
-                      }}>
+                    <div key={s.path} style={{ borderRadius: '10px', overflow: 'hidden', aspectRatio: '3/4', border: '1px solid #2e2e3e', background: '#14141f' }}>
                       <img src={s.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -254,38 +261,79 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
         </div>
       )}
 
-      {/* Step 3 -- choose the day this lands on. */}
-      {!bucketOpen && selectedScene && char && (
+      {/* Image ideas for the selected girl (same posts as the calendar, in date order). */}
+      {!bucketOpen && char && (
         <>
-          <div style={stepLabel}>Put {char.name} on which day?</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-            <img src={selectedScene.url} alt="" style={{ width: '46px', height: '60px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
-            <span style={{ fontSize: '12px', color: '#a1a1aa' }}>Using this inspiration photo. <button onClick={() => { setBucketOpen(true); setFolderId(charId) }} style={{ background: 'none', border: 'none', color: '#8b5cf6', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>Change</button></span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {charPosts.map((p) => (
-              <button key={p.id} onClick={() => recreate(p.id)} disabled={busyPostId !== null}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', cursor: busyPostId !== null ? 'default' : 'pointer',
-                  padding: '8px 10px', borderRadius: '10px', border: '1px solid #2e2e3e', background: '#14141f', color: '#e4e4e7',
-                }}>
-                {p.imageUrl ? (
-                  <img src={p.imageUrl} alt="" style={{ width: '40px', height: '52px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }} />
-                ) : (
-                  <span style={{ width: '40px', height: '52px', borderRadius: '6px', background: '#0f0f17', border: '1px dashed #3f3f46', flexShrink: 0 }} />
-                )}
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 700 }}>{dayStr(p.scheduledFor)}</span>
-                  <span style={{ display: 'block', fontSize: '11px', color: '#71717a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content.slice(0, 50)}</span>
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: busyPostId === p.id ? '#c4b5fd' : '#8b5cf6', flexShrink: 0 }}>
-                  {busyPostId === p.id ? 'Making...' : p.imageUrl ? 'Redo' : 'Make'}
-                </span>
-              </button>
-            ))}
-            {charPosts.length === 0 && <div style={{ color: '#71717a', fontSize: '13px' }}>No posts for {char.name} yet.</div>}
-          </div>
-          <div style={{ fontSize: '11px', color: '#71717a', marginTop: '8px' }}>Each photo takes about 30-60 seconds to make.</div>
+          <div style={stepLabel}>Image ideas for {char.name}</div>
+          <div style={note}>Tap "Make" on an idea, then pick a friend&apos;s photo. {char.name} gets recreated in that photo and it lands on that day&apos;s post.</div>
+          {charPosts.length === 0 ? (
+            <div style={{ color: '#71717a', fontSize: '13px' }}>No ideas for {char.name} yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {charPosts.map((p) => (
+                <div key={p.id} style={{ borderRadius: '12px', border: '1px solid #2e2e3e', background: '#14141f', padding: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt="" style={{ width: '48px', height: '62px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
+                    ) : (
+                      <span style={{ width: '48px', height: '62px', borderRadius: '8px', background: '#0f0f17', border: '1px dashed #3f3f46', flexShrink: 0 }} />
+                    )}
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#e4e4e7' }}>{dayStr(p.scheduledFor)}</span>
+                      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: p.photoIdea ? '#c4b5fd' : '#52525b' }}>
+                        {p.photoIdea ? '📸 ' + p.photoIdea : 'Photo idea: (we add this next)'}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '11px', color: '#71717a', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content.slice(0, 55)}</span>
+                    </span>
+                    <button onClick={() => setPickingFor(pickingFor === p.id ? null : p.id)} disabled={busyPostId !== null}
+                      style={{
+                        flexShrink: 0, padding: '8px 14px', borderRadius: '10px', border: 'none',
+                        cursor: busyPostId !== null ? 'default' : 'pointer', fontSize: '13px', fontWeight: 700,
+                        background: busyPostId === p.id ? '#3f3f46' : '#8b5cf6', color: '#fff',
+                      }}>
+                      {busyPostId === p.id ? 'Making...' : p.imageUrl ? 'Redo' : 'Make'}
+                    </button>
+                  </div>
+
+                  {pickingFor === p.id && (
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #2e2e3e' }}>
+                      <div style={note}>Pick a photo from {char.name}&apos;s bucket, or upload a fresh one.</div>
+                      <label style={{
+                        display: 'inline-block', padding: '8px 14px', borderRadius: '10px', marginBottom: '10px',
+                        background: '#1e1e2e', border: '1px solid #2e2e3e', color: '#e4e4e7', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                      }}>
+                        {uploading ? 'Uploading...' : '+ Upload fresh'}
+                        <input type="file" accept="image/*" style={{ display: 'none' }}
+                          onChange={(e) => { if (e.target.files && e.target.files.length) handleFiles(e.target.files) }} />
+                      </label>
+                      {loadingScenes ? (
+                        <div style={{ color: '#71717a', fontSize: '13px' }}>Loading bucket...</div>
+                      ) : scenes.length === 0 ? (
+                        <div style={{ color: '#71717a', fontSize: '13px' }}>No photos in {char.name}&apos;s bucket yet - upload one above.</div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
+                          {scenes.map((s) => (
+                            <button key={s.path} onClick={() => recreate(p.id, s.path)} disabled={busyPostId !== null}
+                              style={{
+                                padding: 0, borderRadius: '10px', overflow: 'hidden', cursor: busyPostId !== null ? 'default' : 'pointer', aspectRatio: '3/4',
+                                border: '1px solid #2e2e3e', background: '#14141f',
+                              }}>
+                              <img src={s.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button onClick={() => setPickingFor(null)}
+                        style={{ marginTop: '10px', padding: '6px 12px', borderRadius: '8px', background: 'transparent', border: '1px solid #2e2e3e', color: '#a1a1aa', fontSize: '12px', cursor: 'pointer' }}>
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ fontSize: '11px', color: '#71717a', marginTop: '10px' }}>Each photo takes about 30-60 seconds to make.</div>
         </>
       )}
     </div>

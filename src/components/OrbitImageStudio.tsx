@@ -4,11 +4,11 @@ import { useState } from 'react'
 
 // ============================================
 // ORBIT IMAGE STUDIO -- the simple image page
-// Pick a girl -> pick one of her photos -> pick a day -> Recreate.
-// Her face is swapped onto the photo and lands on that day's post.
+// Pick a girl -> pick an inspiration photo -> pick a day -> Recreate.
+// Her face is swapped onto the inspiration photo and lands on that day's post.
 // ============================================
 
-interface Char { id: string; name: string }
+interface Char { id: string; name: string; face?: string | null }
 interface Post {
   id: string
   characterId: string
@@ -143,39 +143,49 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
         <div style={{ margin: '8px 0', padding: '8px 12px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: '13px' }}>{error}</div>
       )}
 
-      {/* Step 1 */}
+      {/* Step 1 -- pick a girl (her headshot is the main photo). */}
       <div style={stepLabel}>1. Pick a girl</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' }}>
         {characters.map((c) => (
           <button key={c.id} onClick={() => pickChar(c.id)}
             style={{
-              padding: '18px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+              padding: '12px', borderRadius: '12px', cursor: 'pointer',
               border: charId === c.id ? '2px solid #8b5cf6' : '1px solid #2e2e3e',
               background: charId === c.id ? 'rgba(139,92,246,0.18)' : '#14141f', color: '#e4e4e7',
             }}>
-            {c.name}
+            <span style={{ fontSize: '16px', fontWeight: 700 }}>{c.name}</span>
+            {c.face ? (
+              <img src={c.face} alt={c.name}
+                style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', borderRadius: '10px', display: 'block' }} />
+            ) : (
+              <span style={{
+                width: '100%', aspectRatio: '1 / 1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: '#0f0f17', border: '1px dashed #3f3f46', fontSize: '11px', color: '#71717a',
+              }}>No headshot yet</span>
+            )}
           </button>
         ))}
       </div>
 
       {char && (
         <>
-          {/* Step 2 */}
-          <div style={stepLabel}>2. {char.name}&apos;s photos - tap one to use it</div>
+          {/* Step 2 -- the girl's in-app inspiration folder. */}
+          <div style={stepLabel}>2. {char.name}&apos;s inspiration folder - tap a photo to use it</div>
           <label style={{
             display: 'inline-block', padding: '10px 16px', borderRadius: '10px', marginBottom: '12px',
             background: '#8b5cf6', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
           }}>
-            {uploading ? 'Uploading...' : '+ Add photos'}
+            {uploading ? 'Uploading...' : '+ Add inspiration photo'}
             <input type="file" accept="image/*" multiple style={{ display: 'none' }}
               onChange={(e) => { if (e.target.files && e.target.files.length) handleFiles(e.target.files) }} />
           </label>
-          <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '10px' }}>Use only photos you have permission to use.</div>
+          <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '10px' }}>The girl&apos;s face goes onto the inspiration photo you pick. Use only photos you have permission to use.</div>
 
           {loadingScenes ? (
-            <div style={{ color: '#71717a', fontSize: '13px' }}>Loading photos...</div>
+            <div style={{ color: '#71717a', fontSize: '13px' }}>Loading inspiration photos...</div>
           ) : scenes.length === 0 ? (
-            <div style={{ color: '#71717a', fontSize: '13px' }}>No photos yet - tap "Add photos" to drop some in.</div>
+            <div style={{ color: '#71717a', fontSize: '13px' }}>No inspiration photos yet - tap "Add inspiration photo" to drop some in.</div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
               {scenes.map((s) => (
@@ -190,7 +200,7 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
             </div>
           )}
 
-          {/* Step 3 */}
+          {/* Step 3 -- choose the day this lands on. */}
           {selectedScene && (
             <>
               <div style={stepLabel}>3. Put it on which day?</div>

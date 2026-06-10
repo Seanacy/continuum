@@ -8,10 +8,18 @@ export const maxDuration = 60
 
 const BUCKET = 'character-images'
 
+const REALISM =
+  'candid iPhone snapshot, natural lighting, real lifelike skin with visible pores and texture, ' +
+  'amateur photo, slightly imperfect framing, attractive woman in her 20s, not studio, not glossy, not an advertisement'
+
+const NEGATIVE =
+  'text, words, watermark, logo, signature, extra limbs, extra fingers, bad anatomy, deformed, ' +
+  'cartoon, anime, 3d render, cgi, plastic skin, airbrushed, blurry, low quality'
+
 function storagePathFromProxy(v: string): string | null {
   if (!v || typeof v !== 'string') return null
   const i = v.indexOf('/api/img/')
-  if (i === -1) return v.split('?')[0] // already a bare storage path
+  if (i === -1) return v.split('?')[0]
   return v.slice(i + '/api/img/'.length).split('?')[0]
 }
 
@@ -20,9 +28,51 @@ async function signed(path: string): Promise<string | null> {
   return data?.signedUrl || null
 }
 
-// POST -- recreate a post image by swapping the character's face onto a base photo.
-// Body: { projectId, postId, baseImagePath }  (baseImagePath = a storage path the
-// user owns/has permission to use, e.g. orbit/<charId>/scenes/<id>.jpg).
+// Ask a vision model to describe ONLY the pose/scene of the inspiration photo
+// (not the person's identity) so we can recreate that vibe with our own character.
+async function describeInspiration(apiKey: string, imageUrl: string): Promise<string> {
+  const prompt =
+    'Describe ONLY the body pose, camera angle, framing, location and setting, background, lighting, ' +
+    "time of day, and clothing/outfit in this photo. Do NOT describe the person's face, hair, skin tone, " +
+    'age, or identity. Answer in one vivid sentence.'
+  try {
+    const res = await fetch('https://fal.run/fal-ai/moondream-next', {
+      method: 'POST',
+      headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: imageUrl, prompt }),
+    })
+    if (res.ok) {
+      const j: any = await res.json()
+      const out = j?.output ?? j?.caption ?? j?.results ?? j?.text ?? ''
+      if (typeof out === 'string' && out.trim()) return out.trim()
+    } else {
+      console.error('moondream error', res.status, (await res.text()).slice(0, 200))
+    }
+  } catch (e: any) {
+    console.error('moondream exception', e?.message)
+  }
+  // Fallback: Florence-2 detailed caption (no custom prompt, describes the whole scene).
+  try {
+    const res = await fetch('https://fal.run/fal-ai/florence-2-large/detailed-caption', {
+      method: 'POST',
+      headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: imageUrl }),
+    })
+    if (res.ok) {
+      const j: any = await res.json()
+      const out = j?.results ?? j?.caption ?? j?.output ?? ''
+      if (typeof out === 'string' && out.trim()) return out.trim()
+    }
+  } catch {
+    /* ignore */
+  }
+  return ''
+}
+
+// POST -- recreate a post image: copy the vibe of the inspiration photo and
+// generate a brand-new photo with THIS character in it (her own face, hair, skin).
+// Body: { projectId, postId, baseImagePath }  (baseImagePath = an inspiration photo
+// the user owns/has permission to use, e.g. orbit/<charId>/scenes/<id>.jpg).
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser()
@@ -50,11 +100,11 @@ export async function POST(req: NextRequest) {
     const characterId: string = post.characterId
     const character = await db.orbitCharacter.findFirst({
       where: { id: characterId, project: { userId: user.id } },
-      select: { id: true, profileImages: true },
+      select: { id: true, name: true, imagePrompt: true, profileImages: true },
     })
     if (!character) return NextResponse.json({ error: 'Character not found' }, { status: 404 })
 
-    // Face source = the character's front face reference.
+    // Face/identity source = the character's front face reference.
     const pi: any = character.profileImages || {}
     const faceRaw: string | undefined =
       pi.face_front || pi.face_left || pi.face_right ||
@@ -62,30 +112,47 @@ export async function POST(req: NextRequest) {
     const facePath = faceRaw ? storagePathFromProxy(faceRaw as string) : null
     if (!facePath) return NextResponse.json({ error: 'This character has no face reference photo.' }, { status: 400 })
 
-    // Base image = the consented photo the user picked. Must belong to this user.
+    // Inspiration photo = the photo the user picked. Must belong to this character.
     const basePath = storagePathFromProxy(String(baseImagePath))
     if (!basePath || !basePath.startsWith(`orbit/${characterId}/`)) {
-      return NextResponse.json({ error: 'Base photo is not valid for this character.' }, { status: 400 })
+      return NextResponse.json({ error: 'Inspiration photo is not valid for this character.' }, { status: 400 })
     }
 
     const faceUrl = await signed(facePath)
     const baseUrl = await signed(basePath)
     if (!faceUrl || !baseUrl) return NextResponse.json({ error: 'Could not read the source photos.' }, { status: 500 })
 
-    // fal face-swap: put the character's face (swap) onto the base photo.
-    const falRes = await fetch('https://fal.run/fal-ai/face-swap', {
+    // 1) Read the pose/setting/outfit from the inspiration photo.
+    const sceneDesc = await describeInspiration(apiKey, baseUrl)
+    const look = (character.imagePrompt && String(character.imagePrompt).slice(0, 300)) || character.name
+    const scene = sceneDesc || 'a candid everyday phone photo, relaxed pose'
+    // Her identity, hair and skin come first; the inspiration photo only sets the scene.
+    const prompt = `${character.name}, ${look}. Recreate this exact scene with her: ${scene}. ${REALISM}.`
+
+    // 2) Generate a fresh photo of HER (face from PuLID identity, hair + skin from her
+    //    description) in the inspiration photo's vibe.
+    const falRes = await fetch('https://fal.run/fal-ai/flux-pulid', {
       method: 'POST',
       headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ base_image_url: baseUrl, swap_image_url: faceUrl }),
+      body: JSON.stringify({
+        prompt,
+        reference_image_url: faceUrl,
+        image_size: 'portrait_4_3',
+        num_inference_steps: 20,
+        guidance_scale: 4,
+        id_weight: 1,
+        negative_prompt: NEGATIVE,
+        enable_safety_checker: true,
+      }),
     })
     if (!falRes.ok) {
       const t = await falRes.text()
-      console.error('fal face-swap error', falRes.status, t)
-      return NextResponse.json({ error: 'Face swap failed at fal (' + falRes.status + ').', detail: t.slice(0, 300) }, { status: 502 })
+      console.error('fal pulid error', falRes.status, t)
+      return NextResponse.json({ error: 'Image generation failed at fal (' + falRes.status + ').', detail: t.slice(0, 300) }, { status: 502 })
     }
     const falData = await falRes.json()
-    const outUrl: string | undefined = falData?.image?.url || falData?.images?.[0]?.url
-    if (!outUrl) return NextResponse.json({ error: 'No image was returned.', got: JSON.stringify(falData).slice(0, 300) }, { status: 502 })
+    const outUrl: string | undefined = falData?.images?.[0]?.url || falData?.image?.url
+    if (!outUrl) return NextResponse.json({ error: 'No image was returned.' }, { status: 502 })
 
     let buffer: Buffer
     if (outUrl.startsWith('data:')) {

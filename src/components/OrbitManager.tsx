@@ -879,7 +879,7 @@ return (
             {selectedProject.targetAudience && <span>Audience: {selectedProject.targetAudience}</span>}
           </div>
         </div>
-        <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
+        <OrbitImageStudio projectId={selectedProject.id} characters={(selectedProject.characters || []).map((c: any) => ({ id: c.id, name: c.name, face: (c.profileImages || c.profile_images || {}).face_front || null }))} posts={contentPosts} onChange={() => loadContent(selectedProject.id)} />
 
         {/* Characters */}
         <div>

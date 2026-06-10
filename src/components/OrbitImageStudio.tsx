@@ -150,8 +150,8 @@ export default function OrbitImageStudio({ projectId, characters, posts, onChang
   const note: React.CSSProperties = { fontSize: '11px', color: '#71717a', marginBottom: '10px' }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#0a0a0f', overflowY: 'auto', padding: '16px 16px 60px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', position: 'sticky', top: 0, background: '#0a0a0f', paddingBottom: '8px' }}>
+    <div style={{ marginTop: '12px', background: '#0f0f17', borderRadius: '14px', padding: '14px', border: '1px solid #2e2e3e' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#e4e4e7', margin: 0 }}>✨ Image Studio</h2>
         <button onClick={() => setOpen(false)} style={{ padding: '8px 14px', borderRadius: '8px', background: '#1e1e2e', border: '1px solid #2e2e3e', color: '#e4e4e7', fontSize: '14px', cursor: 'pointer' }}>Close</button>
       </div>
